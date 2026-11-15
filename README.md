@@ -1,0 +1,428 @@
+# Neuron Lab
+
+Neuron Lab is a local teaching simulator for neural networks and the transformer block behind language models. Start with **one neuron by hand**, pick any neuron, and watch its inputs travel along the connections, multiply by their weights, add up, take the bias, and pass through an activation rule. Then open the **Worked examples** gallery to step through complete forward and backward passes with every number on screen, and the **LLM playground** to see the same ideas scale up: words become tokens, tokens become vectors, attention decides which earlier words matter, and cross-entropy backpropagation adjusts the weights.
+
+The interface is built as a classroom story: guided presets, a four-step quest, a six-stage forward-pass animation with the actual numbers riding the connections, a training view that shows every gradient update, a worked-example gallery for backpropagation, a tiny word-level transformer that explains next-token prediction and attention, a **reading room** that points students toward the books, papers, videos, posts, and podcasts worth their time, and a **screening room** of the best current LLM lectures.
+
+## At a glance
+
+![The classroom overview with the journey cards, quest bar, network diagram, and inspector](docs/screenshots/classroom.png)
+
+The main network shows signal flow **only while a forward pass is running**. Every moving value packet carries a gold arrow on a parallel lane just below it, with the same phase and timing, so the arrow, the packet, and the calculation move together:
+
+![Gold arrows on the lane below each value packet during the Sum step](docs/screenshots/network-arrows.gif)
+
+Use the **− / + / Fit** controls or **Ctrl + scroll over the diagram** to zoom, then **drag anywhere** to pan. A plain scroll moves the page, so the diagram never traps the mouse wheel; in full-screen mode a plain scroll zooms. The zoom level stays visible over the canvas:
+
+![The network diagram zoomed to 156% with the zoom controls](docs/screenshots/network-zoom.png)
+
+The **expand** button in the zoom bar fills the screen with the diagram. Use **Exit full screen**, the shrink button, or **Esc** to return to the panel:
+
+![The network diagram in full-screen mode](docs/screenshots/diagram-fullscreen.png)
+
+**Challenge explanations** now go beyond the short answer. Revealing the student challenge gives the full arithmetic, what each number means in plain language, why it matters for the next layer, a what-if table, and buttons that run the bias variants in the diagram:
+
+![The revealed student challenge with the what-if table and try buttons](docs/screenshots/challenge.png)
+
+**Every calculation can be opened.** A **?** in the calculation card header and a **!** beside each stage open the full explainer. The calculation panel itself is now a floating card: drag its header to move it, drag the bottom-right corner to resize it, and scroll the body for long calculations:
+
+![The draggable calculation panel with a ? in the header and ! beside each stage](docs/screenshots/calc-panel.png)
+
+![The full calculation explainer with the whole equation, variable table, step cards, and what-if](docs/screenshots/explainer.png)
+
+**Every settings control has a `!` guide.** The `!` beside a section or control opens a plain-language guide with the simple idea, why it matters, how it changes the calculation, a what-if example, the current values, and a one-line reminder:
+
+![The network settings panel with a ! beside every section and key control](docs/screenshots/settings.png)
+
+![The architecture guide explaining the network shape in plain language](docs/screenshots/settings-guide.png)
+
+| Forward pass in progress | Training report |
+| --- | --- |
+| ![Labelled dots travelling along the connections while the timeline shows the current stage](docs/screenshots/forward-pass.png) | ![Loss chart, before and after predictions, and the selected weight update](docs/screenshots/training.png) |
+
+**Run the error backward.** Under the forward-pass button, set the **target** and **learning rate**, then press **Run backward pass**. The step-by-step panel compares the prediction with the target, measures the error slope, sends the error back through every layer, shows each weight’s gradient and correction, and finishes with the before/after loss. Coral packets carry the error backward, red labels show weight gradients, and **Apply correction** writes the new weights:
+
+![The backward pass panel with error packets, gradient labels, and the old/gradient/new correction table](docs/screenshots/backprop.png)
+
+Or press **Auto-train** with a number of steps. It runs the forward pass, repeats the backward step, keeps the step with the lowest loss, and applies that best correction automatically. The loss chart shows the whole journey from the first guess to the best step:
+
+![The automatic backward pass with the loss journey, before/best/final predictions, and the best result applied](docs/screenshots/auto-backprop.png)
+
+**Ask the neuron tutor.** The **Ask the tutor** button on the Network output opens a chat that reads the current prediction, target, loss, and output-neuron math. It explains why the result came out that way, answers “what if” questions about the bias, weights, inputs, or activation, and suggests how to get closer to a target — including an **Auto-train toward …** action:
+
+![The Neuron tutor explaining the output, the products, the bias, and the ReLU result](docs/screenshots/tutor.png)
+
+**Worked examples** put every forward and backward calculation on one screen. The network shows only the active direction — **gold arrows** on a forward step, **green arrows** on a backward step — and the update table shows old, gradient, and new:
+
+![A forward step with only gold arrows](docs/screenshots/examples.png)
+
+![A backward step with only green arrows](docs/screenshots/examples-backprop.png)
+
+**Tinker with a neural network.** The **Playground** tab now follows the TensorFlow Playground board: a run/parameter bar on top, **Data** on the left, **Features + hidden layers** in the center, and **Output** on the right. Small orange/blue dots travel along the weighted connections **only while Play is active**; pausing freezes them at their current positions, and Step updates the network without animating. It includes the full classification/regression switch, Circle/XOR/Gaussian/Spiral and Plane/Gaussian regression data, all seven engineered features, 0–6 hidden layers with 1–8 neurons, the full learning-rate list, L1/L2 regularization and rate, ratio/noise/batch controls, regenerate, Play/Pause/Step/Reset, test/training loss, the output heatmap with axes, Show test data, Discretize output, and the color legend. Hover a neuron to preview its map in Output; click a feature to toggle it, a neuron to edit its bias, or a connection to edit its weight. The original model semantics are preserved: ±1 labels, Tanh output for classification, Linear output for regression, 0.5 × squared error, and 500/1,200-point datasets:
+
+![The TensorFlow Playground-style 2D board with the top parameter bar, data column, live network, and output heatmap](docs/screenshots/tf-playground.png)
+
+**العربية / English.** The top bar has a persisted language switch, and **the whole interface is available in Arabic**: every lab, the lesson guide, the challenges and their worked answers, the settings guides, the neuron tutor, the glossary, the house-price case study, the advisor, the Python guide’s explanations, and the reading and screening rooms. Arabic mode sets the document to RTL and uses an Arabic-friendly type stack. Formulas, generated Python code, the tiny model’s English tokens, and the titles and authors of external resources stay as they are; any text without a translation falls back to English.
+
+![The Playground in Arabic with the RTL board, translated controls, and output labels](docs/screenshots/playground-arabic.png)
+
+**A real-world case study.** The **House case** tab follows a house-price project through all ten steps — define, collect and clean, split, scale, choose the network, initialize, train in batches, repeat epochs, validate, and test. Each step is a full classroom document with the actual numbers, and the live lab trains a real 2 → 3 → 1 network on 1,000 training houses in batches of 100:
+
+![The house-price case study with the ten-step pipeline and the first step document](docs/screenshots/house-case-steps.png)
+
+![The live mini-batch lab with batch losses, training and validation error, before/after MAE, and sample predictions](docs/screenshots/house-lab.png)
+
+The case study also keeps the two classroom reference posters at the top, so students can zoom them while reading the steps:
+
+![The two house-price reference posters: the whole run and the step-by-step project flow](docs/screenshots/house-references.png)
+
+**Plan the hardware and software.** The **Advisor** tab reads the current network and training assumptions, then shows the exact parameter count, batches, updates, and parameter storage. It recommends CPU, RAM, and GPU suitability with visible heuristics and limitations, estimates training memory separately from storage, compares software by learning objective, and includes the full 2 → 3 → 1 worked example:
+
+![The hardware and software advisor for a 2 → 3 → 1 house-price network](docs/screenshots/advisor.png)
+
+![The advisor's hardware recommendation, optional computer fields, detected CPU count, and assumptions](docs/screenshots/advisor-recommendation.png)
+
+**Generate the Python training guide.** The **Python guide** tab turns the current architecture, seed, and split into a complete 15-step PyTorch workflow. Every step shows its purpose, input, code, output, and a check before continuing. The guide copies per-step code, copies the complete script, and downloads a runnable `.py`, an explanatory `.ipynb`, and a `requirements.txt`. The default dataset is a clearly labeled synthetic classroom demonstration; complete rows from Teach the network can be used instead. The script starts from a fresh seeded initialization of the selected architecture rather than copying the browser's trained weights. The generated script is tested end to end — data, training, validation, test, prediction, and save/reload:
+
+![The Python training guide matched to a 2 → 3 → 1 house-price network](docs/screenshots/python-guide.png)
+
+![Step 7 of the generated guide showing the exact layers, parameter count, and copyable code](docs/screenshots/python-guide-step7.png)
+
+**The reading room** is a curated library of 43 books, papers, videos, posts, podcasts, courses, and interactive tools, organized into six learning paths. Search it, save what you want, mark what you finish, and jump straight into the matching lab:
+
+![The resource library with learning paths, filters, and resource cards](docs/screenshots/library.png)
+
+**Watch** is the screening room: 23 LLM lectures, every one scored 9.0+, with the latest 2025–26 talks marked. Play them in the page, read the chapters, save them for later, and open the matching lab:
+
+![The screening room with the Deep Dive primer, quality scores, and the latest picks](docs/screenshots/watch.png)
+
+**LLM playground** turns words into tokens and draws attention as moving light. Press **Backprop one step** to send the error the other way:
+
+![The LLM playground with tokens, attention arcs carrying light, next-token probabilities, and the backprop panel](docs/screenshots/llm.png)
+
+| The error flowing backward | The model after a training step |
+| --- | --- |
+| ![Coral light travelling backward along the attention links](docs/screenshots/llm-backprop.png) | ![The loss curve and the weight update after one gradient step](docs/screenshots/llm-training.png) |
+
+**Chain-rule tracer** follows one loss value back through every stage, with the local slope and the error at each hop:
+
+![The chain-rule tracer with nine cards and an amber traced attention link](docs/screenshots/llm-tracer.png)
+
+**Presentation view** enlarges the interface for a projector and keeps the same controls:
+
+![Presentation view with larger type](docs/screenshots/presentation.png)
+
+## Run locally
+
+Use Python 3.11 or newer and Node.js 22 or newer. Run the commands from the project folder. Installing dependencies requires internet access. The running simulator uses your computer and needs no API keys or external assets.
+
+### Windows PowerShell
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend run build
+.\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+### macOS and Linux
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements-dev.txt
+npm --prefix frontend ci
+npm --prefix frontend run build
+.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+Open [Neuron Lab](http://127.0.0.1:8000). Press **Ctrl+C** in the server terminal to stop it. For frontend development, keep FastAPI running and run `npm --prefix frontend run dev` in another terminal. Set `PORT` and `NEURON_LAB_API` to run a second copy on another port or against another backend. On PowerShell use `npm.cmd`. Vite serves the UI at [port 5173](http://127.0.0.1:5173) and forwards API calls to FastAPI.
+
+## Five-minute classroom walkthrough
+
+| Time | What to do |
+| --- | --- |
+| 0:00–1:00 | Open **One neuron by hand** from the journey cards. Select **Output 1** and show its calculation card on the diagram. Multiply 2 × 0.5 and 3 × 1, add the products to get 4, then add the bias of −1. ReLU gives 3. Open **Exact values** when you want all the displayed digits. |
+| 1:00–2:00 | Edit **Weight 1** to 1. The run button starts to glow because the diagram needs a new run. Ask students to predict the new output, then click **Run forward pass** for 4. Open the student challenge, reveal the full explanation, read the what-if table, and press **Try bias −5**, **Try bias −3**, then **Back to original** to see outputs 0, 1, and 3. |
+| 2:00–3:00 | Add a hidden layer under **Architecture** to build a **2 → 2 → 1** network. Set the layer activations and click **Initialize weights** to start from the shown seed. Run the forward pass and load **Two layers** to compare with a hand-set network. |
+| 3:00–4:00 | Watch the six stages change in the animation timeline: Move, Multiply, Sum, Bias, Activate, Pass. The dots carry the current number. Click **Pause**, open a neuron, and read the math for that stage; set **0.5×** or **2×** to slow down or speed up the class. Use **Next layer** to visit the hidden layer and outputs. In **Why activation matters**, run Linear and ReLU on the same total of −3. |
+| 4:00–5:00 | Open **Teach the network**, then **Load AND gate**. Pick a weight and click **One training step**. Compare the predictions and loss before and after, and use the old value, gradient, and new value to explain the update. Switch to **Presentation view** for a larger type scale. |
+
+## Worked examples in five minutes
+
+Five tiny networks, each with a complete forward pass, loss, backward pass, and parameter update.
+
+The network shows the direction of the current process. On a forward step, **only gold arrows** move input → output. On a backward step, **only green arrows** move output → input. Choose **Both** when you want the two directions side by side. Use **Flow** to choose **Auto** (follow the current step), **Both**, **Forward**, or **Backward**, change the arrow **Speed**, pause and resume the arrows with **Pause arrows**, or click any connection to flip the direction. The direction arrows keep moving even when the operating system asks for reduced motion, because the movement is the lesson; the pause button gives students control.
+
+![A forward step with only gold arrows, then a backward step with only green arrows](docs/screenshots/examples-flow.gif)
+
+| Example | Shape | What students should notice |
+| --- | --- | --- |
+| One weight, one bias | 1 → 1 | The whole chain rule in one step. Loss 1 → 0, prediction 0 → 1. |
+| ReLU that passes the error | 2 → 1 | An active ReLU has slope 1, so both weights get a gradient. |
+| ReLU that blocks the error | 2 → 1 | A negative total gives slope 0. Every gradient is 0 and nothing moves. |
+| Two layers, hidden error | 2 → 2 → 1 | The output error travels back through Wᵀ, is scaled by the hidden slopes, and becomes the hidden gradients. |
+| Sigmoid squashes the slope | 1 → 1 | A 0.197 slope turns a large output error into a small update. |
+
+| Time | What to do |
+| --- | --- |
+| 0:00–1:00 | Open **Worked examples** and stay on **One weight, one bias**. Read the setup, then press **Next** through the weighted sum, the activation, and the loss. Every card shows the actual arithmetic. |
+| 1:00–2:00 | Continue into the backward pass: `∂L/∂prediction`, the delta, the weight and bias gradients, the update table (old / gradient / new), and the result. The ribbon shows prediction 0 → 1 and loss 1 → 0; the diagram switches to the updated weights. |
+| 2:00–3:00 | Compare **ReLU that passes the error** with **ReLU that blocks the error**. In the blocked case the total is negative, the slope is 0, every gradient is 0, and the loss cannot move. |
+| 3:00–4:00 | Open **Two layers, hidden error** and follow the error into the hidden layer: `∂L/∂a = W(next)ᵀ · δ(next)`, then `δ = ∂L/∂a × f′(z)`, then the hidden gradients. Only the active hidden neuron moves. |
+| 4:00–5:00 | Open **Sigmoid squashes the slope**, then press **Play** on any example to run the demonstration automatically. Use **Restart** to reset the walkthrough. |
+
+### How the gallery computes
+
+Every example is real. `engine.trace` runs a single-example forward pass, computes mean squared error (the same loss as the training tab), then a full backward pass over every layer and parameter; the update is one exact gradient-descent step. The API returns every intermediate value: products, sums, z, activations, slopes, deltas, weight and bias gradients, the updated network, and the new loss. `tests/test_examples.py` checks every weight and bias against a numerical slope and asserts that the one-weight example lands exactly on the target.
+
+## The reading room in five minutes
+
+Open **Library** in the top bar. It is a curated collection, not a search engine:
+
+- **43 resources** across books, papers, videos, posts, podcasts, courses, and interactive tools.
+- **Six learning paths** that put them in a sensible order, from “what is a neuron” to interpretability and society.
+- **Search and filters** for media type, level, free-only, and saved items.
+- **Save and finish** marks live in the browser's local storage, so they survive a refresh without an account.
+- **Open in the lab** buttons connect a reading to the matching simulator.
+
+| Path | What it covers | Resources |
+| --- | --- | --- |
+| The 30-minute introduction | 3Blue1Brown, the Illustrated Transformer, Wolfram, and TensorFlow Playground | 4 |
+| Backprop, by hand | Nielsen, Karpathy's Zero to Hero, the 1986 paper, and Karpathy's backprop essay | 4 |
+| Inside the transformer | Illustrated Transformer, 3Blue1Brown's GPT lesson, the attention paper, Raschka, and Anthropic's circuits framework | 5 |
+| How an LLM is trained | GPT-2, GPT-3, scaling laws, InstructGPT, and Latent Space | 5 |
+| Open the black box | Circuits, induction heads, ROME, grokking, monosemanticity, and Distill | 6 |
+| AI in the world | Mitchell, Russell, Christian, Lex Fridman, and Dwarkesh | 5 |
+
+The library is intentionally opinionated. Every entry has a one-line “why” and a time estimate, and the “Open in the lab” buttons mean a student can read about backprop and then step through it in **Worked examples**. **Print list** produces a paper reading list of the current filters for a classroom handout. Some books are paid; the free ones are marked. Nothing is sponsored.
+
+## The screening room: the best LLM lectures
+
+**Watch** is a quality-gated video library, not a YouTube search result. It has **23 picks, every one scored 9.0 or higher**, and **12 from 2025–26**. The scores are editorial, out of 10, based on clarity, accuracy, depth, production, and freshness. Views and likes are shown when verified, but they are a signal, not the score.
+
+| Pick | Channel | Year | Length | Score |
+| --- | --- | ---: | ---: | ---: |
+| Deep Dive into LLMs like ChatGPT | Andrej Karpathy | 2025 | 3h 21m | 9.9 |
+| Attention in transformers, step-by-step | 3Blue1Brown | 2024 | 15m | 9.8 |
+| Let’s build GPT: from scratch | Andrej Karpathy | 2023 | 1h 56m | 9.8 |
+| The spelled-out intro to backpropagation | Andrej Karpathy | 2022 | 2h 25m | 9.7 |
+| Let’s reproduce GPT-2 (124M) | Andrej Karpathy | 2024 | 3h 59m | 9.7 |
+| But what is cross-entropy? | 3Blue1Brown | 2026 | 32m | 9.7 |
+| Intro to Large Language Models | Andrej Karpathy | 2023 | 1h | 9.6 |
+| Transformers, the tech behind LLMs | 3Blue1Brown | 2024 | 27m | 9.6 |
+| CS25 V6: Overview of Transformers | Stanford CS25 | 2026 | 1h 20m | 9.4 |
+| MIT 6.S191: Deep Sequence Modeling | MIT 6.S191 | 2026 | 1h | 9.3 |
+| GRPO Explained: DeepSeekMath and reasoning RL | Yannic Kilcher | 2025 | 50m | 9.2 |
+| On the Biology of a Large Language Model | Yannic Kilcher | 2025 | 45m | 9.1 |
+
+The newest additions include Karpathy’s 2025 **Deep Dive** and **How I use LLMs**, 3Blue1Brown’s 2026 **Compression is Intelligence** series, the 2026 **Stanford CS25 V6** lectures, the 2026 **MIT 6.S191** sequence-modeling and massively-parallel-training lectures, and Yannic Kilcher’s 2025 paper deep dives on **GRPO** and **circuit tracing**. Older videos stay only when they are still the best explanation of a core idea.
+
+Every card gives you the **why**, the score, the length, the channel, and the topics. The **New 2025–26** filter shows only the latest picks. **Save for later** and **watched** marks persist in the browser. The in-page player streams from YouTube; the rest of Neuron Lab still works offline.
+
+## LLM playground in six minutes
+
+The lab reads top to bottom. The prompt card at the top shows the model’s answer; the six stages below show how it got there. Use the rail on the left to jump between stages.
+
+| Time | What to do |
+| --- | --- |
+| 0:00–1:00 | Open **LLM playground**. The prompt is “the cat ran to the”. Click **Predict next**, read stage 1 (**Tokens**) to see each word become a number, then jump to stage 5 (**Softmax**): the model says **mat**, the story agrees, and the loss is tiny. Point out that the probabilities are a softmax over the whole vocabulary, not a single answer. |
+| 1:00–2:00 | Watch the attention graph. Light flows from **cat** and **to** into the highlighted query **the**. Click any token: the tokens to its right dim because attention is causal, and clicking an earlier token re-runs the question “what comes next after this word?”. The table shows each `q·k` score and its softmax weight. |
+| 2:00–3:00 | Read the vector strips in **Embeddings** (token row + position row = x), **Attention** (context), and **MLP** (input, the 32 hidden neurons, finished vector). Colour is the sign, brightness is the magnitude; hover a cell to read its number. These are the numbers a real LLM holds in its residual stream. |
+| 3:00–4:00 | Press **Backprop one step**. The links turn coral and light flows backward; the table switches to `∂L/∂score` and `∂L/∂a`. After the gradient animation the weights update, the loss chart adds a point, and the model predicts again. Try the **the dog ran to the** example: it is confidently wrong, so the loss and the gradients are large — a useful discussion of overfitting and data. |
+| 4:00–5:00 | Press **Trace top link**. Nine cards walk from the loss to the attention link, then to the key/value vectors and the token embedding. Read the local slope, the error arriving, the error sent back, and the share of the context (80.7% for **to**). Use **Next** or click a card to step through. |
+| 5:00–6:00 | Press **Generate 8** to watch autoregression: one token is appended, attention runs again, and the output feeds the next step. Drag the temperature slider to compare the careful top-token distribution with a flatter, more surprising one. |
+
+## How the LLM demo works
+
+- The vocabulary is the **11 words and punctuation marks** in a tiny story. The prompt is tokenized into words, and the last **12 tokens** are the context window.
+- One attention head, `d = 16`, a 32-wide ReLU MLP, and a softmax over the vocabulary — **2,667 parameters** in total. The equations are `x = embedding + position`, `q/k/v = x·W`, `a = softmax(q·kᵀ/√d)`, `c = a·v`, then a residual MLP and a next-token softmax.
+- The model is trained with **cross-entropy** and full-batch gradient descent on the story. Both the forward and the analytic backward pass live in `backend/llm.py`; a numerical gradient check in `tests/test_llm.py` agrees with it to better than `1e-6`.
+- The saved weights are loaded at startup. If you change the story or the dimensions, run `python -m backend.train_llm` to regenerate `backend/llm_weights.npz`.
+- The demo is deliberately small and overfits its story. The “the dog ran to the” prompt shows the failure mode honestly: the model relies on “ran to the” and ignores the subject. That gap is the reason real LLMs need scale, data, and more heads and layers.
+
+### Chain-rule tracer
+
+Click **Trace top link**, a bolt in the attention table, or any attention arc. The tracer freezes the loss on one target token and walks backward through nine stages:
+
+`loss → softmax → target logit → residual + MLP → context → attention link → attention softmax → key/value → embedding + position`.
+
+Every card shows the forward equation, the local slope (`∂this/∂that`), the error arriving, the error sent back, and a bar for the relative signal strength. The **Attention link** card is the heart of it: it answers “how much would the loss change if this one link moved?” with `∂L/∂a = (∂L/∂c) · v`, and the number matches the attention gradient exactly. The last card shows the error landing on the token's embedding row and its position row.
+
+The traced arc turns amber, its source token gets a dashed **link** label, and every other arc dims — so the graph keeps the context while one path is in focus. **Prev/Next** or clicking a card steps through the chain; closing the tracer returns the graph to its normal light flow.
+
+### Where this can go next
+
+- A draw-a-digit input with forward and backward passes from the pixel grid, in the spirit of classic MNIST visualizers.
+- Multi-head and two-layer attention with a head selector, so students can see different heads learn different jobs.
+- A token-embedding map (PCA of the tiny model, or a bundled 2D projection) to show that similar words land near each other.
+- A context-window and KV-cache inspector: what the model can still see at token 4,096.
+- Sampling controls: top-k, top-p, beam search, and a side-by-side temperature comparison.
+- A “hallucination” sandbox that gives the model an out-of-story prompt, shows high confidence, and asks students to explain why.
+- A fine-tuning story: paste a new tiny corpus, train a few steps, and watch which weights move.
+
+### Inspiration
+
+The experience borrows the immediate cause-and-effect loop of [TensorFlow Playground](https://playground.tensorflow.org/), the forward/backward animation and per-neuron inspection from [wdv.com's simulator](https://wdv.com/NN/), the experiment prompts from [8gwifi's playground](https://8gwifi.org/neural_network_playground.jsp), the clear theory framing from [ml0x](https://ml0x.com/tools/neural-network-playground.html), and the architecture map from [Simulations4All](https://simulations4all.com/simulations/neural-network-explorer). The LLM lab adds the step those playgrounds stop short of: a real attention block, next-token probabilities, and a backward pass.
+
+
+## What makes it easy to follow
+
+- **Eight numbered lessons** — the lab tabs are numbered 1–8 and stay in the same place on every screen. Under them, a lesson guide names the question the lab answers, lists the ideas and three things to try, and has **Continue** and back buttons. **Hide intro** collapses the guide and the home header into a compact workspace; the choice is remembered.
+- **Neuron anatomy** — the inspector opens with a picture of the selected neuron: inputs → × weights → Σ → + bias → activation → output, with the live numbers on every part. During a forward pass the part being calculated lights up.
+- **The activation as a curve** — the Activate step draws the activation function with a dot where this neuron sits, and states the slope at that point. The slope is the number backpropagation multiplies the error by, so a flat ReLU visibly explains why a switched-off neuron stops learning.
+- **A diagram that stays put** — the forward-pass timeline, the backward-pass lesson, and the auto-train report open below the network diagram, and starting a run scrolls the diagram into view.
+- **A complete backward pass** — every neuron’s δ is shown with its real activation slope, hidden neurons show where their error comes from (Σ δ(next) × w), and the correction table lists every layer.
+- **The LLM playground as a guided pipeline** — the prompt travels down the page through six colour-coded stages, **Tokens → Embeddings → Attention → MLP → Softmax → Learn**. Each stage pairs a live picture with *What happens*, *Why it matters*, and a *Try it* prompt, and a connector between stages names what is handed on (“5 token numbers”, “1 context vector”). A sticky rail on the left shows the live result of every stage (“reads “to” 52%”, “20 of 32 neurons on”) and jumps to it. Tokens shows each word’s vocabulary number, the whole vocabulary, and the training story; Embeddings shows token row + position row = the vector the model reads; MLP lights its 32 hidden neurons; Softmax shows every score beside its probability; Learn shows the loss calculation and how large the gradient is for each group of weights. During **Backprop one step** the connectors and the rail turn coral and run upward. Words outside the vocabulary are reported instead of silently dropped.
+- **A searchable glossary** — about 45 terms in four groups (one neuron, networks, learning, language models), each with a plain-language meaning, a worked example, and a link to the lab that shows it.
+
+- **Classroom journey** — four preset cards in the page header describe the goal of each story, and the matching preset stays highlighted.
+- **Your quest** — four small missions (run the numbers, open a neuron, change a weight, teach the network) light up as the student does them, with a progress ring and a small celebration when all four are complete. Progress is saved in the browser and can be reset with the circular arrow.
+- **A diagram that explains itself** — each of the six stages has a name, an icon, a progress bar, a one-line explanation, and a step counter. Data dots flow continuously along the connections for the whole layer — they never jump back to the start when the stage changes — and keep going into the next layer when values pass forward. The leading packets are labelled with the value they carry, with a soft glow trail behind them, and a neuron ring pulses while its products are being added.
+- **Signal-flow arrows that ride the calculation** — during a forward pass, every moving value packet carries a high-contrast gold arrow on a parallel lane just below it, with the same phase and timing. Nothing moves when nothing is being calculated; the legend names **Signal flow** only while the pass runs. The lesson motion keeps playing even when the operating system asks for reduced motion, because the movement is the explanation; **Pause** stops it.
+- **Zoom, pan, and expand the network** — the Network diagram has **− / + / Fit** controls, a live percentage, **Ctrl + scroll-to-zoom around the pointer**, and **drag-anywhere panning** after zooming. The **expand** button fills the viewport; **Exit full screen** (or Esc) restores it. This makes a specific connection or weight readable in a wide network.
+- **The math in two places** — the calculation card on the diagram follows the current animation stage, while the inspector keeps the full four-step breakdown, editable weights and bias, and a note of what the last run used.
+- **Pacing controls** — pause, resume, show the result, replay, and a 0.5×/1×/1.5×/2× speed control. Reduced-motion preferences stop the decorative motion, but the value packets and direction arrows keep moving because they are the lesson; **Pause** stops them.
+- **Small rewards** — output values pop when they arrive, training shows a percentage drop badge and a confetti burst when the loss improves, and the run button pulses whenever the diagram is out of date.
+- **From neurons to LLMs** — the **LLM playground** reuses the same visual language: tokens become nodes, attention links carry moving light, gradients flow back in coral, and the next-token probabilities are always on screen. The model is real, the numbers are computed live, and the weights can be trained from the page.
+- **Worked backprop examples** — five tiny networks with a step-by-step walkthrough of the forward pass, loss, backward pass, and parameter update. Every card shows the substituted arithmetic. The network draws **gold-forward** and **green-backward** arrow lanes; choose **Auto / Both / Forward / Backward**, change the speed, pause or resume the arrows, or click a connection to flip. The diagram also lights the forward flow in cyan and the backward flow in coral.
+- **Backward pass on the main network** — set a target and learning rate for your own network, then step through the loss, error slope, every layer’s share of the error, the gradients, the update, and the new prediction. Coral error packets move from output to inputs, red labels show the weight gradients, and the correction table shows **old / gradient / new** for every knob. **Apply correction** updates the network by one gradient step; the before/after loss makes the effect visible.
+- **Auto-train** — give the target, learning rate, and number of steps. The app runs the forward pass, repeats the backward step, tracks the loss after every step, keeps the network with the lowest loss, and applies it. The result panel shows before, best, and final predictions, the best step, and a loss chart, so students can see that the final step is not always the best one.
+- **Neuron tutor chat** — a local chat on the Network output that reads the current numbers. Ask why the prediction is what it is, what would happen if the bias/weight/activation changed, why the loss is high, or how to reach a target. It answers with the actual arithmetic, shows the target’s reachable range for the activation, and can launch **Auto-train** toward a target the student names. It only changes the network when the student presses Auto-train.
+- **English / Arabic interface** — a persisted language switch in the top bar with a right-to-left layout. Every screen is translated: about 2,200 pieces of text in `frontend/src/locales/ar.json`. The neuron tutor understands questions typed in Arabic, and the glossary can be searched in either language.
+- **2D playground** — a TensorFlow Playground-style board built into Neuron Lab. A top run bar controls play, pause, step, reset, epoch, learning rate, activation, L1/L2 regularization, regularization rate, and problem type. The left **Data** column provides Circle, XOR, Gaussian, Spiral, Plane, and Gaussian regression datasets, a training/test ratio slider, noise, batch size, and regenerate. The center is a live network with seven feature maps, 0–6 hidden layers, 1–8 neurons per layer, weighted links with moving signal dots, and click-to-toggle features, bias editing, and weight editing. The right **Output** column shows test/training loss, an axis-labelled heatmap of the selected neuron or output, Show test data, Discretize output, the color legend, and a loss chart. Classification uses tanh output and ±1 labels; regression uses linear output; both use the original 0.5 × squared-error objective.
+- **House-price case study** — a complete ten-step project in the **House case** tab: define the task, clean the records, split train/validation/test, scale the features, choose a 2 → 3 → 1 network (9 weights + 4 biases), initialize with seed 42, train in batches of 100, repeat across epochs, validate, and test. Each step has a full document with a student check, and the live lab trains on 1,000 houses, reports the 10 batch losses, the per-epoch training/validation error, before/after MAE for all three splits, and sample predictions. The case study can be printed, and the two reference posters are built in with a zoomable viewer.
+- **Hardware & software advisor** — reads the current fully connected network, counts weights, biases, and parameters per layer, and computes batches per epoch, optimizer updates, and exact parameter storage. Optional fields cover training examples, batch size, epochs, precision, optimizer, and the student's RAM/CPU/GPU; browser-reported CPU cores are labeled separately. The recommendation explains CPU sufficiency, suggested RAM, and whether a dedicated GPU is unnecessary, optional, or worth evaluating, with transparent threshold rules and no fabricated timings. The software table covers browser playgrounds, NumPy, PyTorch, Colab, Jupyter, and VS Code, and the educational section and 2 → 3 → 1 worked example use the house-price context.
+- **Python training guide** — generates a complete 15-step PyTorch walkthrough from the current architecture, activation functions, and seed: environment setup, seeds, data inspection, cleaning/splitting, scaling, tensors/batches, model inspection, loss/optimizer, a non-destructive one-batch demonstration, a full mini-batch training loop, validation and best-checkpoint selection, plots, test metrics, a new-example prediction, and save/reload. The guide provides per-step and complete-script copy buttons, downloadable `.py`, `.ipynb`, and `requirements.txt`, and clearly labels synthetic data, defaults, hardware assumptions, and early-stopping behavior. The full generated script is executed end to end in the test suite.
+- **A reading room, not a link dump** — 43 curated resources with a one-line reason, a time estimate, a level, and six learning paths. Search, filter by media type, save what you want, and jump into the matching lab from the card.
+- **A screening room with a quality gate** — 23 LLM lectures, all scored 9.0+, 12 from 2025–26, with in-page players, chapters, watch-later and watched marks, and lab links. No random tutorials, no clickbait.
+- **Challenges that explain, not just answer** — revealing a challenge gives the full arithmetic, a plain-language explanation of every number, the effect on the next layer, a what-if table, and (for the one-neuron challenge) buttons that run bias −5, −3, or the original −1 in the diagram.
+- **Settings explained for beginners** — a **!** beside the preset, architecture, inputs, hidden layers, outputs, input values, activation functions, starting weights, seed, and initialize button opens a plain-language guide: the simple idea, why it matters, what it changes in the calculation, a what-if example, the current values, and a reminder. It is written for a student who has never seen a neural network.
+- **Every number has a name** — the **?** on a calculation card (or **Explain** in the inspector) opens `a = f(Σ xᵢ·wᵢ + b)` with a symbol table, step-by-step symbolic and substituted equations, and what-if examples; a **!** beside each card stage jumps straight to that step. The calculation panel is draggable by its header, resizable from the corner, and scrolls, so long equations never collide with the title or get clipped.
+- **A tracer, not just an animation** — press **Trace top link** in the LLM lab to follow one loss value through nine chain-rule stages, with the local slope, the error arriving, the error sent back, and the link's contribution on screen. The traced arc turns amber while the rest of the graph dims.
+- **Keyboard and screen readers** — neurons are reachable with Tab and toggled with Enter or Space, Escape closes an open calculation, and each stage is announced through a live region. Token chips in the LLM graph are buttons with names and selection state.
+
+## How the lab handles changes
+
+- **Initialize weights** sets starting weights from the seed and sets biases to zero. The backend uses uniform He initialization for ReLU and uniform Xavier initialization for Linear, Sigmoid, and Tanh.
+- **Run forward pass** animates each layer using the calculated values. Blue pulses follow the curved connections as values arrive, and amber pulses show weighted products. Click a neuron to open its calculation, then click it again to close it. The pulses continue whether the calculation is open or closed. After an edit, the diagram marks the results as needing a new run and the run button pulses.
+- **Train** uses mean squared error and updates the weights and biases once per step using the full dataset. The predictions and selected weight in the report belong to the last step. The chart covers the whole session.
+- **Reset training** restores the parameters from before the first step of that session. Changing the network or examples starts a fresh session from the current parameters. The training rate and step count can change between runs in a session.
+- Resizing keeps a weight when both of its neurons still exist and remain adjacent. If you add or remove the last hidden layer, the output neurons keep their biases and activation. Their new incoming connections get new weights.
+- **Lessons** saves named snapshots of the current network and any training settings and examples. Reopening a lesson recalculates its forward pass. Training history is kept for the current session.
+- **Quest progress and animation speed** are stored only in this browser. The lab works without them and never sends them to the server.
+
+## Tests
+
+Run the API and math tests from the project folder.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
+Playwright builds the frontend and starts a separate FastAPI instance on port 8011 with its own temporary database. Run it with your virtual environment active so Playwright can find Python.
+
+**PowerShell**
+
+```powershell
+$env:Path = "$(Resolve-Path .venv/Scripts);$env:Path"
+Set-Location frontend
+npx.cmd playwright install chromium
+npm.cmd test
+```
+
+**macOS and Linux**
+
+```bash
+source .venv/bin/activate
+cd frontend
+npx playwright install chromium
+npm test
+```
+
+If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to run the suite with it.
+
+### Verification results
+
+- The production build, 35 pytest checks, and 40 Playwright tests pass. TypeScript also passes `tsc --noEmit --noUnusedLocals --noUnusedParameters`, so there are no unused imports, locals, or parameters.
+
+- The first lesson produced products `[1, 3]`, sum `4`, and output `3`. The second produced hidden outputs `[3, 0]` and final output `1.75`.
+- The gradient check compared every weight and bias in a small two-layer network with a numerical approximation. The checks agreed within `1e-8`.
+- The AND preset reduced mean squared error from `0.241154` to `0.051130` in 120 steps at a learning rate of 1.
+- The transformer gradient check compared every parameter group with a numerical approximation and agreed within `1e-6`. Its attention rows sum to one and never look at future tokens.
+- The worked-example checks compared every weight and bias in all five examples with a numerical slope, confirmed the one-weight step reaches loss 0, and confirmed that the blocked ReLU has zero gradients.
+- The tracer check walked the loss back to the token embedding and confirmed that `∂L/∂a` equals the attention gradient reported by the backward pass.
+- The LLM browser checks walked through the default prompt, clicked an earlier token to move the causal query, appended the top token, ran a backprop step, traced the loss through nine chain-rule cards, and reset the model.
+- The worked-example browser checks walked the one-weight example to the updated loss and followed the error into a hidden layer.
+- The worked-example flow check confirmed that a forward step shows only the gold lane and a backward step shows only the green lane; it switched between **Auto**, **Both**, **Forward**, and **Backward**, changed the speed, paused and resumed the arrows, and clicked a connection to flip the flow. A reduced-motion run confirmed the arrows still animate.
+- The main-network checks confirmed there are no arrows at rest, then verified that every moving value packet has an arrow on a parallel lane with the same phase and animation. A reduced-motion run confirmed the value packets and arrows keep moving together, and the Pause control stops them.
+- The learning-path tests checked the neuron anatomy and activation curve, the real sigmoid slope (not a flat 1) in the backward-pass arithmetic, the lesson guide and its remembered **Hide intro** choice, the glossary search and its jump into a lab, every LLM stage card, and the unknown-word notice.
+- The diagram zoom test checked **125%** with the buttons, **drag-to-pan**, **Fit** returning to **100%**, a plain mouse wheel leaving the zoom at 100%, and **Ctrl + wheel zoom**.
+- The full-screen diagram test confirmed the expanded canvas fills the viewport and **Exit full screen** restores the panel.
+- The challenge test revealed the full explanation and what-if table, then ran bias −5, −3, and the original −1, checking outputs 0, 1, and 3.
+- The explainer test opened the full calculation from the card and the inspector, checked the whole equation, variable table, bias step, per-step **!** focus, what-if section, and that the calculation panel can be dragged and resized.
+- The settings-guide test opened the architecture, input-value, and hidden-layer guides and checked the simple idea, why it matters, the calculation effect, what-if, current values, and remember line.
+- The backward-pass API test checked the loss, the weight gradients, and the lower loss after one step. The browser test set target 1, stepped through compare → error → output layer, saw the coral error packets and gradient labels, applied the correction, and watched the output change from 3 to 0.
+- The auto-train API test checks that the kept best loss is the minimum of the history. The browser test set target 1, pressed Auto-train, saw the loss chart and best step, confirmed the best result was applied, then ran it again and closed back to the setup.
+- The tutor browser test opened the chat, asked why the output is what it is, checked the product arithmetic and ReLU explanation, asked how to reach the target, pressed the tutor’s Auto-train action, and saw the automatic result and the tutor’s summary.
+- The house-case API test checked the 2 → 3 → 1 shape (9 weights, 4 biases), 1,000/100/100 split, 10 batches, 100 updates, 11 epoch points, and lower train/test MAE after training. The browser test opened the case study, checked the 10 step rail, the House 1,000 row, the two reference posters and the zoom viewer, the live lab, the batch shape, and the network’s 9 weights and 4 biases.
+- The advisor browser test loaded the 2 → 3 → 1 house setup, checked 9 weights, 4 biases, 13 parameters, 10 batches, 200 updates, and 52 B float32 storage, verified that the GPU is unnecessary, that 1,005 examples give 11 batches and 220 updates, and that float16 storage is 26 B. The software links target the verified official pages.
+- The Python guide tests checked all 15 steps, the exact `nn.Linear(2, 3)` / `nn.Linear(3, 1)` layers, 13 trainable parameters, 10 batches and 200 updates, the incomplete-batch 1,005 → 11 case, a 15-code-cell notebook, and the copy/download actions. A small generated guide ran end to end with Python 3.14 and PyTorch 2.13: it trained, restored the best validation state, reported test MAE/RMSE, predicted a new house, saved the checkpoint, reloaded it, and confirmed the predictions matched.
+- The playground model tests trained a 2 → 4 → 1 XOR network and a feature-engineered circle classifier, verified the 500-example classification split and ±1 labels, and trained a plane-regression network with L2 regularization. The browser test verifies that the flow canvas is frozen while paused, moves only after Play, and freezes again on Pause; it also stepped an epoch, switched to regression and verified the Plane dataset, added and removed a hidden layer, and changed regularization, regularization rate, and activation.
+- The language test switched to العربية, checked `lang="ar"` and `dir="rtl"`, verified the Arabic navigation and brand, reloaded to confirm persistence, then switched back to English. The Playground test additionally verifies the flow animation is frozen while paused, runs only after Play, and freezes again on Pause.
+- The library browser checks searched the collection, filtered to papers, saved a resource, filtered to saved items, and jumped from a card into the worked-example lab. A phone-width run confirmed the reading room fits without horizontal overflow.
+- The video-library browser checks opened the primer and its YouTube embed, searched by channel, filtered by topic and by 2025–26 freshness, selected a video, saved and watched it, and jumped into the LLM lab. A phone-width run confirmed the screening room fits without horizontal overflow.
+- The browser checks exercised keyboard neuron selection, weight editing, layer navigation, two-layer animation with pause and replay, training and reset, lesson storage, a narrow layout, the quest steps and reset, and the animation speed control. A reduced-motion run also completed the full forward pass: the value packets and arrows keep moving because that motion is the lesson, and Pause stops them.
+- The layout was reviewed at 390, 420, 720, 900, 1280, 1440, and 1920 pixels, including presentation view, both dialogs, the LLM laboratory, the worked-example gallery, the resource library, and the screening room.
+
+## Project files
+
+- `frontend/src/App.tsx` owns the classroom state, quest tracking, speed control, the challenge explanations, and the dialogs.
+- `frontend/src/Hero.tsx` contains the animated header and the four journey cards.
+- `frontend/src/lessons.ts` lists the eight labs in teaching order; `LessonGuide.tsx` renders the numbered tabs and the lesson guide.
+- `frontend/src/NeuronAnatomy.tsx` draws the neuron picture and the activation curve used by the inspector.
+- `frontend/src/Glossary.tsx` holds the searchable glossary.
+- `frontend/src/Quest.tsx` stores and renders the four guided missions.
+- `frontend/src/Diagram.tsx` draws the SVG network, the labelled data packets, the moving signal-flow arrows, the draggable/resizable calculation panel, the zoom/pan/full-screen controls, and the activation burst.
+- `frontend/src/ForwardPlayback.tsx` defines the six animation stages, the timeline, and the speed control.
+- `frontend/src/LlmLab.tsx`, `llm.ts`, and `llm.css` render and style the transformer playground: the prompt card, the stage rail, the six stage sections, attention flow, next-token bars, the error path, and the chain-rule tracer.
+- `frontend/src/BackpropExamples.tsx`, `examples.ts`, and `examples.css` render the worked-example gallery, its step cards, and the forward/backward network diagram.
+- `frontend/src/ResourceLibrary.tsx`, `library.ts`, and `library.css` render and style the reading room. The resource list, one-line reasons, and six learning paths live in `library.ts`; saved and finished marks use local storage.
+- `frontend/src/VideoLibrary.tsx`, `videos.ts`, and `video.css` render and style the screening room. The 23 picks, scores, chapters, and verified counts live in `videos.ts`; watch-later and watched marks use local storage.
+- `backend/examples.py` defines the five worked examples. `engine.trace` in `backend/engine.py` produces the complete forward, backward, update, and new-loss data.
+- `frontend/src/Inspector.tsx`, `Settings.tsx`, and `Training.tsx` render the editable math, architecture controls, and training report.
+- `frontend/src/CalculationExplainer.tsx` builds the full-equation dialog with the symbol table, step cards, and what-if examples.
+- `frontend/src/SettingsGuide.tsx` builds the plain-language network-settings guides.
+- `frontend/src/BackpropPlayback.tsx` builds the backward-pass step panel, correction table, and before/after result.
+- `frontend/src/AutoBackpropPanel.tsx` builds the automatic pass: loss chart, before/best/final predictions, and best-result summary.
+- `frontend/src/NeuronTutor.tsx` builds the local result tutor: the chat, the why/what-if/improve answers, and the Auto-train action.
+- `frontend/src/HouseCaseStudy.tsx` builds the ten-step house-price case study and the live mini-batch lab.
+- `frontend/src/HouseReferences.tsx` builds the zoomable reference-poster section.
+- `frontend/src/Advisor.tsx` builds the hardware/software advisor panel.
+- `frontend/src/advisorModel.ts` holds the parameter, batch, update, storage, and heuristic calculations.
+- `frontend/src/advisor.css` styles the advisor.
+- `frontend/src/PythonGuide.tsx` builds the interactive 15-step Python training guide.
+- `frontend/src/guideGenerator.ts` generates the runnable script, notebook, requirements, and per-step explanations.
+- `frontend/src/i18n.tsx` holds the language provider, the persisted switch, and the RTL setup.
+- `frontend/src/translate.ts` is the translation engine and `frontend/src/locales/ar.json` is the Arabic dictionary, keyed by the English text. `frontend/src/i18n-jsx/` is the app’s JSX runtime (set in `vite.config.ts`): it passes every element’s text through the engine, so a screen needs no translation code of its own. A key such as `Layer {0} of {1}` is a pattern. Add `data-keep` to an element whose text must never be translated (model tokens, names the student typed).
+- `frontend/scripts/i18n-extract.mjs` lists every piece of English text in the interface and `i18n-merge.mjs` merges translated lines into `ar.json`; `docs/i18n/` keeps the translation batches. To translate new text, add an entry to `ar.json` with the English text as the key.
+- `frontend/src/Playground.tsx` builds the TensorFlow Playground-style board, data column, network column, and output column.
+- `frontend/src/NetworkStage.tsx` draws the interactive feature/neuron/connection stage.
+- `frontend/src/playgroundModel.ts` implements the seeded datasets, feature engineering, network, classification/regression losses, and regularization.
+- `frontend/src/playground.css` styles the light playground board.
+- `frontend/src/houseConfig.ts` holds the shared house feature/target names, split counts, batch size, learning rate, epochs, and network shape.
+- `frontend/src/libraryStorage.ts` holds the localStorage helpers used by every saved preference; they fail quietly when storage is blocked.
+- `frontend/src/python-guide.css` styles the guide.
+- `backend/house.py` generates the classroom house set and runs the 2 → 3 → 1 mini-batch training.
+- `frontend/src/styles.css` holds the dark classroom theme, motion system, and responsive rules.
+- `backend/engine.py` contains the NumPy forward pass, initializers, and training math.
+- `backend/llm.py` contains the word-level transformer forward pass and analytic backward pass. `backend/train_llm.py` regenerates `backend/llm_weights.npz` if the story or dimensions change.
+- `backend/models.py` contains the Pydantic validation for architecture, numbers, training examples, and LLM requests.
+- `backend/schema.sql` creates the lesson table. FastAPI runs it at startup and saves lessons in `backend/lessons.sqlite3` by default. Set `NEURON_LAB_DB` to use another database path.
+- `tests/` and `frontend/tests/` contain the pytest and Playwright suites.
+- `frontend/scripts/` contains the screenshot helpers used while polishing the interface.
+"# ai-simulator-" 
