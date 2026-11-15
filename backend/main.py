@@ -14,6 +14,7 @@ from .examples import EXAMPLES
 from .models import (AutoBackprop, Backprop, HouseTrain, Lesson, LlmGenerate, LlmGradients, LlmPrompt, LlmTrace,
                      LlmTrain, Network, Resize, Train)
 from .house import house_case
+from .exam import exam_case
 from .presets import PRESETS
 
 ROOT = Path(__file__).resolve().parent
@@ -87,6 +88,10 @@ def create_app(database=None):
     @app.post("/api/case/house/train")
     def house_train(request: HouseTrain):
         return house_case(request.epochs, request.batch_size, request.learning_rate)
+
+    @app.post("/api/case/exam/train")
+    def exam_train(request: HouseTrain):
+        return exam_case(request.epochs, request.batch_size, request.learning_rate)
 
     @app.get("/api/examples")
     def examples():

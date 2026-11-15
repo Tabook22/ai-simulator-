@@ -1,7 +1,7 @@
 import { readStored, writeStored } from './libraryStorage';
 import type { IconName } from './ui';
 
-export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'advisor' | 'python' | 'llm';
+export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'llm';
 
 export interface Lesson {
   tab: WorkshopTab;
@@ -98,6 +98,22 @@ export const LESSONS: Lesson[] = [
       'Read the ten steps in order and answer each student check.',
       'Run the live lab and compare the error before and after training.',
       'Change the batch size or the learning rate and see how the batch losses change.',
+    ],
+  },
+  {
+    tab: 'exam', icon: 'book', label: 'Exam case', fullBleed: true,
+    question: 'How can study habits predict an exam score?',
+    goal: 'Follow an exam-score model through ten steps: 2 → 3 → 1, 1,000 students, 10 batches of 100, seed 42, and 9 weights plus 4 biases.',
+    learn: [
+      'Each student row has two inputs and one target; the target is compared with the prediction, not fed in.',
+      'The input count follows features, not rows: 2 features means 2 input nodes even with 1,000 students.',
+      'A batch of 100 students produces one average loss, one set of gradients, and one parameter update.',
+      'Ten batches complete one epoch; validation and test students never update the weights.',
+    ],
+    tryIt: [
+      'Read the ten steps and answer each student check.',
+      'Run the live exam lab and compare the error before and after training.',
+      'Open both posters and trace the same 2 → 3 → 1 network in English and Arabic.',
     ],
   },
   {

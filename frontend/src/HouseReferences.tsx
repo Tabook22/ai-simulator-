@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './ui';
 
-interface Poster {
+export interface Poster {
   id: string;
   kicker: string;
   title: string;
@@ -93,9 +93,9 @@ function PosterLightbox({ poster, onClose }: { poster: Poster; onClose: () => vo
   </div>, document.body);
 }
 
-export function HouseReferences() {
+export function HouseReferences({ posters = POSTERS }: { posters?: Poster[] } = {}) {
   const [open, setOpen] = useState<string | null>(null);
-  const poster = POSTERS.find(item => item.id === open) ?? null;
+  const poster = posters.find(item => item.id === open) ?? null;
   return <>
     <section className="house-refs" aria-label="Reference posters">
       <div className="house-refs-head">
@@ -106,7 +106,7 @@ export function HouseReferences() {
         <p>Open a poster to zoom in. Use it while you read the ten steps, run the batch lab, or ask the tutor.</p>
       </div>
       <div className="house-ref-grid">
-        {POSTERS.map(item => <figure className="house-ref-card" key={item.id}>
+        {posters.map(item => <figure className="house-ref-card" key={item.id}>
           <button type="button" className="house-ref-image" aria-label={`Open reference poster: ${item.title}`}
             onClick={() => setOpen(item.id)}>
             <img src={item.thumb} alt={item.alt} width={item.width} height={item.height} loading="lazy"/>

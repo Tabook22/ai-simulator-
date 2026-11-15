@@ -1386,3 +1386,8 @@ html[dir="rtl"] .lesson-guide-detail h3, html[dir="rtl"] .quest-eyebrow, html[di
 html[dir="rtl"] .equation-lead, html[dir="rtl"] .llm-rail-title, html[dir="rtl"] .journey-lead { letter-spacing: 0; font-size: .82em; }
 html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3 { letter-spacing: 0; }
 html[dir="rtl"] p, html[dir="rtl"] li, html[dir="rtl"] dd { line-height: 1.75; }
+/* Keep all nine lab tabs on one row on wide screens. */
+@media (min-width: 1000px) {
+  .workspace-tabs { flex-wrap: nowrap; width: 100%; overflow-x: auto; scrollbar-width: thin; }
+  .workspace-tabs button { flex: 0 0 auto; gap: 5px; padding: 8px 10px 8px 7px; font-size: .86em; }
+}

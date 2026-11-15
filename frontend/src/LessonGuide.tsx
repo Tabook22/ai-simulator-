@@ -1,6 +1,7 @@
 import { LESSONS } from './lessons';
 import type { WorkshopTab } from './lessons';
 import { Icon } from './ui';
+import { translate } from './translate';
 
 /** The numbered lab tabs. The number is decoration: the accessible name stays the lab's name. */
 export function LessonTabs({ tab, disabled, label, translate, onOpen }: {
@@ -30,30 +31,30 @@ export function LessonGuide({ tab, open, disabled, onToggle, onOpen }: {
     <div className="lesson-guide-bar">
       <span className="lesson-step">Lesson {index + 1}<small>of {LESSONS.length}</small></span>
       <div className="lesson-guide-copy">
-        <strong>{lesson.question}</strong>
-        <p>{lesson.goal}</p>
+        <strong>{translate(lesson.question)}</strong>
+        <p>{translate(lesson.goal)}</p>
       </div>
       <div className="lesson-guide-actions">
         <button type="button" className="button small quiet" aria-expanded={open} aria-controls="lesson-guide-detail"
           onClick={onToggle}><Icon name="bulb" size={14}/>{open ? 'Hide intro' : 'Show intro'}</button>
         <button type="button" className="button small icon-only" disabled={disabled || !previous}
           aria-label={previous ? `Go back to lesson ${index} of ${LESSONS.length}` : 'This is the first lesson'}
-          title={previous ? `Back to lesson ${index}: ${previous.label}` : undefined}
+          title={previous ? `Back to lesson ${index}: ${translate(previous.label)}` : undefined}
           onClick={() => previous && onOpen(previous.tab)}><Icon name="previous" size={15}/></button>
         <button type="button" className="button small" disabled={disabled || !next}
           aria-label={next ? `Continue to lesson ${index + 2} of ${LESSONS.length}` : 'This is the last lesson'}
-          title={next ? `Continue to lesson ${index + 2}: ${next.label}` : undefined}
+          title={next ? `Continue to lesson ${index + 2}: ${translate(next.label)}` : undefined}
           onClick={() => next && onOpen(next.tab)}>Continue<Icon name="next" size={15}/></button>
       </div>
     </div>
     {open && <div className="lesson-guide-detail" id="lesson-guide-detail">
       <div>
         <h3><Icon name="book" size={14}/>The ideas</h3>
-        <ul>{lesson.learn.map(item => <li key={item}>{item}</li>)}</ul>
+        <ul>{lesson.learn.map(item => <li key={item}>{translate(item)}</li>)}</ul>
       </div>
       <div>
         <h3><Icon name="play" size={13}/>Try this</h3>
-        <ol>{lesson.tryIt.map(item => <li key={item}>{item}</li>)}</ol>
+        <ol>{lesson.tryIt.map(item => <li key={item}>{translate(item)}</li>)}</ol>
       </div>
     </div>}
   </section>;

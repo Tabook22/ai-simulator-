@@ -135,6 +135,32 @@ export interface HouseResult {
   updates: number;
 }
 
+export interface ExamSample { study_hours: number; attendance: number; actual: number; predicted: number }
+export interface ExamResult {
+  dataset: {
+    name: string;
+    features: { name: string; unit: string }[];
+    target: string;
+    unit: string;
+    counts: { train: number; validation: number; test: number };
+    samples: ExamSample[];
+    batch_size: number;
+    batches_per_epoch: number;
+    feature_mean: number[];
+    feature_std: number[];
+    target_mean: number;
+    target_std: number;
+  };
+  network: HouseResult['network'];
+  history: { train_rmse: number[]; validation_rmse: number[] };
+  batch_losses: number[];
+  initial: { train: HouseMetrics; validation: HouseMetrics; test: HouseMetrics };
+  final: { train: HouseMetrics; validation: HouseMetrics; test: HouseMetrics };
+  predictions: ExamSample[];
+  epochs: number;
+  updates: number;
+}
+
 export interface LoadedLesson {
   name: string;
   network: Network;
