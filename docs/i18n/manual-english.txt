@@ -1,0 +1,108 @@
+manual.1	One weight, one bias
+manual.2	The shortest chain rule there is.
+manual.3	A linear neuron and one small step: the loss lands exactly on zero. Watch how one error number becomes two gradients.
+manual.4	ReLU that passes the error
+manual.5	Two inputs, one active neuron.
+manual.6	The neuron is on, so the ReLU slope is 1 and the error reaches both weights. Each weight gets a different gradient because each input is different.
+manual.7	ReLU that blocks the error
+manual.8	A switched-off neuron learns nothing.
+manual.9	The total is negative, so ReLU sits at zero. Its slope is zero, which stops the chain rule: every gradient is zero and the weights do not move.
+manual.10	Two layers, hidden error
+manual.11	Backprop through a hidden layer.
+manual.12	The output error is sent back through the output weights, multiplied by each hidden slope, and only then becomes the hidden weight gradients. The second hidden neuron is off, so it receives no update.
+manual.13	Sigmoid squashes the slope
+manual.14	Why the activation derivative matters.
+manual.15	The sigmoid slope is only 0.197, so a large output error becomes a much smaller delta. The weight still moves, but gently — this is the shrinking gradient behind the vanishing-gradient story.
+manual.16	Softmax → probability
+manual.17	Target logit
+manual.18	Residual + MLP
+manual.19	Context vector
+manual.20	Attention link
+manual.21	Softmax → attention
+manual.22	Key and value
+manual.23	Embedding + position
+manual.24	Backprop starts with a slope of one on the loss.
+manual.25	Softmax couples every logit: raising one lowers the others, so the error spreads to all of them.
+manual.26	Only the output row for this token connects its logit to the hidden vector.
+manual.27	The error splits into two roads: the residual shortcut and the MLP.
+manual.28	The output projection mixes the context; the residual then adds the query token's own vector.
+manual.29	{0}% of the context comes from this link. The dot product is how much the loss would move if this weight moved.
+manual.30	Softmax keeps the weights summing to one: a boost to one link is a cut to the others.
+manual.31	The query side also gets error: ‖∂L/∂q‖ = {0}, ‖∂L/∂x(query)‖ = {1}.
+manual.32	1 (the seed slope)
+manual.33	between 0 and 1
+manual.34	between −1 and 1
+manual.35	from 0 upward
+manual.36	, including negatives
+manual.37	any number
+manual.38	0 and up
+manual.39	step
+manual.40	steps
+manual.41	inputs
+manual.42	input
+manual.43	The calculation exceeded the number range. Try smaller values or a lower learning rate.
+manual.44	That preset does not exist.
+manual.45	That lesson does not exist.
+manual.46	Loss
+manual.47	Hidden layers
+manual.48	neuron
+manual.49	neurons
+manual.50	outputs
+manual.51	f′(z) = 1 if z > 0, else 0
+manual.52	horizontal position
+manual.53	vertical position
+manual.54	horizontal squared
+manual.55	vertical squared
+manual.56	interaction
+manual.57	horizontal wave
+manual.58	vertical wave
+manual.59	Hardware & software advisor
+manual.60	Target scaling & early stopping
+manual.61	Advisor input; the Training tab does not store batches.
+manual.62	One epoch is one pass over the training examples.
+manual.63	Parameter storage is shown at this precision.
+manual.64	A choice; the current lab trainer uses plain gradient descent.
+manual.65	, batch size, epochs, precision, optimizer
+manual.66	You enter this.
+manual.67	You enter this; no benchmark is inferred.
+manual.68	Choose what you have.
+manual.69	examples × features heuristic
+manual.70	({0} complete)
+manual.71	synthetic house-price demonstration with {0} feature(s) and {1} target(s).
+manual.72	synthetic generic demonstration with {0} feature(s) and {1} target(s).
+manual.73	{0} tokens
+manual.74	{0} numbers each
+manual.75	reads “{0}” {1}
+manual.76	{0} of {1} neurons on
+manual.77	loss {0}
+manual.78	{0} token numbers
+manual.79	{0} vectors of {1} numbers
+manual.80	1 context vector
+manual.81	1 finished vector of {0} numbers
+manual.82	compare with the correct token
+manual.83	attention weight
+manual.84	score (q · k)
+manual.85	matched
+manual.86	model guess
+manual.87	weight
+manual.88	score
+manual.89	{0} on · {1} off
+manual.90	number {0} = {1}
+manual.91	neuron {0} = {1}
+manual.92	neuron {0} = {1} (off)
+manual.93	{0} hidden neurons · ReLU
+manual.94	Up to date
+manual.95	term
+manual.96	terms
+manual.97	{0} terms
+manual.98	Lesson {0}
+manual.99	of {0}
+manual.200	Weight {0} → {1}
+manual.201	Bias of {0}
+manual.210	· {0} views
+manual.211	· {0} likes
+manual.212	{0} min
+manual.213	{0} hours
+manual.214	{0} views
+manual.220	{0}% lower
+manual.221	The same numbers land on the word's embedding row and its position row. Repeated words share the row.

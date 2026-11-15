@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.sqlite3
+*.sqlite3-*
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+frontend/shots/
+
+# Generated locally by the Python-guide walkthrough/tests
+frontend/house_price_model.pt
+frontend/trained_network_model.pt
+frontend/learning_curves.png

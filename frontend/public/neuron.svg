@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="wire" x1="6" y1="8" x2="42" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5ee7ff"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="13" fill="#0a1024"/>
+  <g fill="none" stroke="url(#wire)" stroke-width="2.4" stroke-linecap="round">
+    <path d="M14.5 14.5 23 23M14.5 33.5 23 25M26 24h8"/>
+  </g>
+  <circle cx="14" cy="14" r="3.4" fill="#5ee7ff"/>
+  <circle cx="14" cy="34" r="3.4" fill="#a78bfa"/>
+  <circle cx="24" cy="24" r="5.2" fill="#eafcff"/>
+  <circle cx="36" cy="24" r="3.2" fill="#5ef2a0"/>
+</svg>
