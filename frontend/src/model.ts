@@ -250,8 +250,9 @@ export function blankExample(inputs: number, outputs: number): Example {
 }
 
 export async function api<T>(path: string, body?: unknown, method = body === undefined ? 'GET' : 'POST'): Promise<T> {
-  const connectionError = 'Neuron Lab could not reach the local server. Check that the backend is running.';
-  const response = await fetch(`/api${path}`, {
+  const connectionError = 'Neuron Lab could not reach the server. Check that the backend is running.';
+  const apiRoot = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/api`;
+  const response = await fetch(`${apiRoot}${path}`, {
     method,
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),

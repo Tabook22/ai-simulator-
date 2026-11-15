@@ -694,7 +694,7 @@ export default function App() {
     <header className="topbar">
       <div className="topbar-inner">
         <div className="brand">
-          <span className="brand-mark"><img src="/neuron.svg" width="34" height="34" alt=""/></span>
+          <span className="brand-mark"><img src={`${import.meta.env.BASE_URL}neuron.svg`} width="34" height="34" alt=""/></span>
           <span className="brand-word">{t('Neuron Lab')}</span>
           <span className="brand-tag">{t('learn by watching')}</span>
         </div>

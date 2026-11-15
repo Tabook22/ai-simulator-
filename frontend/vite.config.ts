@@ -8,6 +8,8 @@ const backend = process.env.NEURON_LAB_API || 'http://127.0.0.1:8000';
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 export default defineConfig({
+  // Builds for a subpath (for example /simulator/) set VITE_BASE.
+  base: process.env.VITE_BASE || '/',
   // Every element is created through src/i18n-jsx, which translates its text (see src/translate.ts).
   plugins: [react({ jsxImportSource: 'neuron-i18n' })],
   resolve: {

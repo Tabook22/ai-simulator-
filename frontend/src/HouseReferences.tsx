@@ -14,6 +14,8 @@ interface Poster {
   height: number;
 }
 
+const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 const POSTERS: Poster[] = [
   {
     id: 'house-prices',
@@ -21,8 +23,8 @@ const POSTERS: Poster[] = [
     title: 'How a neural network learns house prices',
     caption: 'The 1,000-house run: two features per house, 100 houses per batch, 10 updates per epoch, a 2 → 3 → 1 network with 9 weights and 4 biases, and the hidden-layer question.',
     alt: 'Infographic showing house-price data, a 2 to 3 to 1 network, seed 42 initialization, 1,000 training houses split into 10 batches of 100, the batch-by-batch update chain across one epoch, the inside of a batch, the next epoch, and a comparison of shallow and deeper networks.',
-    thumb: '/reference/house-prices-thumb.webp',
-    full: '/reference/house-prices.webp',
+    thumb: asset('reference/house-prices-thumb.webp'),
+    full: asset('reference/house-prices.webp'),
     width: 1536,
     height: 1024,
   },
@@ -32,8 +34,8 @@ const POSTERS: Poster[] = [
     title: 'How a neural network learns, step by step',
     caption: 'The complete project as INPUT → PROCESS → OUTPUT: define the task, clean and split, scale, design and initialize, choose settings and batches, the four-step training loop, epochs, validate, and test.',
     alt: 'Tall infographic with nine numbered steps, each showing its input, process, and output: define the task; clean and split data; scale features; design and initialize; choose training settings and batches; the training loop with forward pass, loss, backward pass, and optimizer step; complete epochs; validate and select; test and predict.',
-    thumb: '/reference/pipeline-thumb.webp',
-    full: '/reference/pipeline.webp',
+    thumb: asset('reference/pipeline-thumb.webp'),
+    full: asset('reference/pipeline.webp'),
     width: 1024,
     height: 1536,
   },
