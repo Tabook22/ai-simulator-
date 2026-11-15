@@ -41,3 +41,5 @@
 *.npz binary
 *.npy binary
 *.sqlite3 binary
+*.xlsx binary
+*.zip binary

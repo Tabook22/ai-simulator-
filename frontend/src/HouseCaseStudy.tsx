@@ -3,6 +3,7 @@ import './house.css';
 import { api } from './model';
 import type { HouseResult } from './model';
 import { HouseReferences } from './HouseReferences';
+import { CaseDownloads } from './CaseDownloads';
 import { Icon, PanelTitle } from './ui';
 import { HOUSE_BATCH_SIZE, HOUSE_CASE_EPOCHS, HOUSE_LEARNING_RATE } from './houseConfig';
 
@@ -355,6 +356,8 @@ export function HouseCaseStudy() {
       </div>
       <button type="button" className="button small" onClick={() => window.print()}><Icon name="book" size={15}/>Print the case study</button>
     </header>
+
+    <CaseDownloads kind="house"/>
 
     <HouseReferences/>
 

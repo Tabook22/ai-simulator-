@@ -2142,5 +2142,16 @@
  "Ten batches complete one epoch; validation and test students never update the weights.": "عشر دفعات تكمل حقبة واحدة؛ طلاب التحقق والاختبار لا يحدّثون الأوزان أبدًا.",
  "Read the ten steps and answer each student check.": "اقرأ الخطوات العشر وأجب عن تحقّق الطالب في كل خطوة.",
  "Run the live exam lab and compare the error before and after training.": "شغّل مختبر الاختبار المباشر وقارن الخطأ قبل التدريب وبعده.",
- "Open both posters and trace the same 2 → 3 → 1 network in English and Arabic.": "افتح الملصقين وتتبّع الشبكة نفسها 2 ← 3 ← 1 بالإنجليزية والعربية."
+ "Open both posters and trace the same 2 → 3 → 1 network in English and Arabic.": "افتح الملصقين وتتبّع الشبكة نفسها 2 ← 3 ← 1 بالإنجليزية والعربية.",
+ "Download data and Python project": "تنزيل البيانات ومشروع بايثون",
+ "Take it with you": "خذها معك",
+ "Excel data + Python project": "بيانات Excel + مشروع بايثون",
+ "Download the complete dataset and a small Python project that reads the workbook, trains the same 2 → 3 → 1 network, and writes the results.": "نزّل مجموعة البيانات الكاملة ومشروع بايثون صغيرًا يقرأ المصنف، ويدرّب الشبكة نفسها 2 ← 3 ← 1، ويكتب النتائج.",
+ "Download Excel dataset": "تنزيل بيانات Excel",
+ "Download Python project": "تنزيل مشروع بايثون",
+ "10 batch sheets × 100 rows · seed 42 · 9 weights + 4 biases · setup and README included": "10 أوراق دفعات × 100 صف · البذرة 42 · 9 أوزان + 4 انحيازات · إعداد وREADME مضمّنان",
+ "1,000 training houses, 100 validation, 100 test": "1,000 منزل تدريب، و100 للتحقق، و100 للاختبار",
+ "1,000 training students, 100 validation, 100 test": "1,000 طالب تدريب، و100 للتحقق، و100 للاختبار",
+ "Download Python script": "تنزيل سكربت بايثون",
+ "Copy Python code": "نسخ كود بايثون"
 }

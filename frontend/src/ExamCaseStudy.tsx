@@ -3,6 +3,7 @@ import './house.css';
 import { api } from './model';
 import type { ExamResult } from './model';
 import { HouseReferences } from './HouseReferences';
+import { CaseDownloads } from './CaseDownloads';
 import { Icon, PanelTitle } from './ui';
 import { useI18n } from './i18n';
 import {
@@ -358,6 +359,8 @@ export function ExamCaseStudy() {
       </div>
       <button type="button" className="button small" onClick={() => window.print()}><Icon name="book" size={15}/>{t('Print the case study')}</button>
     </header>
+
+    <CaseDownloads kind="exam"/>
 
     <HouseReferences posters={EXAM_POSTERS}/>
 

@@ -90,6 +90,42 @@ The case study also keeps the two classroom reference posters at the top, so stu
 
 ![The exam-score case in Arabic](docs/screenshots/exam-case-arabic.png)
 
+**Download the data and Python project.** Both case headers include three actions: **Download Excel dataset**, **Download Python project**, and **Copy Python code**.
+
+The Excel workbook for each case contains:
+
+- a **README** sheet,
+- a **Summary** sheet,
+- **Full_Data** with all 1,200 rows, each marked `train`, `validation`, or `test`, and each training row carrying its batch number,
+- **Batch_01 … Batch_10** with the complete 100 rows of every batch,
+- separate **Validation** and **Test** sheets.
+
+The Python project ZIP contains the workbook, a working training script, `requirements.txt`, `setup.ps1`, `setup.sh`, and a README. Each script imports the workbook with:
+
+```python
+frame = pd.read_excel("house_data.xlsx", sheet_name="Full_Data")
+```
+
+and then trains the same seeded 2 → 3 → 1 network, evaluates all three splits, prints the results, and writes `results_house.xlsx` or `results_exam.xlsx`.
+
+On Windows:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python train_house.py
+```
+
+Use `train_exam.py` in the exam folder. The projects are also created on the desktop at:
+
+```text
+C:\Users\nmtab\Desktop\NeuronLab-Study-Cases\House-Price-Case
+C:\Users\nmtab\Desktop\NeuronLab-Study-Cases\Exam-Score-Case
+```
+
+![The Excel and Python project download panel in the exam case](docs/screenshots/case-downloads.png)
+
 **Plan the hardware and software.** The **Advisor** tab reads the current network and training assumptions, then shows the exact parameter count, batches, updates, and parameter storage. It recommends CPU, RAM, and GPU suitability with visible heuristics and limitations, estimates training memory separately from storage, compares software by learning objective, and includes the full 2 → 3 → 1 worked example:
 
 ![The hardware and software advisor for a 2 → 3 → 1 house-price network](docs/screenshots/advisor.png)
@@ -307,6 +343,7 @@ The experience borrows the immediate cause-and-effect loop of [TensorFlow Playgr
 - **2D playground** — a TensorFlow Playground-style board built into Neuron Lab. A top run bar controls play, pause, step, reset, epoch, learning rate, activation, L1/L2 regularization, regularization rate, and problem type. The left **Data** column provides Circle, XOR, Gaussian, Spiral, Plane, and Gaussian regression datasets, a training/test ratio slider, noise, batch size, and regenerate. The center is a live network with seven feature maps, 0–6 hidden layers, 1–8 neurons per layer, weighted links with moving signal dots, and click-to-toggle features, bias editing, and weight editing. The right **Output** column shows test/training loss, an axis-labelled heatmap of the selected neuron or output, Show test data, Discretize output, the color legend, and a loss chart. Classification uses tanh output and ±1 labels; regression uses linear output; both use the original 0.5 × squared-error objective.
 - **House-price case study** — a complete ten-step project in the **House case** tab: define the task, clean the records, split train/validation/test, scale the features, choose a 2 → 3 → 1 network (9 weights + 4 biases), initialize with seed 42, train in batches of 100, repeat across epochs, validate, and test. Each step has a full document with a student check, and the live lab trains on 1,000 houses, reports the 10 batch losses, the per-epoch training/validation error, before/after MAE for all three splits, and sample predictions. The case study can be printed, and the two reference posters are built in with a zoomable viewer.
 - **Exam-score case study** — a second ten-step project in the **Exam case** tab: predict a score out of 100 from study hours and attendance. It uses the same 2 → 3 → 1 network (9 weights, 4 biases), 1,000 training students, 100 validation and 100 test students, seed 42, and 10 batches of 100. The live lab reports batch losses, training/validation RMSE, before/after MAE, and four sample predictions. Both the English and Arabic reference posters are included in the zoomable poster viewer.
+- **Downloadable case data and Python projects** — each case offers an `.xlsx` workbook and a ZIP starter project. The workbook contains the full 1,200 rows, 10 complete batch sheets, validation/test sheets, a summary, and instructions. The Python project imports the workbook with pandas, trains the same seed-42 2 → 3 → 1 network, reports MAE/RMSE for all splits, and writes a results workbook. A copy-code button also puts the entire script on the clipboard.
 - **Hardware & software advisor** — reads the current fully connected network, counts weights, biases, and parameters per layer, and computes batches per epoch, optimizer updates, and exact parameter storage. Optional fields cover training examples, batch size, epochs, precision, optimizer, and the student's RAM/CPU/GPU; browser-reported CPU cores are labeled separately. The recommendation explains CPU sufficiency, suggested RAM, and whether a dedicated GPU is unnecessary, optional, or worth evaluating, with transparent threshold rules and no fabricated timings. The software table covers browser playgrounds, NumPy, PyTorch, Colab, Jupyter, and VS Code, and the educational section and 2 → 3 → 1 worked example use the house-price context.
 - **Python training guide** — generates a complete 15-step PyTorch walkthrough from the current architecture, activation functions, and seed: environment setup, seeds, data inspection, cleaning/splitting, scaling, tensors/batches, model inspection, loss/optimizer, a non-destructive one-batch demonstration, a full mini-batch training loop, validation and best-checkpoint selection, plots, test metrics, a new-example prediction, and save/reload. The guide provides per-step and complete-script copy buttons, downloadable `.py`, `.ipynb`, and `requirements.txt`, and clearly labels synthetic data, defaults, hardware assumptions, and early-stopping behavior. The full generated script is executed end to end in the test suite.
 - **A reading room, not a link dump** — 43 curated resources with a one-line reason, a time estimate, a level, and six learning paths. Search, filter by media type, save what you want, and jump into the matching lab from the card.
@@ -386,6 +423,7 @@ If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to
 - The tutor browser test opened the chat, asked why the output is what it is, checked the product arithmetic and ReLU explanation, asked how to reach the target, pressed the tutor’s Auto-train action, and saw the automatic result and the tutor’s summary.
 - The house-case API test checked the 2 → 3 → 1 shape (9 weights, 4 biases), 1,000/100/100 split, 10 batches, 100 updates, 11 epoch points, and lower train/test MAE after training. The browser test opened the case study, checked the 10 step rail, the House 1,000 row, the two reference posters and the zoom viewer, the live lab, the batch shape, and the network’s 9 weights and 4 biases.
 - The exam-case API test checked the same 2 → 3 → 1 shape, 1,000/100/100 split, 10 batches, 100 updates, 9 weights, 4 biases, the four illustrative students, and lower training MAE. The browser test opened the Exam case, found both English and Arabic posters, opened the zoom viewer, waited for the live 2 → 3 → 1 lab, and checked 10 batch losses and the four student predictions.
+- The downloadable workbooks were checked independently: 1,200 full rows, 10 batch sheets with exactly 100 rows each, and 100 validation plus 100 test rows. Both Python scripts ran end to end with pandas/openpyxl: house MAE fell from 30,315 to 9,397 OMR; exam MAE fell from 12.25 to 3.30 points; both wrote their results workbooks.
 - The advisor browser test loaded the 2 → 3 → 1 house setup, checked 9 weights, 4 biases, 13 parameters, 10 batches, 200 updates, and 52 B float32 storage, verified that the GPU is unnecessary, that 1,005 examples give 11 batches and 220 updates, and that float16 storage is 26 B. The software links target the verified official pages.
 - The Python guide tests checked all 15 steps, the exact `nn.Linear(2, 3)` / `nn.Linear(3, 1)` layers, 13 trainable parameters, 10 batches and 200 updates, the incomplete-batch 1,005 → 11 case, a 15-code-cell notebook, and the copy/download actions. A small generated guide ran end to end with Python 3.14 and PyTorch 2.13: it trained, restored the best validation state, reported test MAE/RMSE, predicted a new house, saved the checkpoint, reloaded it, and confirmed the predictions matched.
 - The playground model tests trained a 2 → 4 → 1 XOR network and a feature-engineered circle classifier, verified the 500-example classification split and ±1 labels, and trained a plane-regression network with L2 regularization. The browser test verifies that the flow canvas is frozen while paused, moves only after Play, and freezes again on Pause; it also stepped an epoch, switched to regression and verified the Plane dataset, added and removed a hidden layer, and changed regularization, regularization rate, and activation.
@@ -419,6 +457,9 @@ If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to
 - `frontend/src/HouseCaseStudy.tsx` builds the ten-step house-price case study and the live mini-batch lab.
 - `frontend/src/ExamCaseStudy.tsx` builds the ten-step exam-score case study and its live lab.
 - `frontend/src/examConfig.ts` holds the exam case constants and poster metadata.
+- `frontend/src/CaseDownloads.tsx` adds the Excel, Python-project, and copy-code actions to both cases.
+- `study-cases/house/train_house.py` and `study-cases/exam/train_exam.py` are the tested, downloadable training projects.
+- `scripts/export_study_cases.py` regenerates the Excel workbooks, ZIPs, and desktop study folders.
 - `frontend/src/HouseReferences.tsx` builds the zoomable reference-poster section, shared by both cases.
 - `backend/exam.py` generates the exam data and runs the 2 → 3 → 1 mini-batch training.
 - `frontend/src/Advisor.tsx` builds the hardware/software advisor panel.

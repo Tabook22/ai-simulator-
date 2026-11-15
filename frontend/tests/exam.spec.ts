@@ -5,6 +5,12 @@ test('opens the exam case, shows both posters, and runs the 2 -> 3 -> 1 lab', as
   await page.getByRole('button', { name: 'Exam case', exact: true }).click();
 
   await expect(page.locator('.house-hero h1')).toContainText('exam scores');
+  const excel = page.getByRole('link', { name: 'Download Excel dataset' });
+  await expect(excel).toHaveAttribute('href', /exam_data\.xlsx$/);
+  const download = await page.request.get(await excel.getAttribute('href') || '');
+  expect(download.status()).toBe(200);
+  await expect(page.getByRole('link', { name: 'Download Python project' })).toHaveAttribute('href', /exam-python\.zip$/);
+  await expect(page.getByRole('button', { name: 'Copy Python code' })).toBeVisible();
   await expect(page.locator('.house-ref-card')).toHaveCount(2);
   await expect(page.locator('.house-ref-card').first()).toContainText('English');
   await expect(page.locator('.house-ref-card').last()).toContainText('العربية');

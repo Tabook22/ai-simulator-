@@ -205,6 +205,8 @@ def create_app(database=None):
         app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
         if (dist / "reference").is_dir():
             app.mount("/reference", StaticFiles(directory=dist / "reference"), name="reference")
+        if (dist / "downloads").is_dir():
+            app.mount("/downloads", StaticFiles(directory=dist / "downloads"), name="downloads")
 
         @app.get("/", include_in_schema=False)
         def home():

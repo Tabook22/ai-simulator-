@@ -1391,3 +1391,16 @@ html[dir="rtl"] p, html[dir="rtl"] li, html[dir="rtl"] dd { line-height: 1.75; }
   .workspace-tabs { flex-wrap: nowrap; width: 100%; overflow-x: auto; scrollbar-width: thin; }
   .workspace-tabs button { flex: 0 0 auto; gap: 5px; padding: 8px 10px 8px 7px; font-size: .86em; }
 }
+.case-downloads { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin: 18px 0 22px; padding: 18px 22px; border: 1px solid #5ee7ff33; border-radius: 16px; background: linear-gradient(110deg, #5ee7ff0d, #a78bfa0b 60%, #0a0e2000); }
+.case-download-copy { flex: 1 1 340px; }
+.case-download-copy h2 { margin: 3px 0 5px; font-size: 1.15rem; color: #eafcff; }
+.case-download-copy p { margin: 0; max-width: 680px; color: #9fb0cf; font-size: .84rem; line-height: 1.55; }
+.case-download-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.case-download-actions .button { white-space: nowrap; }
+.case-download-note { flex: 1 0 100%; margin: 0; padding-top: 11px; border-top: 1px solid #ffffff10; color: #8294b4; font-size: .72rem; }
+html[dir="rtl"] .case-downloads { direction: rtl; }
+@media (max-width: 700px) {
+  .case-downloads { padding: 14px; }
+  .case-download-actions { width: 100%; }
+  .case-download-actions .button { flex: 1 1 auto; justify-content: center; }
+}
