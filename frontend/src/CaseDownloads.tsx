@@ -22,6 +22,7 @@ export function CaseDownloads({ kind }: { kind: 'house' | 'exam' }) {
   const [copied, setCopied] = useState(false);
   const base = import.meta.env.BASE_URL;
   const paths = PATHS[kind];
+  const guide = `${base}downloads/student-build-guide.pdf`;
 
   async function copyScript() {
     try {
@@ -51,6 +52,9 @@ export function CaseDownloads({ kind }: { kind: 'house' | 'exam' }) {
       <button type="button" className="button quiet" onClick={() => void copyScript()}>
         <Icon name="code" size={15}/>{copied ? t('Copied') : t('Copy Python code')}
       </button>
+      <a className="button quiet" href={guide} target="_blank" rel="noreferrer">
+        <Icon name="book" size={15}/>{t('Student build guide')}
+      </a>
     </div>
     <p className="case-download-note">
       {t(paths.rows)} · {t('10 batch sheets × 100 rows · seed 42 · 9 weights + 4 biases · setup and README included')}

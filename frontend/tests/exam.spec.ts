@@ -11,6 +11,9 @@ test('opens the exam case, shows both posters, and runs the 2 -> 3 -> 1 lab', as
   expect(download.status()).toBe(200);
   await expect(page.getByRole('link', { name: 'Download Python project' })).toHaveAttribute('href', /exam-python\.zip$/);
   await expect(page.getByRole('button', { name: 'Copy Python code' })).toBeVisible();
+  const guide = page.getByRole('link', { name: 'Student build guide' });
+  await expect(guide).toHaveAttribute('href', /student-build-guide\.pdf$/);
+  expect((await page.request.get(await guide.getAttribute('href') || '')).status()).toBe(200);
   await expect(page.locator('.house-ref-card')).toHaveCount(2);
   await expect(page.locator('.house-ref-card').first()).toContainText('English');
   await expect(page.locator('.house-ref-card').last()).toContainText('العربية');

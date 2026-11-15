@@ -90,7 +90,9 @@ The case study also keeps the two classroom reference posters at the top, so stu
 
 ![The exam-score case in Arabic](docs/screenshots/exam-case-arabic.png)
 
-**Download the data and Python project.** Both case headers include three actions: **Download Excel dataset**, **Download Python project**, and **Copy Python code**.
+**Download the data, Python project, and build guide.** Both case headers include four actions: **Download Excel dataset**, **Download Python project**, **Copy Python code**, and **Student build guide**.
+
+The 16-page **Student build guide** is a printable PDF that starts from the workbook and walks through the full development path: the problem statement, environment setup, Excel import, data pipeline, 2 → 3 → 1 design, mini-batch training, honest evaluation, FastAPI backend, React interface, interactive lesson design, reproducibility tests, deployment, and student challenges. It is included in both project ZIPs and both desktop folders.
 
 The Excel workbook for each case contains:
 
@@ -125,6 +127,8 @@ C:\Users\nmtab\Desktop\NeuronLab-Study-Cases\Exam-Score-Case
 ```
 
 ![The Excel and Python project download panel in the exam case](docs/screenshots/case-downloads.png)
+
+![A page from the student build guide showing the network and data-pipeline steps](docs/screenshots/student-build-guide.png)
 
 **Plan the hardware and software.** The **Advisor** tab reads the current network and training assumptions, then shows the exact parameter count, batches, updates, and parameter storage. It recommends CPU, RAM, and GPU suitability with visible heuristics and limitations, estimates training memory separately from storage, compares software by learning objective, and includes the full 2 → 3 → 1 worked example:
 
@@ -318,7 +322,7 @@ The experience borrows the immediate cause-and-effect loop of [TensorFlow Playgr
 
 ## What makes it easy to follow
 
-- **Eight numbered lessons** — the lab tabs are numbered 1–8 and stay in the same place on every screen. Under them, a lesson guide names the question the lab answers, lists the ideas and three things to try, and has **Continue** and back buttons. **Hide intro** collapses the guide and the home header into a compact workspace; the choice is remembered.
+- **Nine numbered lessons** — the lab tabs are numbered 1–9 and stay in the same place on every screen. Under them, a lesson guide names the question the lab answers, lists the ideas and three things to try, and has **Continue** and back buttons. **Hide intro** collapses the guide and the home header into a compact workspace; the choice is remembered.
 - **Neuron anatomy** — the inspector opens with a picture of the selected neuron: inputs → × weights → Σ → + bias → activation → output, with the live numbers on every part. During a forward pass the part being calculated lights up.
 - **The activation as a curve** — the Activate step draws the activation function with a dot where this neuron sits, and states the slope at that point. The slope is the number backpropagation multiplies the error by, so a flat ReLU visibly explains why a switched-off neuron stops learning.
 - **A diagram that stays put** — the forward-pass timeline, the backward-pass lesson, and the auto-train report open below the network diagram, and starting a run scrolls the diagram into view.
@@ -423,7 +427,7 @@ If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to
 - The tutor browser test opened the chat, asked why the output is what it is, checked the product arithmetic and ReLU explanation, asked how to reach the target, pressed the tutor’s Auto-train action, and saw the automatic result and the tutor’s summary.
 - The house-case API test checked the 2 → 3 → 1 shape (9 weights, 4 biases), 1,000/100/100 split, 10 batches, 100 updates, 11 epoch points, and lower train/test MAE after training. The browser test opened the case study, checked the 10 step rail, the House 1,000 row, the two reference posters and the zoom viewer, the live lab, the batch shape, and the network’s 9 weights and 4 biases.
 - The exam-case API test checked the same 2 → 3 → 1 shape, 1,000/100/100 split, 10 batches, 100 updates, 9 weights, 4 biases, the four illustrative students, and lower training MAE. The browser test opened the Exam case, found both English and Arabic posters, opened the zoom viewer, waited for the live 2 → 3 → 1 lab, and checked 10 batch losses and the four student predictions.
-- The downloadable workbooks were checked independently: 1,200 full rows, 10 batch sheets with exactly 100 rows each, and 100 validation plus 100 test rows. Both Python scripts ran end to end with pandas/openpyxl: house MAE fell from 30,315 to 9,397 OMR; exam MAE fell from 12.25 to 3.30 points; both wrote their results workbooks.
+- The downloadable workbooks were checked independently: 1,200 full rows, 10 batch sheets with exactly 100 rows each, and 100 validation plus 100 test rows. Both Python scripts ran end to end with pandas/openpyxl: house MAE fell from 30,315 to 9,397 OMR; exam MAE fell from 12.25 to 3.30 points; both wrote their results workbooks. The 16-page student build guide was rendered from its HTML source, included in both project ZIPs and desktop folders, and its PDF download returns 200 from the running app.
 - The advisor browser test loaded the 2 → 3 → 1 house setup, checked 9 weights, 4 biases, 13 parameters, 10 batches, 200 updates, and 52 B float32 storage, verified that the GPU is unnecessary, that 1,005 examples give 11 batches and 220 updates, and that float16 storage is 26 B. The software links target the verified official pages.
 - The Python guide tests checked all 15 steps, the exact `nn.Linear(2, 3)` / `nn.Linear(3, 1)` layers, 13 trainable parameters, 10 batches and 200 updates, the incomplete-batch 1,005 → 11 case, a 15-code-cell notebook, and the copy/download actions. A small generated guide ran end to end with Python 3.14 and PyTorch 2.13: it trained, restored the best validation state, reported test MAE/RMSE, predicted a new house, saved the checkpoint, reloaded it, and confirmed the predictions matched.
 - The playground model tests trained a 2 → 4 → 1 XOR network and a feature-engineered circle classifier, verified the 500-example classification split and ±1 labels, and trained a plane-regression network with L2 regularization. The browser test verifies that the flow canvas is frozen while paused, moves only after Play, and freezes again on Pause; it also stepped an epoch, switched to regression and verified the Plane dataset, added and removed a hidden layer, and changed regularization, regularization rate, and activation.
@@ -437,7 +441,7 @@ If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to
 
 - `frontend/src/App.tsx` owns the classroom state, quest tracking, speed control, the challenge explanations, and the dialogs.
 - `frontend/src/Hero.tsx` contains the animated header and the four journey cards.
-- `frontend/src/lessons.ts` lists the eight labs in teaching order; `LessonGuide.tsx` renders the numbered tabs and the lesson guide.
+- `frontend/src/lessons.ts` lists the nine labs in teaching order; `LessonGuide.tsx` renders the numbered tabs and the lesson guide.
 - `frontend/src/NeuronAnatomy.tsx` draws the neuron picture and the activation curve used by the inspector.
 - `frontend/src/Glossary.tsx` holds the searchable glossary.
 - `frontend/src/Quest.tsx` stores and renders the four guided missions.
@@ -457,9 +461,10 @@ If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to
 - `frontend/src/HouseCaseStudy.tsx` builds the ten-step house-price case study and the live mini-batch lab.
 - `frontend/src/ExamCaseStudy.tsx` builds the ten-step exam-score case study and its live lab.
 - `frontend/src/examConfig.ts` holds the exam case constants and poster metadata.
-- `frontend/src/CaseDownloads.tsx` adds the Excel, Python-project, and copy-code actions to both cases.
+- `frontend/src/CaseDownloads.tsx` adds the Excel, Python-project, copy-code, and student-guide actions to both cases.
 - `study-cases/house/train_house.py` and `study-cases/exam/train_exam.py` are the tested, downloadable training projects.
-- `scripts/export_study_cases.py` regenerates the Excel workbooks, ZIPs, and desktop study folders.
+- `study-cases/student-build-guide.html` and `.pdf` are the printable 14-section student build guide.
+- `scripts/export_study_cases.py` regenerates the Excel workbooks, ZIPs, desktop study folders, and guide copies.
 - `frontend/src/HouseReferences.tsx` builds the zoomable reference-poster section, shared by both cases.
 - `backend/exam.py` generates the exam data and runs the 2 → 3 → 1 mini-batch training.
 - `frontend/src/Advisor.tsx` builds the hardware/software advisor panel.

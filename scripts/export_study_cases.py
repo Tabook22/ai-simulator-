@@ -21,6 +21,7 @@ from openpyxl.utils import get_column_letter
 
 ROOT = Path(__file__).resolve().parent.parent
 STUDY = ROOT / "study-cases"
+GUIDE = STUDY / "student-build-guide.pdf"
 PUBLIC = ROOT / "frontend" / "public" / "downloads"
 DESKTOP = Path.home() / "Desktop" / "NeuronLab-Study-Cases"
 
@@ -247,6 +248,8 @@ def copy_project(meta, excel: Path, target: Path):
     for name in (meta["python"], "README.md", "requirements.txt", "setup.ps1", "setup.sh"):
         shutil.copy2(STUDY / meta["slug"] / name, target / name)
     shutil.copy2(excel, target / excel.name)
+    if GUIDE.is_file():
+        shutil.copy2(GUIDE, target / "STUDENT_BUILD_GUIDE.pdf")
 
 
 def build_zip(meta, folder: Path, target: Path):
@@ -275,6 +278,9 @@ def main():
         print(f"{details['case']}: {excel.stat().st_size/1024:.0f} KB workbook, "
               f"{(public_folder / details['script']).stat().st_size/1024:.0f} KB project")
     DESKTOP.mkdir(parents=True, exist_ok=True)
+    if GUIDE.is_file():
+        shutil.copy2(GUIDE, PUBLIC / "student-build-guide.pdf")
+        shutil.copy2(GUIDE, DESKTOP / "student-build-guide.pdf")
     (DESKTOP / "README.md").write_text(
         "# Neuron Lab study cases\n\n"
         "Two complete, downloadable case studies:\n\n"

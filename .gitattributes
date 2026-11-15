@@ -43,3 +43,4 @@
 *.sqlite3 binary
 *.xlsx binary
 *.zip binary
+*.pdf binary

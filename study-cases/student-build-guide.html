@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Build It Yourself — Neuron Lab Student Guide</title>
+<style>
+  :root {
+    --ink: #14213d;
+    --muted: #5f6b7a;
+    --line: #d9e0ea;
+    --blue: #0877bd;
+    --violet: #6d4aff;
+    --mint: #e9f8f3;
+    --gold: #fff4de;
+    --paper: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  @page { size: A4; margin: 17mm 15mm 18mm; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font: 10.5pt/1.55 "Segoe UI", Tahoma, Arial, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3, h4 { line-height: 1.2; margin: 0; }
+  h1 { font-size: 30pt; letter-spacing: -.5pt; }
+  h2 { font-size: 17pt; margin: 0 0 7px; color: var(--ink); }
+  h3 { font-size: 12pt; margin: 16px 0 5px; color: var(--blue); }
+  h4 { font-size: 10.5pt; margin: 12px 0 4px; }
+  p { margin: 0 0 7px; }
+  a { color: var(--blue); text-decoration: none; }
+  code, pre { font-family: "Cascadia Code", Consolas, "Courier New", monospace; }
+  code { font-size: .9em; background: #f1f5f9; padding: 1px 4px; border-radius: 4px; }
+  pre {
+    margin: 7px 0 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #dce8f7;
+    font-size: 8.3pt;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+  .cover {
+    min-height: 245mm;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10mm 5mm;
+  }
+  .kicker { color: var(--blue); font-size: 9pt; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; }
+  .cover h1 { margin: 8px 0 10px; max-width: 155mm; }
+  .cover .lede { font-size: 13pt; line-height: 1.45; color: #34445c; max-width: 155mm; }
+  .cover .rule { height: 5px; width: 90mm; border-radius: 99px; background: linear-gradient(90deg, #5ee7ff, #a78bfa); margin: 14px 0 18px; }
+  .cover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }
+  .cover-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: #fbfdff; }
+  .cover-card strong { display: block; font-size: 9pt; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+  .cover-card span { font-size: 9.5pt; color: #40516a; }
+  .cover-foot { color: var(--muted); font-size: 8.5pt; border-top: 1px solid var(--line); padding-top: 8px; }
+  .toc { page-break-after: always; }
+  .toc ol { columns: 2; column-gap: 14mm; padding-left: 18px; margin-top: 10px; }
+  .toc li { margin: 0 0 5px; color: #2d3c55; }
+  .section { page-break-before: always; }
+  .section:first-of-type { page-break-before: auto; }
+  .section-head { display: flex; align-items: baseline; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 12px; }
+  .section-num { flex: none; width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: #fff; font-weight: 800; font-size: 12pt; }
+  .checkpoint { border-left: 4px solid #17a673; background: var(--mint); border-radius: 0 8px 8px 0; padding: 8px 11px; margin: 10px 0; font-size: 9.5pt; }
+  .checkpoint strong { color: #0c6e4d; }
+  .note { border-left: 4px solid #e0a100; background: var(--gold); border-radius: 0 8px 8px 0; padding: 8px 11px; margin: 10px 0; font-size: 9.5pt; }
+  .note strong { color: #8a5a00; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .box { border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; background: #fbfdff; }
+  .box h4 { margin-top: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: 9pt; }
+  th { background: #13294b; color: #fff; text-align: left; padding: 7px 8px; }
+  td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f7fafc; }
+  .step { border-left: 3px solid #d7e2ef; padding-left: 10px; margin: 0 0 12px; }
+  .step h3 { margin-top: 0; }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 8px 0; }
+  .steps > li { counter-increment: step; position: relative; padding-left: 28px; margin: 0 0 7px; }
+  .steps > li::before { content: counter(step); position: absolute; left: 0; top: 1px; width: 19px; height: 19px; border-radius: 50%; background: #e8eefb; color: #1d3e6b; display: grid; place-items: center; font-size: 8pt; font-weight: 800; }
+  .pill { display: inline-block; border-radius: 99px; background: #e8f3fb; color: #075a8f; padding: 2px 8px; font-size: 8pt; font-weight: 700; margin-right: 3px; }
+  .arch { display: grid; grid-template-columns: 1fr 22px 1fr 22px 1fr; align-items: center; gap: 4px; margin: 10px 0; }
+  .arch-node { border: 1px solid #b9c9dc; border-radius: 10px; padding: 9px 8px; text-align: center; background: #f8fbff; }
+  .arch-node strong { display: block; color: var(--blue); font-size: 9.5pt; }
+  .arch-node small { display: block; color: var(--muted); font-size: 8pt; margin-top: 2px; }
+  .arch-arrow { text-align: center; color: var(--blue); font-size: 16pt; }
+  .footer { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 7px; color: var(--muted); font-size: 8pt; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .small { font-size: 8.5pt; color: var(--muted); }
+  .avoid-break { page-break-inside: avoid; }
+  .checklist { list-style: none; padding: 0; margin: 7px 0; }
+  .checklist li { padding-left: 19px; position: relative; margin: 0 0 5px; }
+  .checklist li::before { content: "☐"; position: absolute; left: 0; color: #7d8ca1; font-size: 10pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div>
+    <div class="kicker">Neuron Lab · Student Build Guide</div>
+    <h1>Build It Yourself</h1>
+    <div class="rule"></div>
+    <p class="lede">From an Excel workbook to a working neural network, a FastAPI backend, and a browser application — a complete design-and-development walkthrough for the House-Price and Exam-Score cases.</p>
+    <div class="cover-grid">
+      <div class="cover-card"><strong>You received</strong><span>A workbook, a tested Python project, requirements, and this guide.</span></div>
+      <div class="cover-card"><strong>You will build</strong><span>The same data pipeline, 2 → 3 → 1 model, API, and interactive interface.</span></div>
+      <div class="cover-card"><strong>Network</strong><span>2 inputs → 3 ReLU hidden neurons → 1 linear output; 9 weights + 4 biases.</span></div>
+      <div class="cover-card"><strong>Training</strong><span>1,000 training rows · 10 batches of 100 · 10 epochs · 100 updates · seed 42.</span></div>
+    </div>
+  </div>
+  <div class="cover-foot">A classroom companion for the downloadable Neuron Lab study cases · Version 1.0</div>
+</section>
+
+<section class="toc">
+  <div class="kicker">Contents</div>
+  <h2>A project, end to end</h2>
+  <p>Work through the sections in order. Each section ends with a checkpoint; do not move on until it passes.</p>
+  <ol>
+    <li>Understand the problem and the data</li>
+    <li>Set up your workspace and Python environment</li>
+    <li>Open the Excel workbook</li>
+    <li>Build the data pipeline</li>
+    <li>Design the network</li>
+    <li>Train in mini-batches</li>
+    <li>Evaluate honestly</li>
+    <li>Design the application architecture</li>
+    <li>Build the FastAPI backend</li>
+    <li>Build the browser interface</li>
+    <li>Add the interactive lesson</li>
+    <li>Test, debug, and reproduce</li>
+    <li>Deploy and update</li>
+    <li>Student challenges and next steps</li>
+  </ol>
+  <div class="note"><strong>Two cases, one pattern.</strong> The House-Price case uses <code>area_m2</code>, <code>bedrooms</code>, and <code>price_omr</code>. The Exam-Score case uses <code>study_hours</code>, <code>attendance</code>, and <code>exam_score</code>. Everything else — the 2 → 3 → 1 shape, 9 weights, 4 biases, seed 42, and the mini-batch loop — is the same.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">1</span><h2>Understand the problem and the data</h2></div>
+  <p>A neural network project starts with a sentence, not a library. Write down what goes in, what comes out, and how you will know whether the answer is useful.</p>
+  <div class="grid2">
+    <div class="box"><h4>House-Price case</h4><p><strong>Question:</strong> predict a house price from its area and number of bedrooms.</p><p><strong>Inputs:</strong> area (m²), bedrooms.</p><p><strong>Target:</strong> actual price in OMR.</p></div>
+    <div class="box"><h4>Exam-Score case</h4><p><strong>Question:</strong> predict an exam score from study hours and attendance.</p><p><strong>Inputs:</strong> study hours/week, attendance %.</p><p><strong>Target:</strong> actual score out of 100.</p></div>
+  </div>
+  <h3>The four exam rows</h3>
+  <table>
+    <thead><tr><th>Student</th><th>Study hours/week</th><th>Attendance</th><th>Exam score</th></tr></thead>
+    <tbody><tr><td>1</td><td>5</td><td>70%</td><td>58</td></tr><tr><td>2</td><td>10</td><td>85%</td><td>75</td></tr><tr><td>3</td><td>15</td><td>95%</td><td>89</td></tr><tr><td>4</td><td>8</td><td>80%</td><td>68</td></tr></tbody>
+  </table>
+  <div class="note"><strong>The target is not an input.</strong> Never feed the actual score or price into the network. It is used only after a prediction to measure the error. If the answer is an input, the model has nothing to learn.</div>
+  <h3>What you are really building</h3>
+  <ol class="steps">
+    <li><strong>Data contract:</strong> two numeric features, one target, and a clear split.</li>
+    <li><strong>Model:</strong> a small network that maps the two features to one number.</li>
+    <li><strong>Training loop:</strong> predict, measure the loss, backpropagate, update.</li>
+    <li><strong>Evaluation:</strong> separate validation and test data, reported honestly.</li>
+    <li><strong>Interface:</strong> a way for a person to explore the data and the model.</li>
+  </ol>
+  <div class="checkpoint"><strong>Checkpoint 1:</strong> Explain in one sentence why the target cannot be an input.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">2</span><h2>Set up your workspace and Python environment</h2></div>
+  <h3>Create a project folder</h3>
+  <p>Use the case folder you downloaded. A good structure is:</p>
+  <pre><code>Exam-Score-Case/
+  exam_data.xlsx
+  train_exam.py
+  requirements.txt
+  setup.ps1
+  setup.sh
+  README.md
+  STUDENT_BUILD_GUIDE.pdf</code></pre>
+  <h3>Create an isolated environment</h3>
+  <p><span class="pill">Windows</span></p>
+  <pre><code>python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt</code></pre>
+  <p><span class="pill">macOS / Linux</span></p>
+  <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt</code></pre>
+  <h3>Verify the three libraries</h3>
+  <pre><code>python -c "import numpy, pandas, openpyxl; print('ready')"</code></pre>
+  <div class="grid2">
+    <div class="box"><h4>numpy</h4><p>The network arithmetic: matrices, gradients, random seeds.</p></div>
+    <div class="box"><h4>pandas</h4><p>Reads the Excel sheet and selects the train/validation/test rows.</p></div>
+    <div class="box"><h4>openpyxl</h4><p>The engine behind <code>pandas.read_excel</code> for <code>.xlsx</code> files.</p></div>
+    <div class="box"><h4>No PyTorch required</h4><p>This project implements the 2 → 3 → 1 network directly in NumPy so the arithmetic is visible.</p></div>
+  </div>
+  <div class="checkpoint"><strong>Checkpoint 2:</strong> The prompt starts with <code>(.venv)</code> and the import check prints <code>ready</code>.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">3</span><h2>Open the Excel workbook</h2></div>
+  <p>The workbook is the source of truth. Open it in Excel or read it in Python:</p>
+  <pre><code>import pandas as pd
+frame = pd.read_excel("exam_data.xlsx", sheet_name="Full_Data")
+print(frame.shape)
+print(frame.head())
+print(frame["split"].value_counts())</code></pre>
+  <h3>What the sheets mean</h3>
+  <table>
+    <thead><tr><th>Sheet</th><th>Contents</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td><code>README</code></td><td>Case explanation and first rows</td><td>Read first</td></tr>
+      <tr><td><code>Summary</code></td><td>Counts, seed, shape, parameter count</td><td>Sanity check</td></tr>
+      <tr><td><code>Full_Data</code></td><td>All 1,200 rows with split and batch</td><td>Main dataset</td></tr>
+      <tr><td><code>Batch_01–10</code></td><td>100 complete rows per batch</td><td>Inspection and study</td></tr>
+      <tr><td><code>Validation</code></td><td>100 held-out rows</td><td>Choosing settings</td></tr>
+      <tr><td><code>Test</code></td><td>100 held-out rows</td><td>Final evaluation</td></tr>
+    </tbody>
+  </table>
+  <h3>Check the shape before modelling</h3>
+  <pre><code>assert len(frame) == 1200
+assert set(frame["split"]) == {"train", "validation", "test"}
+assert len(frame[frame.split == "train"]) == 1000
+assert len(frame[frame.split == "validation"]) == 100
+assert len(frame[frame.split == "test"]) == 100</code></pre>
+  <div class="note"><strong>If a check fails, stop.</strong> A modelling bug is easier to fix before training than after a suspiciously good result.</div>
+  <div class="checkpoint"><strong>Checkpoint 3:</strong> The value counts are train 1000, validation 100, test 100.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">4</span><h2>Build the data pipeline</h2></div>
+  <p>Split first, then scale. Fit the scaler on the training rows only, and reuse the same mean and standard deviation for validation and test.</p>
+  <pre><code>FEATURES = ["study_hours", "attendance"]
+TARGET = "exam_score"
+
+train = frame[frame.split == "train"].reset_index(drop=True)
+validation = frame[frame.split == "validation"].reset_index(drop=True)
+test = frame[frame.split == "test"].reset_index(drop=True)
+
+mean = train[FEATURES].to_numpy(float).mean(axis=0)
+std = train[FEATURES].to_numpy(float).std(axis=0, ddof=0)
+std[std == 0] = 1.0
+
+def scale(rows):
+    return (rows[FEATURES].to_numpy(float) - mean) / std
+
+x_train = scale(train)
+x_validation = scale(validation)
+x_test = scale(test)</code></pre>
+  <h3>Why scaling matters</h3>
+  <p>Study hours are roughly 1–20; attendance is 50–100. Without scaling, attendance would dominate the products and gradients only because its numbers are larger — not because it is more useful.</p>
+  <h3>Scale the target too</h3>
+  <pre><code>y_raw = train[TARGET].to_numpy(float)
+y_mean = y_raw.mean()
+y_std = y_raw.std(ddof=0) or 1.0
+y_train = ((y_raw - y_mean) / y_std).reshape(-1, 1)</code></pre>
+  <div class="note"><strong>Leakage check:</strong> never compute <code>mean</code> or <code>std</code> on the full dataset. Validation and test must look like unseen data.</div>
+  <div class="checkpoint"><strong>Checkpoint 4:</strong> You can explain why the scaler is fitted on training data only.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">5</span><h2>Design the network</h2></div>
+  <p>The network is deliberately small so every number can be traced:</p>
+  <div class="arch">
+    <div class="arch-node"><strong>Inputs</strong><small>2 features</small></div><div class="arch-arrow">→</div>
+    <div class="arch-node"><strong>Hidden</strong><small>3 neurons · ReLU</small></div><div class="arch-arrow">→</div>
+    <div class="arch-node"><strong>Output</strong><small>1 number · Linear</small></div>
+  </div>
+  <h3>Count the parameters</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Weights</th><th>Biases</th></tr></thead>
+    <tbody><tr><td>Input → hidden</td><td>2 × 3 = 6</td><td>3</td></tr><tr><td>Hidden → output</td><td>3 × 1 = 3</td><td>1</td></tr><tr><td><strong>Total</strong></td><td><strong>9</strong></td><td><strong>4</strong></td></tr></tbody>
+  </table>
+  <p>The count depends on the architecture, not on the number of students:</p>
+  <p><span class="pill">2 features</span> → 2 input nodes · <span class="pill">1,000 rows</span> → still 2 input nodes.</p>
+  <h3>Initialize with seed 42</h3>
+  <pre><code>import numpy as np
+rng = np.random.default_rng(42)
+w1 = rng.normal(0.0, np.sqrt(2.0 / 2.0), (2, 3))
+b1 = np.zeros(3)
+w2 = rng.normal(0.0, np.sqrt(2.0 / (3.0 + 1.0)), (3, 1))
+b2 = np.zeros(1)</code></pre>
+  <p>Seed 42 makes the starting point reproducible. The same seed, the same code, and the same architecture give the same initial network.</p>
+  <div class="checkpoint"><strong>Checkpoint 5:</strong> Count 9 weights and 4 biases by hand before running the code.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">6</span><h2>Train in mini-batches</h2></div>
+  <p>One batch means: predict 100 rows, average the errors, calculate the gradients, and update once.</p>
+  <pre><code>def forward(x, w1, b1, w2, b2):
+    z1 = x @ w1 + b1
+    hidden = np.maximum(0.0, z1)       # ReLU
+    prediction = hidden @ w2 + b2     # Linear
+    return z1, hidden, prediction
+
+order_rng = np.random.default_rng(43)
+for epoch in range(1, 11):
+    order = order_rng.permutation(len(train))
+    for start in range(0, len(train), 100):
+        batch = order[start:start + 100]
+        z1, hidden, prediction = forward(x_train[batch], w1, b1, w2, b2)
+        dpred = 2.0 * (prediction - y_train[batch]) / len(batch)
+        dw2 = hidden.T @ dpred
+        db2 = dpred.sum(axis=0)
+        dhidden = dpred @ w2.T
+        dz1 = dhidden * (z1 > 0)
+        dw1 = x_train[batch].T @ dz1
+        db1 = dz1.sum(axis=0)
+        w1 -= 0.05 * dw1
+        b1 -= 0.05 * db1
+        w2 -= 0.05 * dw2
+        b2 -= 0.05 * db2</code></pre>
+  <h3>The shape of one batch</h3>
+  <pre><code>100 students × 2 features = 200 input values
+200 input values → 100 predictions
+100 errors → 1 average batch loss
+1 loss → gradients → 1 update of all 13 parameters</code></pre>
+  <h3>What happens across an epoch</h3>
+  <ol class="steps">
+    <li>Batch 1 uses the initial weights; it updates once.</li>
+    <li>Batch 2 starts from batch 1’s updated weights.</li>
+    <li>… through batch 10.</li>
+    <li>Ten batches = ten updates = one epoch.</li>
+    <li>Shuffle and repeat for the next epoch; do not reinitialize.</li>
+  </ol>
+  <div class="note"><strong>100 or 1,000 students?</strong> More rows change the amount of evidence, not the number of parameters. The 2 → 3 → 1 network still has 9 weights and 4 biases.</div>
+  <div class="checkpoint"><strong>Checkpoint 6:</strong> After 10 epochs, the updates counter reads 100.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">7</span><h2>Evaluate honestly</h2></div>
+  <p>Training loss tells you how well the network fits what it has seen. Validation tells you whether a settings choice generalizes. Test is opened once, at the end.</p>
+  <pre><code>def predict(x):
+    _, _, scaled = forward(x, w1, b1, w2, b2)
+    return np.clip(scaled.reshape(-1) * y_std + y_mean, 0.0, 100.0)
+
+def mae(x, actual):
+    return float(np.mean(np.abs(predict(x) - actual)))
+
+print("train", mae(x_train, y_train_score))
+print("validation", mae(x_validation, y_validation_score))
+print("test", mae(x_test, y_test_score))</code></pre>
+  <h3>Use more than one number</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Question it answers</th></tr></thead>
+    <tbody><tr><td>MAE</td><td>On average, how many points or OMR are we off?</td></tr><tr><td>RMSE</td><td>How large are the larger mistakes?</td></tr><tr><td>Baseline</td><td>What would predicting the training mean give?</td></tr></tbody>
+  </table>
+  <h3>Save the evidence</h3>
+  <pre><code>with pd.ExcelWriter("results_exam.xlsx", engine="openpyxl") as writer:
+    pd.DataFrame(history).to_excel(writer, sheet_name="Training_History", index=False)
+    pd.DataFrame(metrics).to_excel(writer, sheet_name="Metrics", index=False)
+    sample.to_excel(writer, sheet_name="Predictions", index=False)</code></pre>
+  <div class="note"><strong>Do not choose settings on the test set.</strong> Use validation for choices; test once to estimate performance.</div>
+  <div class="checkpoint"><strong>Checkpoint 7:</strong> You can report train, validation, and test MAE separately and explain the difference.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">8</span><h2>Design the application architecture</h2></div>
+  <p>A model in a script is not yet an application. The downloadable Neuron Lab app separates four jobs:</p>
+  <div class="arch">
+    <div class="arch-node"><strong>Excel / data</strong><small>1,200 rows</small></div><div class="arch-arrow">→</div>
+    <div class="arch-node"><strong>FastAPI</strong><small>train · validate · predict</small></div><div class="arch-arrow">→</div>
+    <div class="arch-node"><strong>React UI</strong><small>steps · lab · charts</small></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h4>Backend</h4><p>Owns the data, the seeded network, and the training loop. Returns JSON that the interface can display.</p></div>
+    <div class="box"><h4>Frontend</h4><p>Owns the lesson, controls, charts, and explanations. It never pretends to train; it shows the API’s results.</p></div>
+    <div class="box"><h4>Shared constants</h4><p>Feature names, target units, network shape, seed, batch size, and epochs live in one place.</p></div>
+    <div class="box"><h4>Downloads</h4><p>The workbook and Python project are the same data and model, prepared for offline study.</p></div>
+  </div>
+  <h3>A clean folder tree</h3>
+  <pre><code>my-neuron-app/
+  backend/
+    main.py            FastAPI app and routes
+    exam.py            data + 2 → 3 → 1 trainer
+    models.py          request/response shapes
+    requirements.txt
+  frontend/
+    src/
+      App.tsx
+      ExamCaseStudy.tsx
+      examConfig.ts
+      CaseDownloads.tsx
+    package.json
+  study-cases/
+    exam/
+      train_exam.py
+      README.md
+  tests/
+    test_exam.py</code></pre>
+  <h3>Design rules that keep the app honest</h3>
+  <ul class="checklist">
+    <li>One source of truth for the seed and the architecture.</li>
+    <li>The backend returns real numbers, not pre-written “nice” results.</li>
+    <li>The UI labels training, validation, and test separately.</li>
+    <li>Every download is generated from the same data contract.</li>
+    <li>Errors are shown to the student instead of hidden.</li>
+  </ul>
+  <div class="checkpoint"><strong>Checkpoint 8:</strong> Draw the data → API → UI path and name the owner of each step.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">9</span><h2>Build the FastAPI backend</h2></div>
+  <p>Install the web dependencies in a separate environment or add them to the project:</p>
+  <pre><code>python -m pip install fastapi uvicorn pandas numpy openpyxl</code></pre>
+  <h3>A minimal API</h3>
+  <pre><code>from fastapi import FastAPI
+from pydantic import BaseModel, Field
+import numpy as np
+
+app = FastAPI()
+
+class TrainRequest(BaseModel):
+    epochs: int = Field(default=10, ge=1, le=30)
+    batch_size: int = Field(default=100, ge=10, le=500)
+    learning_rate: float = Field(default=0.05, gt=0, le=10)
+
+@app.post("/api/case/exam/train")
+def train(request: TrainRequest):
+    # Load the workbook, select the splits, scale, and run the
+    # same 10-batch NumPy loop from sections 4–6.
+    # Return JSON with metrics, batch losses, and predictions.
+    return {"epochs": request.epochs, "updates": 100}</code></pre>
+  <p>Run it:</p>
+  <pre><code>uvicorn main:app --host 127.0.0.1 --port 8000 --reload</code></pre>
+  <p>Test it:</p>
+  <pre><code>curl -X POST http://127.0.0.1:8000/api/case/exam/train \
+  -H "Content-Type: application/json" \
+  -d '{"epochs":10,"batch_size":100,"learning_rate":0.05}'</code></pre>
+  <h3>Keep the API contract stable</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>dataset.counts</code></td><td>train/validation/test row counts</td></tr>
+      <tr><td><code>network.weights</code>, <code>biases</code></td><td>9 and 4</td></tr>
+      <tr><td><code>batch_losses</code></td><td>10 values for the first epoch</td></tr>
+      <tr><td><code>initial</code>, <code>final</code></td><td>MAE/RMSE before and after</td></tr>
+      <tr><td><code>predictions</code></td><td>sample rows with actual and predicted values</td></tr>
+      <tr><td><code>updates</code></td><td>100 after 10 epochs</td></tr>
+    </tbody>
+  </table>
+  <div class="checkpoint"><strong>Checkpoint 9:</strong> The endpoint returns 200 and the JSON contains 10 batch losses and 9 weights.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">10</span><h2>Build the browser interface</h2></div>
+  <p>Use Vite with React, or plain HTML if you are starting smaller. The interface has four jobs:</p>
+  <ol class="steps">
+    <li><strong>Explain</strong> the problem and the data without hiding the target.</li>
+    <li><strong>Let the student choose</strong> a case, settings, and a step.</li>
+    <li><strong>Show the real run</strong> — losses, metrics, and predictions from the API.</li>
+    <li><strong>Offer downloads</strong> — the workbook, Python project, and this guide.</li>
+  </ol>
+  <h3>Fetching the training result</h3>
+  <pre><code>const response = await fetch("/api/case/exam/train", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ epochs: 10, batch_size: 100, learning_rate: 0.05 }),
+});
+if (!response.ok) throw new Error("Training failed");
+const result = await response.json();
+setRuns(result);</code></pre>
+  <h3>A small component map</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><code>ExamCaseStudy</code></td><td>Ten steps, the lab, and the poster viewer.</td></tr>
+      <tr><td><code>StepRail</code></td><td>Navigation with accessible current-step state.</td></tr>
+      <tr><td><code>LossChart</code></td><td>Batch losses and training/validation RMSE.</td></tr>
+      <tr><td><code>PredictionTable</code></td><td>Actual vs predicted, with a visible gap.</td></tr>
+      <tr><td><code>CaseDownloads</code></td><td>Excel, ZIP, and copy-code actions.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Design for learning:</strong> put the number, its meaning, and the “why” together. A chart without an explanation is decoration.</div>
+  <div class="checkpoint"><strong>Checkpoint 10:</strong> Changing a setting updates the API request and the displayed metrics.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">11</span><h2>Add the interactive lesson</h2></div>
+  <p>The lesson is not a separate product from the model. Each step should point at a number the student can see in the lab.</p>
+  <div class="grid2">
+    <div class="box"><h4>Make the data tangible</h4><p>Show the first rows, the split, and the batch number. Let the student hover or click a row.</p></div>
+    <div class="box"><h4>Make the shape visible</h4><p>Draw 2 → 3 → 1. Label 9 weights and 4 biases. Do not draw a generic deep network.</p></div>
+    <div class="box"><h4>Make the update visible</h4><p>Animate or list batch 1 → batch 2 → … and show that the weights carry forward.</p></div>
+    <div class="box"><h4>Make the honesty visible</h4><p>Keep validation and test separate, and say when the test set is opened.</p></div>
+  </div>
+  <h3>Accessibility and motion</h3>
+  <ul class="checklist">
+    <li>Every control has a visible label and a keyboard path.</li>
+    <li>Charts have a text summary or table.</li>
+    <li>Motion that carries data may continue under reduced-motion preferences; decorative motion stops.</li>
+    <li>Pause stops training and animation; reset returns to seed 42.</li>
+  </ul>
+  <div class="checkpoint"><strong>Checkpoint 11:</strong> A student can explain the batch loop using only the interface.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">12</span><h2>Test, debug, and reproduce</h2></div>
+  <div class="two-col">
+    <div>
+      <h3>Backend tests</h3>
+      <pre><code>assert len(train) == 1000
+assert len(validation) == 100
+assert len(test) == 100
+assert result["network"]["weights"] == 9
+assert result["network"]["biases"] == 4
+assert result["updates"] == 100
+assert len(result["batch_losses"]) == 10</code></pre>
+      <h3>Reproducibility</h3>
+      <pre><code>python train_exam.py
+python train_exam.py
+# the metrics should match</code></pre>
+    </div>
+    <div>
+      <h3>Common failures</h3>
+      <table>
+        <thead><tr><th>Symptom</th><th>Likely cause</th></tr></thead>
+        <tbody>
+          <tr><td>Missing file</td><td>Workbook and script in different folders.</td></tr>
+          <tr><td>ModuleNotFound</td><td>Virtual environment not activated.</td></tr>
+          <tr><td>Perfect score</td><td>Target leaked into the features.</td></tr>
+          <tr><td>Loss is NaN</td><td>Learning rate too high or unscaled inputs.</td></tr>
+          <tr><td>Different results</td><td>Seed or batch order changed.</td></tr>
+        </tbody>
+      </table>
+      <h3>Browser tests</h3>
+      <p>Playwright checks the step rail, the download links, the API result, the 10 batch losses, and the prediction table.</p>
+    </div>
+  </div>
+  <div class="checkpoint"><strong>Checkpoint 12:</strong> Two clean runs produce the same metrics.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">13</span><h2>Deploy and update</h2></div>
+  <p>A simple production layout keeps the API private and lets nginx serve the built frontend:</p>
+  <pre><code>Browser
+  https://your-domain.example/simulator/
+        │
+        ├── /simulator/          → built React files
+        └── /simulator/api/      → FastAPI on 127.0.0.1:8030</code></pre>
+  <h3>Build the frontend</h3>
+  <pre><code>cd frontend
+npm ci
+VITE_BASE=/simulator/ npm run build</code></pre>
+  <h3>Run the API as a service</h3>
+  <pre><code>[Service]
+WorkingDirectory=/home/student/apps/neuron-lab
+ExecStart=/home/student/apps/neuron-lab/.venv/bin/uvicorn \
+  backend.main:app --host 127.0.0.1 --port 8030
+Restart=always</code></pre>
+  <h3>Update safely</h3>
+  <ol class="steps">
+    <li>Pull the new code.</li>
+    <li>Install any new Python packages.</li>
+    <li>Rebuild the frontend with the same base path.</li>
+    <li>Restart the API service.</li>
+    <li>Poll <code>/api/presets/one-neuron</code> until it returns 200.</li>
+    <li>Check the page, the API, and one download.</li>
+  </ol>
+  <div class="note"><strong>Never expose the dev server or a database port publicly.</strong> Only nginx should listen on 80/443; the API stays on localhost.</div>
+  <div class="checkpoint"><strong>Checkpoint 13:</strong> The page, API, and a download all return 200 after a restart.</div>
+</section>
+
+<section class="section">
+  <div class="section-head"><span class="section-num">14</span><h2>Student challenges and next steps</h2></div>
+  <div class="grid2">
+    <div class="box"><h4>Change the data</h4><p>Add a third feature, such as sleep hours. The input layer becomes three nodes; recount the weights and biases.</p></div>
+    <div class="box"><h4>Change the network</h4><p>Try 2 → 4 → 1, then 2 → 4 → 4 → 1. Compare validation MAE, not training MAE alone.</p></div>
+    <div class="box"><h4>Change the batch</h4><p>Use 50 or 200. What happens to the number of updates and the noise in the loss?</p></div>
+    <div class="box"><h4>Break it deliberately</h4><p>Set the learning rate to 10 or remove scaling. Explain the failure with the actual numbers.</p></div>
+    <div class="box"><h4>Improve the interface</h4><p>Add a row inspector, a batch scrubber, or a “compare two runs” view.</p></div>
+    <div class="box"><h4>Write the report</h4><p>State the question, data, architecture, seed, metrics, limitations, and one honest next step.</p></div>
+  </div>
+  <h3>Final checklist</h3>
+  <ul class="checklist">
+    <li>I can explain why the target is not an input.</li>
+    <li>I can count 9 weights and 4 biases.</li>
+    <li>I can explain one batch, one epoch, and 100 updates.</li>
+    <li>I can report train, validation, and test MAE separately.</li>
+    <li>I can run the Python project from a clean environment.</li>
+    <li>I can download and open the Excel workbook.</li>
+    <li>I can explain how the backend and frontend connect.</li>
+    <li>I can reproduce the same result with seed 42.</li>
+  </ul>
+  <div class="footer">Neuron Lab · Student Build Guide · The workbook, Python project, and this guide are classroom materials. The data is synthetic and illustrative.</div>
+</section>
+
+</body>
+</html>
