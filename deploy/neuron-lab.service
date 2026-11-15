@@ -1,0 +1,15 @@
+[Unit]
+Description=Neuron Lab AI teaching app
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/apps/neuron-lab
+Environment=PYTHONUNBUFFERED=1
+Environment=NEURON_LAB_DB=%h/apps/neuron-lab/lessons.sqlite3
+ExecStart=%h/apps/neuron-lab/.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8030
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
