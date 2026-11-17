@@ -492,9 +492,9 @@ const QUANT_FIGURES: Figure[] = [
       'الخطوط الأفقية الرفيعة الستة عشر، المرقمة من 0 إلى 15 على اليمين، هي القيم الوحيدة التي يستطيع رقم من 4 بتات تسميتها. لاحظ التباعد: الخطوط متراصة حول 0 ومتباعدة قرب +1 و −1.'),
     why: t('NF4 means “4-bit NormalFloat”. Trained weights follow a bell curve, so most are near zero. Putting more levels there means most weights land close to a level and lose very little. Even spacing would waste levels on rare large values.',
       'NF4 تعني “عدد عائم طبيعي بـ 4 بتات”. أوزان النموذج المدرَّب تتبع منحنى الجرس، فأغلبها قريب من الصفر. ووضع مستويات أكثر هناك يعني أن أغلب الأوزان تقع قرب مستوى ولا تفقد إلا القليل. أما التباعد المتساوي فيهدر مستويات على قيم كبيرة نادرة.') },
-  { id: 'bits', title: t('The bit boxes', 'مربعات البتات'), areas: [[128, 264, 600, 28], [16, 268, 80, 22]],
-    what: t('Under each weight are the bits used to store it. A lit box is a 1 and a dark box is a 0. The label on the left says how many bits each weight uses.',
-      'تحت كل وزن البتات المستخدمة لتخزينه. المربع المضيء يعني 1 والمعتم يعني 0. والتسمية على اليسار تقول كم بتًا يستخدم كل وزن.'),
+  { id: 'bits', title: t('The bit boxes', 'مربعات البتات'), areas: [[16, 268, 80, 22]],
+    what: t('Under each weight are the bits used to store it. Each thin bar is one bit: a blue bar is a 1 and a dark bar is a 0, so each group of 16 bars is one weight. Point at any bar to magnify its group with the 1s and 0s written in. The label on the left says how many bits each weight uses.',
+      'تحت كل وزن البتات المستخدمة لتخزينه. كل عمود رفيع بت واحد: العمود الأزرق 1 والمعتم 0، فكل مجموعة من 16 عمودًا وزن واحد. أشر إلى أي عمود لتكبير مجموعته مع كتابة الآحاد والأصفار فيها. والتسمية على اليسار تقول كم بتًا يستخدم كل وزن.'),
     why: t('Bits are memory. Memory = number of weights × bits per weight, so going from 16 to 4 bits makes the model 4 times smaller. That is how an 8B model drops from about 16 GB to about 5 GB.',
       'البتات هي الذاكرة. الذاكرة = عدد الأوزان × البتات لكل وزن، فالانتقال من 16 إلى 4 بتات يجعل النموذج أصغر 4 مرات. وهكذا ينخفض نموذج 8B من نحو 16 غ.ب إلى نحو 5 غ.ب.'),
     now: step => step < 5
@@ -519,6 +519,79 @@ const QUANT_FIGURES: Figure[] = [
       ? t('8 × 4 = 32 bits plus one shared scale: 4 times less than before.', '8 × 4 = 32 بت ومقياس مشترك واحد: أقل بأربع مرات مما سبق.')
       : t('8 × 16 = 128 bits: the cost before quantization.', '8 × 16 = 128 بت: الكلفة قبل التكميم.') },
 ];
+
+const SECTIONS = [
+  { name: t('sign', 'إشارة'), from: 0, to: 0, tone: 'sign' },
+  { name: t('exponent', 'الأس'), from: 1, to: 5, tone: 'exponent' },
+  { name: t('fraction', 'الكسر'), from: 6, to: 15, tone: 'fraction' },
+];
+const sectionOf = (bit: number) => SECTIONS.find(section => bit >= section.from && bit <= section.to)!;
+const LENS_CELL = 20;
+const LENS_GAP = 2;
+
+/**
+ * Hover (or tap) a weight's bits to see them magnified with a 1 or 0 written in every box.
+ * Clicking also opens the explanation of the bit boxes.
+ */
+function BitLens({ packed }: { packed: boolean }) {
+  const say = useTx();
+  const { isArabic } = useI18n();
+  const direction = isArabic ? 'rtl' : undefined;
+  const figures = useContext(FigureContext);
+  const [hover, setHover] = useState<{ weight: number; bit: number } | null>(null);
+  const pitch = packed ? 13 : 3.25;
+  const bitsOf = (weight: number) => packed ? CODE_BITS[weight] : HALF[weight];
+
+  let lens: ReactNode = null;
+  if (hover) {
+    const bits = bitsOf(hover.weight);
+    const cells = bits.length * (LENS_CELL + LENS_GAP) - LENS_GAP;
+    const width = Math.max(cells + 24, 270);
+    const center = COLUMN(hover.weight);
+    const left = Math.max(8, Math.min(752 - width, center - width / 2));
+    const bit = bits[hover.bit];
+    const title = packed
+      ? say(t(`Weight ${hover.weight + 1}: code ${CODES[hover.weight]} stored in 4 bits`, `الوزن ${hover.weight + 1}: الرمز ${CODES[hover.weight]} مخزَّن في 4 بتات`))
+      : say(t(`Weight ${hover.weight + 1}: ${WEIGHTS[hover.weight]} stored in 16 bits`, `الوزن ${hover.weight + 1}: ${WEIGHTS[hover.weight]} مخزَّن في 16 بت`));
+    const detail = packed
+      ? say(t(`This box is ${bit}. ${bits} in binary = ${CODES[hover.weight]} → level ${SNAPPED[hover.weight].toFixed(2)}`,
+        `هذا المربع = ${bit}. والعدد الثنائي ${bits} = ${CODES[hover.weight]} ← المستوى ${SNAPPED[hover.weight].toFixed(2)}`))
+      : say(t(`This bar is ${bit === '1' ? 'blue, so it is 1' : 'dark, so it is 0'} (bit ${hover.bit + 1} of 16, ${sectionOf(hover.bit).name.en})`,
+        `هذا العمود ${bit === '1' ? 'أزرق، إذن هو 1' : 'معتم، إذن هو 0'} (البت ${hover.bit + 1} من 16، ${sectionOf(hover.bit).name.ar})`));
+    const cellX = (position: number) => left + (width - cells) / 2 + position * (LENS_CELL + LENS_GAP);
+    lens = <g className="ft-lens" pointerEvents="none">
+      <rect className="ft-bit-group" x={center - 29} y="266" width="58" height="26" rx="5"/>
+      <rect className="ft-bit-mark" x={center - 26 + hover.bit * pitch - 1} y="267" width={(packed ? 11.5 : 2.6) + 2} height="24" rx="1.5"/>
+      <rect className="ft-lens-box" x={left} y="166" width={width} height={packed ? 76 : 90} rx="10"/>
+      <path className="ft-lens-box" d={`M ${center - 7} ${packed ? 242 : 256} L ${center} ${packed ? 266 : 264} L ${center + 7} ${packed ? 242 : 256}`}/>
+      <text className="ft-lens-title" x={left + width / 2} y="183" textAnchor="middle" direction={direction}>{title}</text>
+      {bits.split('').map((value, position) => <g key={position}>
+        <rect className={`ft-lens-cell ${value === '1' ? 'one' : ''} ${packed ? 'code' : ''} ${position === hover.bit ? 'hovered' : ''}`}
+          x={cellX(position)} y="191" width={LENS_CELL} height="24" rx="4"/>
+        <text className={`ft-lens-digit ${value === '1' ? 'one' : ''}`} x={cellX(position) + LENS_CELL / 2} y="208" textAnchor="middle">{value}</text>
+      </g>)}
+      {!packed && SECTIONS.map(section => {
+        const x1 = cellX(section.from);
+        const x2 = cellX(section.to) + LENS_CELL;
+        return <g key={section.tone}>
+          <rect className={`ft-lens-section ${section.tone}`} x={x1} y="219" width={x2 - x1} height="3" rx="1.5"/>
+          <text className={`ft-lens-label ${section.tone}`} x={(x1 + x2) / 2} y="233" textAnchor="middle">{say(section.name)}</text>
+        </g>;
+      })}
+      <text className="ft-lens-detail" x={left + width / 2} y={packed ? 233 : 248} textAnchor="middle" direction={direction}>{detail}</text>
+    </g>;
+  }
+
+  return <g className="ft-bit-hits">
+    {WEIGHTS.map((_, weight) => <g key={weight} transform={`translate(${COLUMN(weight) - 26} 262)`}>
+      {bitsOf(weight).split('').map((_, bit) => <rect key={bit} className="ft-bit-hit"
+        x={bit * pitch - (bit === 0 ? 3 : 0)} y="0" width={pitch + (bit === 0 ? 3 : 0)} height="26"
+        onMouseEnter={() => setHover({ weight, bit })} onMouseLeave={() => setHover(null)}
+        onClick={() => { setHover({ weight, bit }); figures?.pick('bits'); }}/>)}
+    </g>)}
+    {lens}
+  </g>;
+}
 
 export function QuantScene() {
   const say = useTx();
@@ -599,6 +672,7 @@ export function QuantScene() {
       <text className="ft-memory-line" x="720" y="319" textAnchor="end">
         {packed ? say(t('8 × 4 bits = 32 bits (+ 1 scale)', '8 × 4 بت = 32 بت (+ مقياس واحد)')) : say(t('8 × 16 bits = 128 bits', '8 × 16 بت = 128 بت'))}</text>
       <Hotspots/>
+      <BitLens packed={packed} key={packed ? 'packed' : 'half'}/>
     </svg>
   </Scene>;
 }

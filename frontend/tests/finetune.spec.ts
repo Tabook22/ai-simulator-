@@ -120,6 +120,16 @@ test('explains each part of a scene when it is clicked', async ({ page }) => {
   await card.getByRole('button', { name: 'Close the explanation' }).click();
   await expect(card).toHaveCount(0);
 
+  // Pointing at a bit magnifies its weight's 16 bits with each 1 and 0 written in.
+  await quant.getByRole('button', { name: /^1: Weights stored/ }).click();
+  await quant.locator('.ft-bit-hits > g').first().locator('rect').nth(3).hover();
+  const lens = quant.locator('.ft-lens');
+  await expect(lens).toContainText('Weight 1: 0.42 stored in 16 bits');
+  await expect(lens.locator('.ft-lens-digit')).toHaveText('0011011010111000'.split(''));
+  await expect(lens).toContainText('This bar is blue, so it is 1 (bit 4 of 16, exponent)');
+  await page.mouse.move(5, 5);
+  await expect(lens).toHaveCount(0);
+
   // The other scenes are explained the same way, in Arabic too.
   await page.getByRole('button', { name: 'العربية' }).click();
   const unsloth = page.locator('#ft-scene-unsloth');
