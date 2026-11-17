@@ -96,6 +96,37 @@ test('steps through the animated scenes for adapters, quantization and Unsloth',
   await expect(unsloth.locator('.ft-scene-count')).toHaveText('2 / 7');
 });
 
+test('explains each part of a scene when it is clicked', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  const quant = page.locator('#ft-scene-quant');
+
+  // Clicking a part of the picture opens its explanation, which follows the current step.
+  // (the bars area is eight separate columns, so click one of them, not the gap in the middle)
+  await quant.getByRole('button', { name: 'Explain: The coloured bars' }).locator('rect').first().click();
+  const card = quant.locator('.ft-explain-card');
+  await expect(card.getByRole('heading', { name: 'The coloured bars' })).toBeVisible();
+  await expect(card).toContainText('These are the raw weights');
+  await quant.getByRole('button', { name: /^3: Divide by absmax/ }).click();
+  await expect(card).toContainText('All bars grew by the same factor');
+
+  // A part that is not on screen yet can be reached from its name.
+  await quant.locator('.ft-explain-chip[data-figure="levels"]').click();
+  await expect(card).toContainText('This part appears in step 4');
+  await card.getByRole('button', { name: 'Show me' }).click();
+  await expect(quant.locator('.ft-scene-count')).toHaveText('4 / 8');
+  await expect(quant.getByRole('button', { name: 'Explain: The 16 NF4 levels' })).toHaveAttribute('aria-pressed', 'true');
+
+  await card.getByRole('button', { name: 'Close the explanation' }).click();
+  await expect(card).toHaveCount(0);
+
+  // The other scenes are explained the same way, in Arabic too.
+  await page.getByRole('button', { name: 'العربية' }).click();
+  const unsloth = page.locator('#ft-scene-unsloth');
+  await unsloth.getByRole('button', { name: 'اشرح: بطاقة GPU وشريط ذاكرتها' }).click();
+  await expect(unsloth.locator('.ft-explain-card')).toContainText('نفاد الذاكرة');
+});
+
 test('walks the TurathAI case study: journey, dataset split, evaluation and checklist', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();

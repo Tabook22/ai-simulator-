@@ -163,3 +163,39 @@ html[dir="rtl"] .ft-scene-dots button i { inset: 0 0 0 auto; }
 @media (prefers-reduced-motion: reduce) {
   .ft-gear.spin, .ft-note.flash, .ft-adapter.glow .ft-a-box, .ft-adapter.glow .ft-b-box, .ft-qbar.pick { animation: none !important; }
 }
+
+/* ---- click any part of a scene for a full explanation ---- */
+.ft-hot { cursor: pointer; outline: none; }
+.ft-hot rect { fill: #ffffff00; stroke: transparent; stroke-width: 1.5; transition: fill .2s ease, stroke .2s ease; }
+.ft-scene-stage.explainable:hover .ft-hot rect { stroke: #ffffff14; stroke-dasharray: 4 4; }
+.ft-hot:hover rect, .ft-hot:focus-visible rect { fill: #ffffff0d; stroke: color-mix(in srgb, var(--tone, #5ee7ff) 70%, #fff); stroke-dasharray: 5 4; }
+.ft-hot.picked rect { fill: color-mix(in srgb, var(--tone, #5ee7ff) 12%, transparent); stroke: var(--tone, #5ee7ff); stroke-width: 2; stroke-dasharray: none; filter: drop-shadow(0 0 6px var(--tone, #5ee7ff)); }
+.ft-explain { display: grid; gap: 10px; }
+.ft-explain-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.ft-explain-hint { display: inline-flex; align-items: center; gap: 6px; color: #a9b6d8; font-size: .86em; font-weight: 650; }
+.ft-explain-hint svg { color: var(--tone, #5ee7ff); flex: none; }
+.ft-explain-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ft-explain-chip {
+  padding: 4px 10px; border-radius: 999px; border: 1px solid #ffffff22; background: #ffffff08;
+  color: #dfe8ff; font: 650 .8em var(--sans); cursor: pointer; transition: background .2s, border-color .2s, color .2s;
+}
+.ft-explain-chip:hover { border-color: color-mix(in srgb, var(--tone, #5ee7ff) 60%, transparent); background: #ffffff12; }
+.ft-explain-chip.later { color: #8390b4; border-style: dashed; }
+.ft-explain-chip.picked { background: color-mix(in srgb, var(--tone, #5ee7ff) 22%, transparent); border-color: var(--tone, #5ee7ff); color: #fff; }
+.ft-explain-card {
+  padding: 14px 16px; border-radius: 14px; animation: slide-in .3s ease both;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tone, #5ee7ff) 10%, #070c1d), #060a18);
+  border: 1px solid color-mix(in srgb, var(--tone, #5ee7ff) 45%, transparent);
+}
+.ft-explain-card header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.ft-explain-card h5 { margin: 0; color: color-mix(in srgb, var(--tone, #5ee7ff) 70%, #fff); font-size: 1.05em; }
+.ft-explain-close { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; border: 1px solid #ffffff22; background: #ffffff08; color: #dfe8ff; cursor: pointer; }
+.ft-explain-close:hover { background: #ffffff18; }
+.ft-explain-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; }
+.ft-explain-grid section.now { grid-column: 1 / -1; padding: 10px 12px; border-radius: 10px; background: #ffffff08; border-inline-start: 3px solid var(--tone, #5ee7ff); }
+.ft-explain-grid h6 { margin: 0 0 3px; color: #a9b6d8; font: 800 .74em var(--sans); letter-spacing: .06em; text-transform: uppercase; }
+.ft-explain-grid p { margin: 0; color: #dbe3f8; font-size: .93em; line-height: 1.7; }
+.ft-explain-grid p .button { margin-inline-start: 6px; vertical-align: middle; }
+@media (max-width: 720px) {
+  .ft-explain-grid { grid-template-columns: minmax(0, 1fr); }
+}
