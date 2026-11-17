@@ -21,7 +21,7 @@ test('walks the lesson guide, hides the intro, and searches the glossary', async
   const guide = page.getByRole('region', { name: 'Lesson guide' });
   await expect(guide).toContainText('Lesson 1');
   await expect(guide).toContainText('What does one neuron actually calculate?');
-  await expect(page.locator('.tab-number')).toHaveCount(9);
+  await expect(page.locator('.tab-number')).toHaveCount(10);
 
   await page.getByRole('button', { name: 'Hide intro' }).click();
   await expect(page.locator('.hero')).toHaveCount(0);
@@ -30,7 +30,7 @@ test('walks the lesson guide, hides the intro, and searches the glossary', async
   await page.getByRole('button', { name: 'Show intro' }).click();
   await expect(page.locator('.hero')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Continue to lesson 2 of 9' }).click();
+  await page.getByRole('button', { name: 'Continue to lesson 2 of 10' }).click();
   await expect(guide).toContainText('How does a network learn from examples?');
   await expect(page.locator('.workspace-tabs button.current')).toContainText('Teach the network');
 

@@ -322,6 +322,8 @@ The experience borrows the immediate cause-and-effect loop of [TensorFlow Playgr
 
 ## What makes it easy to follow
 
+- **Fine-tuning lab** — a lesson of its own on teaching a foundation model a new subject, in seven parts with a quiz: why fine-tune (base model vs fine-tuned answers), the training examples and the chat format, freezing the base, **LoRA** (a real adapter trained in the browser beside a frozen matrix: `W·x + B·(A·x)`, with a live count of frozen numbers changed that stays at 0, and a rank that is too small visibly getting stuck), **quantization** (weights snapping to 2^bits levels, even spacing vs NF4, the rounding error and the model size), **QLoRA** (a memory calculator for model size, base precision, rank and target layers, with which GPUs it fits), and **Unsloth** (the seven steps of a real run with copyable code and what each does to memory). Everything is in English and Arabic.
+
 - **Nine numbered lessons** — the lab tabs are numbered 1–9 and stay in the same place on every screen. Under them, a lesson guide names the question the lab answers, lists the ideas and three things to try, and has **Continue** and back buttons. **Hide intro** collapses the guide and the home header into a compact workspace; the choice is remembered.
 - **Neuron anatomy** — the inspector opens with a picture of the selected neuron: inputs → × weights → Σ → + bias → activation → output, with the live numbers on every part. During a forward pass the part being calculated lights up.
 - **The activation as a curve** — the Activate step draws the activation function with a dot where this neuron sits, and states the slope at that point. The slope is the number backpropagation multiplies the error by, so a flat ReLU visibly explains why a switched-off neuron stops learning.
@@ -447,6 +449,7 @@ If Chrome is already installed, set `NEURON_LAB_BROWSER=chrome` in your shell to
 - `frontend/src/Quest.tsx` stores and renders the four guided missions.
 - `frontend/src/Diagram.tsx` draws the SVG network, the labelled data packets, the moving signal-flow arrows, the draggable/resizable calculation panel, the zoom/pan/full-screen controls, and the activation burst.
 - `frontend/src/ForwardPlayback.tsx` defines the six animation stages, the timeline, and the speed control.
+- `frontend/src/FineTuneLab.tsx` renders the fine-tuning lab; `finetuneModel.ts` holds its arithmetic (the LoRA trainer, the quantizer, the memory budget), `finetuneContent.ts` its English and Arabic wording, and `finetune.css` its styles. It reuses the page frame from `llm.css`.
 - `frontend/src/LlmLab.tsx`, `llm.ts`, and `llm.css` render and style the transformer playground: the prompt card, the stage rail, the six stage sections, attention flow, next-token bars, the error path, and the chain-rule tracer.
 - `frontend/src/BackpropExamples.tsx`, `examples.ts`, and `examples.css` render the worked-example gallery, its step cards, and the forward/backward network diagram.
 - `frontend/src/ResourceLibrary.tsx`, `library.ts`, and `library.css` render and style the reading room. The resource list, one-line reasons, and six learning paths live in `library.ts`; saved and finished marks use local storage.

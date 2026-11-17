@@ -1,7 +1,7 @@
 import { readStored, writeStored } from './libraryStorage';
 import type { IconName } from './ui';
 
-export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'llm';
+export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'llm' | 'finetune';
 
 export interface Lesson {
   tab: WorkshopTab;
@@ -18,7 +18,7 @@ export interface Lesson {
   fullBleed: boolean;
 }
 
-/** The eight labs, in the order a newcomer should take them: one neuron first, a language model last. */
+/** The labs, in the order a newcomer should take them: one neuron first, a language model last. */
 export const LESSONS: Lesson[] = [
   {
     tab: 'explore', icon: 'network', label: 'Explore the network', fullBleed: false,
@@ -162,6 +162,22 @@ export const LESSONS: Lesson[] = [
       'Click each stage button (Tokens, Embeddings, Attention, MLP, Softmax, Backprop) and read what it does to this prompt.',
       'Click an earlier token and see which words it attends to.',
       'Press Backprop one step, then Trace top link to follow one error value back through the chain rule.',
+    ],
+  },
+  {
+    tab: 'finetune', icon: 'sliders', label: 'Fine-tuning lab', fullBleed: true,
+    question: 'How do you teach a ready-made model your own subject?',
+    goal: 'See how fine-tuning adds a small set of new weights beside frozen ones, and how quantization, QLoRA and Unsloth make it fit on an ordinary GPU.',
+    learn: [
+      'Fine-tuning continues the training of a foundation model on your own examples.',
+      'LoRA freezes the original weights and trains two small matrices, A and B, beside them.',
+      'Quantization stores each weight in fewer bits, so a large model fits in a small memory.',
+      'QLoRA is both together: a frozen 4-bit base with trainable adapters. Unsloth is the library that runs it.',
+    ],
+    tryIt: [
+      'In the LoRA part, train with rank 1, then rank 2, and watch the frozen weights stay unchanged.',
+      'In the quantization part, go from 8 bits to 2, then compare even spacing with NF4 at 4 bits.',
+      'In the QLoRA part, find the largest model that fits on a 16 GB GPU.',
     ],
   },
 ];

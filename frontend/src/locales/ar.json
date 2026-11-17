@@ -2154,5 +2154,15 @@
  "1,000 training students, 100 validation, 100 test": "1,000 طالب تدريب، و100 للتحقق، و100 للاختبار",
  "Download Python script": "تنزيل سكربت بايثون",
  "Copy Python code": "نسخ كود بايثون",
- "Student build guide": "دليل بناء التطبيق للطالب"
+ "Student build guide": "دليل بناء التطبيق للطالب",
+ "Fine-tuning continues the training of a foundation model on your own examples.": "الضبط الدقيق يكمل تدريب نموذج أساسي على أمثلتك أنت.",
+ "Fine-tuning lab": "مختبر الضبط الدقيق",
+ "How do you teach a ready-made model your own subject?": "كيف تعلّم نموذجًا جاهزًا مادتك أنت؟",
+ "In the LoRA part, train with rank 1, then rank 2, and watch the frozen weights stay unchanged.": "في جزء LoRA، درّب بالرتبة 1 ثم بالرتبة 2، وراقب الأوزان المجمَّدة تبقى دون تغيير.",
+ "In the QLoRA part, find the largest model that fits on a 16 GB GPU.": "في جزء QLoRA، ابحث عن أكبر نموذج يتسع في بطاقة GPU بذاكرة 16 غ.ب.",
+ "In the quantization part, go from 8 bits to 2, then compare even spacing with NF4 at 4 bits.": "في جزء التكميم، انزل من 8 بتات إلى 2، ثم قارن التباعد المتساوي بصيغة NF4 عند 4 بتات.",
+ "LoRA freezes the original weights and trains two small matrices, A and B, beside them.": "تقنية LoRA تجمّد الأوزان الأصلية وتدرّب مصفوفتين صغيرتين، A و B، بجانبها.",
+ "QLoRA is both together: a frozen 4-bit base with trainable adapters. Unsloth is the library that runs it.": "تقنية QLoRA هي الاثنان معًا: أساس مجمَّد بدقة 4 بت مع مهايئات قابلة للتدريب. و Unsloth هو المكتبة التي تشغّلها.",
+ "Quantization stores each weight in fewer bits, so a large model fits in a small memory.": "التكميم يخزّن كل وزن ببتات أقل، فيتسع نموذج كبير في ذاكرة صغيرة.",
+ "See how fine-tuning adds a small set of new weights beside frozen ones, and how quantization, QLoRA and Unsloth make it fit on an ordinary GPU.": "شاهد كيف يضيف الضبط الدقيق مجموعة صغيرة من الأوزان الجديدة بجانب أوزان مجمَّدة، وكيف يجعله التكميم و QLoRA و Unsloth يتسع في بطاقة GPU عادية."
 }

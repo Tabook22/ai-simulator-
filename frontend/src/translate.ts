@@ -32,6 +32,7 @@ const { exact, relaxed, cache } = engine;
 
 const HOLE = /\{(\d+)\}/g;
 const LETTERS = /[A-Za-z]/;
+const ARABIC = /[؀-ۿ]/;
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export function addTranslations(entries: Record<string, string>) {
@@ -96,7 +97,8 @@ function translateText(text: string, depth: number): string {
 
 /** The Arabic for a piece of interface text, or the text itself when there is none. */
 export function translate(text: string): string {
-  if (engine.language === 'en' || !LETTERS.test(text)) return text;
+  // Text that is already Arabic (it may still name LoRA or a GPU) is left as written.
+  if (engine.language === 'en' || !LETTERS.test(text) || ARABIC.test(text)) return text;
   const known = cache.get(text);
   if (known !== undefined) return known;
   const result = translateText(text, 0);
