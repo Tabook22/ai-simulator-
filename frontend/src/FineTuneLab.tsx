@@ -5,6 +5,7 @@ import './finetune.css';
 import { Icon } from './ui';
 import type { IconName } from './ui';
 import { useI18n } from './i18n';
+import { AdapterScene, QuantScene, UnslothScene } from './FineTuneScenes';
 import { CHOICES, QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
 import type { Text } from './finetuneContent';
 import {
@@ -49,8 +50,10 @@ const tone = (color: string) => ({ '--tone': color }) as CSSProperties;
 const gb = (value: number) => value >= 10 ? value.toFixed(0) : value.toFixed(1);
 const millions = (value: number) => value >= 1e9 ? `${(value / 1e9).toFixed(1)}B` : `${(value / 1e6).toFixed(1)}M`;
 
-function Stage({ index, summary, notes, flow, children }: {
+function Stage({ index, summary, notes, flow, scene, children }: {
   index: number; summary: ReactNode; flow?: string; children: ReactNode;
+  /** An animated scene shown across the full width, above the hands-on part. */
+  scene?: ReactNode;
   notes: { what: string; why: string; tryIt: string };
 }) {
   const tx = useTx();
@@ -67,6 +70,7 @@ function Stage({ index, summary, notes, flow, children }: {
         </div>
         <span className="llm-stage-out" data-keep="">{summary}</span>
       </header>
+      {scene && <div className="ft-scene-row">{scene}</div>}
       <div className="llm-stage-body">
         <div className="llm-stage-visual">{children}</div>
         <aside className="llm-notes">
@@ -234,6 +238,7 @@ function LoraStage() {
   const train = (steps: number) => { setState(current => trainLora(current, steps)); setMerged(false); };
   const result = state.frozen.map((row, r) => row.map((value, c) => value + delta[r][c]));
   return <>
+    <h4 className="llm-sub ft-handson first"><Icon name="flask" size={13}/>{tx('Now train a real adapter yourself', 'والآن درّب مهايئًا حقيقيًا بنفسك')}</h4>
     <div className="ft-controls">
       <div className="ft-tabs" role="group" aria-label={tx('Adapter rank', 'رتبة المهايئ')}>
         <span>{tx('Rank r', 'الرتبة r')}</span>
@@ -308,6 +313,7 @@ function QuantStage() {
   const x = (value: number) => 20 + 560 * (value + scale) / (2 * scale);
   const model = MODEL_SIZES[2];
   return <>
+    <h4 className="llm-sub ft-handson first"><Icon name="flask" size={13}/>{tx('Now quantize a whole layer yourself', 'والآن كمّم طبقة كاملة بنفسك')}</h4>
     <div className="ft-controls">
       <div className="ft-tabs" role="group" aria-label={tx('Bits per weight', 'عدد البتات لكل وزن')}>
         <span>{tx('Bits per weight', 'بتات لكل وزن')}</span>
@@ -448,6 +454,7 @@ function UnslothStage() {
     });
   }
   return <>
+    <h4 className="llm-sub ft-handson first"><Icon name="code" size={13}/>{tx('The real code, step by step', 'الشيفرة الحقيقية، خطوة بخطوة')}</h4>
     <ol className="ft-steps">
       {UNSLOTH_STEPS.map((item, index) => <li key={item.title.en}>
         <button type="button" className={index === step ? 'current' : index < step ? 'done' : ''}
@@ -603,7 +610,7 @@ export function FineTuneLab() {
               'بدّل بين الطريقتين وقارن الأرقام الأربعة تحت الرسم.'),
           }}><FreezeStage/></Stage>
 
-        <Stage index={3} summary="W + B·A" flow={tx('but the base is still too big', 'لكن الأساس ما زال كبيرًا جدًا')}
+        <Stage index={3} summary="W + B·A" scene={<AdapterScene/>} flow={tx('but the base is still too big', 'لكن الأساس ما زال كبيرًا جدًا')}
           notes={{
             what: tx('LoRA adds two thin matrices, A and B, beside the frozen matrix W. The layer’s output becomes W·x + B·(A·x). B starts at zero, so at first nothing changes. Training then moves only A and B until B·A equals the change the task needs.',
               'تقنية LoRA تضيف مصفوفتين رفيعتين، A و B، بجانب المصفوفة المجمَّدة W. فيصبح مخرج الطبقة W·x + B·(A·x). تبدأ B من الصفر فلا يتغير شيء في البداية. ثم يحرّك التدريب A و B فقط حتى يساوي B·A التغيير الذي تحتاجه المهمة.'),
@@ -613,7 +620,7 @@ export function FineTuneLab() {
               'درّب بالرتبة 1: الخسارة تعلق. ثم اختر الرتبة 2 ودرّب من جديد. وراقب «أرقام مجمَّدة تغيّرت» وهي تبقى 0 طوال الوقت.'),
           }}><LoraStage/></Stage>
 
-        <Stage index={4} summary={tx('32 bits → 4 bits', '32 بت ← 4 بت')} flow={tx('small base + small adapter', 'أساس صغير + مهايئ صغير')}
+        <Stage index={4} summary={tx('32 bits → 4 bits', '32 بت ← 4 بت')} scene={<QuantScene/>} flow={tx('small base + small adapter', 'أساس صغير + مهايئ صغير')}
           notes={{
             what: tx('A weight is normally stored in 32 or 16 bits. Quantization keeps a short list of allowed values (levels), rounds each weight to the nearest one, and stores only that level’s number. With 4 bits there are 16 levels.',
               'الوزن يُخزَّن عادةً في 32 أو 16 بت. والتكميم يحتفظ بقائمة قصيرة من القيم المسموحة (المستويات)، ويقرّب كل وزن إلى أقربها، ويخزّن رقم ذلك المستوى فقط. ومع 4 بتات يوجد 16 مستوى.'),
@@ -633,7 +640,7 @@ export function FineTuneLab() {
               'اختر نموذج 27B. هل يتسع في 24 غ.ب بدقة 4 بت؟ ثم بدّل الأساس إلى 16 بت وانظر أي بطاقات GPU تبقى.'),
           }}><QloraStage/></Stage>
 
-        <Stage index={6} summary={tx('7 steps', '7 خطوات')}
+        <Stage index={6} summary={tx('7 steps', '7 خطوات')} scene={<UnslothScene/>}
           notes={{
             what: tx('Unsloth is an open-source Python library, not a model. It gives you ready 4-bit versions of popular open-weight models and wraps the whole QLoRA recipe: load, add adapters, train, test, export.',
               'Unsloth مكتبة Python مفتوحة المصدر وليس نموذجًا. يعطيك نسخًا جاهزة بدقة 4 بت من النماذج مفتوحة الأوزان الشائعة، ويغلّف وصفة QLoRA كلها: تحميل، إضافة مهايئات، تدريب، اختبار، تصدير.'),

@@ -1,0 +1,165 @@
+/* Animated scenes in the fine-tuning lab: the player frame and the three pictures. */
+
+.ft-scene {
+  display: grid; gap: 12px; padding: 16px; border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent);
+  background: radial-gradient(500px 160px at 0% 0%, color-mix(in srgb, var(--tone) 14%, transparent), transparent 70%), #070b1ce6;
+  box-shadow: 0 24px 50px -34px #000;
+}
+.ft-scene-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.ft-scene-head h4 { margin: 0; font-size: 1.08em; color: #f2f6ff; letter-spacing: -.01em; }
+.ft-scene-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; color: #06101e;
+  background: var(--tone); font-size: .7em; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+}
+.ft-scene-stage { border-radius: 16px; background: radial-gradient(ellipse at 50% 0%, #16265c 0%, #0a1128 50%, #050814 100%); border: 1px solid #2b3d75; overflow: hidden; }
+.ft-svg { display: block; width: 100%; height: auto; direction: ltr; }
+.ft-scene-caption {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; min-height: 92px;
+  padding: 12px 14px; border-radius: 14px; background: #060a18cc; border: 1px solid var(--line);
+}
+.ft-scene-caption > div { animation: slide-in .35s ease both; }
+.ft-scene-caption strong { display: block; color: color-mix(in srgb, var(--tone) 65%, #fff); font-size: 1.02em; }
+.ft-scene-caption p { margin-top: 3px; color: #ccd5f0; font-size: .93em; line-height: 1.65; }
+.ft-scene-count { padding: 3px 9px; border-radius: 8px; background: #ffffff0d; color: #a9b6d8; font: 800 .8em var(--mono); white-space: nowrap; }
+.ft-scene-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ft-scene-play { min-width: 112px; }
+.ft-scene-dots { display: flex; gap: 6px; flex: 1 1 200px; margin: 0; padding: 0 4px; list-style: none; }
+.ft-scene-dots li { flex: 1; }
+.ft-scene-dots button {
+  position: relative; display: block; width: 100%; height: 8px; padding: 0; overflow: hidden;
+  border: 0; border-radius: 999px; background: #ffffff14; cursor: pointer;
+}
+.ft-scene-dots button.done { background: color-mix(in srgb, var(--tone) 55%, transparent); }
+.ft-scene-dots button.current { background: color-mix(in srgb, var(--tone) 30%, transparent); box-shadow: 0 0 0 1px var(--tone); }
+.ft-scene-dots button i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--tone); animation: ft-progress linear forwards; }
+html[dir="rtl"] .ft-scene-dots button i { inset: 0 0 0 auto; }
+
+/* ---------- shared picture parts ---------- */
+.ft-show { opacity: 1; transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1); }
+.ft-show.off { opacity: 0; pointer-events: none; }
+.ft-frame { fill: #ffffff05; stroke: #ffffff1a; }
+.ft-label { fill: #e6edff; font: 700 12px var(--sans); }
+.ft-tiny { fill: #9fadd0; font: 600 10px var(--sans); }
+.ft-tiny.strong { fill: #e6edff; font-weight: 750; }
+.ft-tiny.warm, .ft-tiny.strong.warm { fill: #ffd79a; }
+.ft-mono { fill: #dfe8ff; font: 700 10px var(--mono); }
+.ft-wire { fill: none; stroke: #5ee7ff66; stroke-width: 2; }
+.ft-wire.hot { stroke: #ffc46b99; }
+.ft-wire.dim { stroke: #ffffff26; stroke-dasharray: 4 5; }
+.ft-packet { fill: #dffbff; stroke: #5ee7ff; stroke-width: 1; filter: drop-shadow(0 0 5px #5ee7ff);
+  offset-rotate: 0deg; animation: ft-travel 2.4s linear infinite; }
+.ft-packet.hot { fill: #fff1d6; stroke: #ffc46b; filter: drop-shadow(0 0 5px #ffc46b); }
+.ft-packet.error { fill: #ffe3da; stroke: #ff8f6b; filter: drop-shadow(0 0 6px #ff8f6b); }
+.ft-packet.back { animation-direction: reverse; }
+.ft-lock path { stroke: #9db8ff; stroke-width: 1.6; }
+.ft-lock rect { fill: #9db8ff; }
+
+/* ---------- 1 adapters ---------- */
+.ft-module { fill: #5ee7ff14; stroke: #5ee7ff55; transition: fill .6s ease, stroke .6s ease; }
+.ft-module.frozen { fill: #7aa2ff26; stroke: #7aa2ff99; }
+.ft-module.zoomed { stroke-width: 2; }
+.ft-zoomline { fill: none; stroke: #ffffff33; stroke-dasharray: 3 4; }
+.ft-tag { fill: #ffc46b33; stroke: #ffc46b; }
+.ft-tag-text { fill: #ffe6bd; font: 800 9px var(--mono); }
+.ft-io { fill: #0b1530; stroke: #5ee7ff88; stroke-width: 1.5; }
+.ft-io-text { fill: #eafcff; font: 800 14px var(--mono); }
+.ft-w-box { fill: #0d1a36; stroke: #5ee7ff66; stroke-width: 1.5; transition: stroke .6s ease; }
+.ft-w-cell { fill: #5ee7ff; transition: fill .6s ease; }
+.ft-w-frost { opacity: 0; transition: opacity .8s ease; pointer-events: none; }
+.ft-w-blend { fill: #ffc46b; opacity: 0; transition: opacity 1s ease .6s; }
+.ft-w.frozen .ft-w-box { stroke: #9db8ff; }
+.ft-w.frozen .ft-w-cell { fill: #9db8ff; }
+.ft-w.frozen .ft-w-frost { opacity: 1; }
+.ft-w.merged .ft-w-blend { opacity: .22; }
+.ft-w.merged .ft-w-box { stroke: #ffc46b; }
+.ft-note { fill: #9db8ff; font: 700 10.5px var(--sans); }
+.ft-note.flash { fill: #8dffc4; animation: ft-blink 1.2s ease-in-out infinite alternate; }
+.ft-adapter { transform-box: view-box; transform-origin: 415px 135px; }
+.ft-adapter.ft-show.off { transform: translateY(26px); }
+.ft-adapter.merged { opacity: 0; transform: translate(0, -120px) scale(.35); transition: opacity .9s ease .3s, transform 1s cubic-bezier(.5, 0, .3, 1); }
+.ft-a-box, .ft-b-box { fill: #24190a; stroke: #ffc46b; stroke-width: 1.5; }
+.ft-a-cell { fill: #ffc46b; transition: opacity .8s ease; }
+.ft-b-cell { fill: #ffffff26; transition: fill .8s ease, opacity .8s ease; }
+.ft-b-cell.learned { fill: #ffc46b; }
+.ft-adapter.glow .ft-a-box, .ft-adapter.glow .ft-b-box { filter: drop-shadow(0 0 8px #ffc46b); animation: ft-pulse 1s ease-in-out infinite alternate; }
+.ft-zero { fill: #ffd79a; font: 800 13px var(--mono); }
+.ft-count { fill: #5ef2a014; stroke: #5ef2a077; }
+.ft-count-text { fill: #b9ffd9; font: 800 13px var(--mono); }
+.ft-equation-line { fill: #e6edff; font: 700 13px var(--mono); }
+
+/* ---------- 2 quantization ---------- */
+.ft-axis { stroke: #ffffff40; }
+.ft-bound { stroke: #ffffff33; stroke-dasharray: 5 4; }
+.ft-level { stroke: #5ef2a055; stroke-width: 1; }
+.ft-level-text { fill: #5ef2a0aa; font: 700 8px var(--mono); }
+.ft-absmax { stroke: #ffc46b; stroke-dasharray: 6 4; }
+.ft-divide { fill: #ffc46b26; stroke: #ffc46b; }
+.ft-divide-text { fill: #ffe6bd; font: 800 15px var(--mono); }
+.ft-qbar { fill: #5ee7ff; transform-box: fill-box; transform-origin: top; transition: transform 1s cubic-bezier(.2, .8, .2, 1), fill .5s ease; }
+.ft-qbar.negative { fill: #ff8f6b; }
+.ft-qbar.pick { stroke: #ffc46b; stroke-width: 2; animation: ft-pulse .8s ease-in-out infinite alternate; }
+.step-4 .ft-qbar, .step-5 .ft-qbar { fill: #5ef2a0; }
+.step-4 .ft-qbar.negative, .step-5 .ft-qbar.negative { fill: #5ef2a0; }
+.ft-ghost { fill: none; stroke: #ffffffaa; stroke-dasharray: 3 3; }
+.ft-snapdot { fill: #fff; stroke: #5ef2a0; stroke-width: 2; filter: drop-shadow(0 0 4px #5ef2a0); }
+.ft-value { fill: #f2f6ff; font: 800 12px var(--mono); animation: ft-pop .45s ease both; }
+.ft-bit { fill: #ffffff14; transition: fill .4s ease; }
+.ft-bit.one { fill: #5ee7ff; }
+.ft-bit.wide.one { fill: #5ef2a0; }
+.ft-bit-text { fill: #06101e; font: 800 10px var(--mono); }
+.ft-bit.wide:not(.one) + .ft-bit-text { fill: #9fadd0; }
+.ft-scale { fill: #ffc46b1f; stroke: #ffc46b; transition: width .8s ease; }
+.ft-memory-line { fill: #e6edff; font: 800 12px var(--mono); }
+
+/* ---------- 3 unsloth ---------- */
+.ft-codeline { fill: #050814; stroke: #ffffff1f; }
+.ft-code-text { fill: #b9ffd9; font: 600 11.5px var(--mono); animation: ft-type .6s steps(24) both; }
+.ft-station rect { fill: #ffffff08; stroke: #ffffff26; transition: stroke .4s ease, fill .4s ease; }
+.ft-station.active rect { stroke: var(--tone); fill: color-mix(in srgb, var(--tone) 14%, transparent); }
+.ft-station.unsloth.active rect { stroke: #ff8f6b; fill: #ff8f6b1a; }
+.ft-gear circle, .ft-gear rect { fill: #ff8f6b; }
+.ft-gear .hole { fill: #0a0f22; }
+.ft-gear.spin { animation: ft-spin 2.4s linear infinite; transform-box: fill-box; transform-origin: center; }
+.ft-callout { fill: #ff8f6b14; stroke: #ff8f6b88; }
+.ft-crate { fill: #7aa2ff; stroke: #cfdcff; offset-rotate: 0deg; animation: ft-travel 2s linear infinite; }
+.ft-crate.working { fill: #8c98bd; }
+.ft-doc { fill: #a78bfa; stroke: #e3d9ff; offset-rotate: 0deg; animation: ft-travel 2.2s linear infinite; }
+.ft-gpu-body { fill: #0b1530; stroke: #5ee7ff66; stroke-width: 1.5; }
+.ft-gauge { fill: #ffffff0a; stroke: #ffffff26; }
+.ft-seg { transition: y .9s cubic-bezier(.2, .8, .2, 1), height .9s cubic-bezier(.2, .8, .2, 1); }
+.ft-seg.base { fill: #7aa2ff; }
+.ft-seg.adapter { fill: #ffc46b; }
+.ft-seg.working { fill: #8c98bd; }
+.ft-gauge-text { fill: #e6edff; font: 800 10px var(--mono); }
+.ft-chip { stroke-width: 1; }
+.ft-chip.base { fill: #7aa2ff26; stroke: #7aa2ff; }
+.ft-chip.adapter { fill: #ffc46b26; stroke: #ffc46b; }
+.ft-chip.working { fill: #8c98bd26; stroke: #8c98bd; }
+.ft-chip-text { fill: #e6edff; font: 700 9.5px var(--sans); }
+.ft-loop-ring { fill: none; stroke: #ff8f6b55; stroke-width: 3; stroke-dasharray: 6 6; }
+.ft-loop .ft-tiny { stroke: #070b1c; stroke-width: 4px; }
+.ft-loop-dot { fill: #ffe3da; filter: drop-shadow(0 0 6px #ff8f6b); offset-path: path("M 0 -46 A 46 46 0 1 1 0 46 A 46 46 0 1 1 0 -46"); animation: ft-orbit 1.8s linear infinite; }
+.ft-lossline { fill: none; stroke: #5ef2a0; stroke-width: 2; stroke-dasharray: 160; animation: ft-draw 2.5s ease forwards; }
+.ft-file { fill: #5ef2a014; stroke: #5ef2a0; }
+.ft-file.run { fill: #ffffff08; stroke: #ffffff40; stroke-dasharray: 4 4; }
+
+@keyframes ft-travel { 0% { offset-distance: 0%; opacity: 0; } 10%, 90% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+@keyframes ft-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@keyframes ft-progress { from { width: 0; } to { width: 100%; } }
+@keyframes ft-pulse { from { opacity: .7; } to { opacity: 1; } }
+@keyframes ft-blink { from { opacity: .55; } to { opacity: 1; } }
+@keyframes ft-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes ft-spin { to { transform: rotate(360deg); } }
+@keyframes ft-draw { from { stroke-dashoffset: 160; } to { stroke-dashoffset: 0; } }
+@keyframes ft-type { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 720px) {
+  .ft-scene { padding: 10px; }
+  .ft-scene-caption { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .ft-scene-dots { flex-basis: 100%; }
+}
+/* The movement is the lesson, so the packets keep moving; decorative motion stops. */
+@media (prefers-reduced-motion: reduce) {
+  .ft-gear.spin, .ft-note.flash, .ft-adapter.glow .ft-a-box, .ft-adapter.glow .ft-b-box, .ft-qbar.pick { animation: none !important; }
+}

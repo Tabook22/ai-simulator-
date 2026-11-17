@@ -206,3 +206,8 @@ html[dir="rtl"] .ft-facts dt { letter-spacing: 0; }
 
 @keyframes ft-learn { from { opacity: .35; } to { opacity: 1; } }
 @keyframes ft-glow { from { box-shadow: 0 0 14px -8px #ffc46b; } to { box-shadow: 0 0 34px -6px #ffc46b; } }
+
+.ft-handson { display: flex; align-items: center; gap: 7px; margin-top: 10px; padding-top: 14px; border-top: 1px dashed var(--line-strong); color: color-mix(in srgb, var(--tone) 70%, #fff); }
+.ft-handson.first { margin-top: 0; padding-top: 0; border-top: 0; }
+.ft-scene-row { padding: 0 26px 18px; }
+@media (max-width: 720px) { .ft-scene-row { padding: 0 12px 14px; } }
