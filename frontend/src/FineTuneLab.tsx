@@ -6,6 +6,7 @@ import { Icon } from './ui';
 import type { IconName } from './ui';
 import { useI18n } from './i18n';
 import { AdapterScene, QuantScene, UnslothScene } from './FineTuneScenes';
+import { TurathCase } from './TurathCase';
 import { CHOICES, QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
 import type { Text } from './finetuneContent';
 import {
@@ -44,6 +45,9 @@ const STAGES: { key: string; icon: IconName; tone: string; label: Text; question
   { key: 'unsloth', icon: 'code', tone: '#ff8f6b',
     label: { en: 'Unsloth', ar: 'Unsloth' },
     question: { en: 'How is it done in real code?', ar: 'كيف يُنفَّذ ذلك في شيفرة حقيقية؟' } },
+  { key: 'turath', icon: 'book', tone: '#2dd4bf',
+    label: { en: 'Real project: TurathAI', ar: 'مشروع حقيقي: تراث AI' },
+    question: { en: 'How is a whole project planned?', ar: 'كيف يُخطَّط لمشروع كامل؟' } },
 ];
 
 const tone = (color: string) => ({ '--tone': color }) as CSSProperties;
@@ -641,6 +645,7 @@ export function FineTuneLab() {
           }}><QloraStage/></Stage>
 
         <Stage index={6} summary={tx('7 steps', '7 خطوات')} scene={<UnslothScene/>}
+          flow={tx('now a real student project', 'والآن مشروع طلابي حقيقي')}
           notes={{
             what: tx('Unsloth is an open-source Python library, not a model. It gives you ready 4-bit versions of popular open-weight models and wraps the whole QLoRA recipe: load, add adapters, train, test, export.',
               'Unsloth مكتبة Python مفتوحة المصدر وليس نموذجًا. يعطيك نسخًا جاهزة بدقة 4 بت من النماذج مفتوحة الأوزان الشائعة، ويغلّف وصفة QLoRA كلها: تحميل، إضافة مهايئات، تدريب، اختبار، تصدير.'),
@@ -649,6 +654,8 @@ export function FineTuneLab() {
             tryIt: tx('Find the one line that does the quantization, and the one argument that sets the rank you tried in part 4.',
               'ابحث عن السطر الوحيد الذي ينفّذ التكميم، وعن المعامل الوحيد الذي يحدد الرتبة التي جرّبتها في الجزء 4.'),
           }}><UnslothStage/></Stage>
+
+        <TurathCase index={7} total={STAGES.length}/>
 
         <Quiz/>
       </div>

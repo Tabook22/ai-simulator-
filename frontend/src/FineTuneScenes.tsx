@@ -10,10 +10,10 @@ import { Icon } from './ui';
 import { useI18n } from './i18n';
 import { NF4_LEVELS } from './finetuneModel';
 
-interface Text { en: string; ar: string }
-const t = (en: string, ar: string): Text => ({ en, ar });
+export interface Text { en: string; ar: string }
+export const t = (en: string, ar: string): Text => ({ en, ar });
 
-function useTx() {
+export function useTx() {
   const { isArabic } = useI18n();
   return (text: Text) => isArabic ? text.ar : text.en;
 }
@@ -22,7 +22,7 @@ function useTx() {
 
 const STEP_MS = 5200;
 
-function usePlayer(count: number) {
+export function usePlayer(count: number) {
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
@@ -42,7 +42,7 @@ function usePlayer(count: number) {
   };
 }
 
-function Scene({ id, title, steps, player, children }: {
+export function Scene({ id, title, steps, player, children }: {
   id: string; title: Text; steps: { title: Text; text: Text }[];
   player: ReturnType<typeof usePlayer>; children: ReactNode;
 }) {
@@ -84,11 +84,11 @@ function Scene({ id, title, steps, player, children }: {
   </section>;
 }
 
-const show = (visible: boolean) => visible ? 'ft-show' : 'ft-show off';
-const packet = (path: string, delay: number, extra: Record<string, string> = {}) =>
+export const show = (visible: boolean) => visible ? 'ft-show' : 'ft-show off';
+export const packet = (path: string, delay: number, extra: Record<string, string> = {}) =>
   ({ offsetPath: `path("${path}")`, animationDelay: `${delay}s`, ...extra }) as CSSProperties;
 
-function Lock({ x, y, size = 1 }: { x: number; y: number; size?: number }) {
+export function Lock({ x, y, size = 1 }: { x: number; y: number; size?: number }) {
   return <g className="ft-lock" transform={`translate(${x} ${y}) scale(${size})`}>
     <path d="M-4 -1 V-4 a4 4 0 0 1 8 0 V-1" fill="none"/>
     <rect x="-6" y="-1" width="12" height="9" rx="2"/>

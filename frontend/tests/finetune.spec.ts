@@ -4,7 +4,7 @@ test('trains a LoRA adapter beside frozen weights and shows rank matters', async
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
   await expect(page.getByRole('heading', { name: 'Teach a ready-made model your own subject' })).toBeVisible();
-  await expect(page.locator('.llm-stage')).toHaveCount(7);
+  await expect(page.locator('.llm-stage')).toHaveCount(8);
 
   const lora = page.locator('#ft-lora .llm-stage-body');
   const loss = async () => Number(await lora.getByTestId('lora-loss').textContent());
@@ -94,4 +94,60 @@ test('steps through the animated scenes for adapters, quantization and Unsloth',
   await unsloth.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(unsloth.locator('.ft-code-text')).toContainText('load_in_4bit = True', { timeout: 8000 });
   await expect(unsloth.locator('.ft-scene-count')).toHaveText('2 / 7');
+});
+
+test('walks the TurathAI case study: journey, dataset split, evaluation and checklist', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  const turath = page.locator('#ft-turath');
+  await expect(turath.getByRole('heading', { name: 'TurathAI: fine-tuning a model on Omani heritage' })).toBeVisible();
+  await expect(turath.locator('.tj-questions > div')).toHaveCount(4);
+
+  // The journey follows the report's phases.
+  const journey = page.locator('#tj-journey');
+  await expect(journey.locator('.ft-scene-count')).toHaveText('1 / 9');
+  await journey.getByRole('button', { name: /^5: Phase 3 · Split by story family/ }).click();
+  await expect(journey.locator('.tj-card')).toHaveCount(10);
+  await journey.getByRole('button', { name: /^7: Phase 5/ }).click();
+  await expect(journey.locator('.ft-scene-caption strong')).toHaveText('Phase 5 · Fine-tune with QLoRA and Unsloth');
+
+  // Real Arabic records become JSONL, and splitting one story across sets is flagged as a leak.
+  const builder = turath.locator('.tj-builder');
+  await builder.getByRole('button', { name: 'Al-Khanjar' }).click();
+  await expect(builder.locator('.tj-jsonl code')).toHaveCount(3);
+  await expect(builder.locator('.tj-jsonl')).toContainText('ممّ يُصنع الخنجر؟');
+  await expect(builder.locator('.tj-verdict-box')).toHaveClass(/ok/);
+  await builder.getByRole('combobox', { name: 'Set for question 3' }).selectOption('test');
+  await expect(builder.locator('.tj-verdict-box')).toHaveClass(/bad/);
+  await expect(builder.locator('.tj-verdict-box')).toContainText('Leak!');
+
+  // The RAG scene ends with an admin update that needs no retraining.
+  const rag = page.locator('#tj-rag');
+  await rag.getByRole('button', { name: /^7: An admin adds new heritage/ }).click();
+  await expect(rag.locator('.ft-scene-caption strong')).toHaveText('An admin adds new heritage, no retraining needed');
+
+  // Scoring an answer, then revealing the teacher's scores.
+  const evaluation = turath.locator('.tj-eval');
+  await evaluation.getByRole('group', { name: 'Original model: Factual accuracy' }).getByRole('button', { name: '2' }).click();
+  await expect(evaluation.getByTestId('eval-total-0')).toHaveText('2 / 20');
+  await evaluation.getByRole('button', { name: 'Compare with the teacher’s scoring' }).click();
+  await expect(evaluation.locator('.tj-why')).toHaveCount(3);
+
+  // The phase checklist is remembered.
+  const checklist = turath.locator('.tj-checklist');
+  await checklist.getByRole('checkbox').first().check();
+  await expect(checklist.locator('.tj-progress span')).toHaveText('1 / 8');
+  await page.reload();
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await expect(page.locator('#ft-turath .tj-progress span')).toHaveText('1 / 8');
+});
+
+test('shows the TurathAI case study in Arabic', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'العربية' }).click();
+  await page.getByRole('button', { name: 'مختبر الضبط الدقيق' }).click();
+  const turath = page.locator('#ft-turath');
+  await expect(turath.getByRole('heading', { name: 'تراث AI: ضبط نموذج بدقة على التراث العُماني' })).toBeVisible();
+  await expect(page.locator('#tj-journey .ft-scene-caption strong')).toHaveText('المرحلة 2 · جمع التراث من مصادر موثوقة');
+  await expect(turath.locator('.tj-builder')).toContainText('مدخل في سجل المصادر');
 });
