@@ -7,6 +7,7 @@ import type { IconName } from './ui';
 import { useI18n } from './i18n';
 import { AdapterScene, QuantScene, UnslothScene } from './FineTuneScenes';
 import { DocsScene, KitchenScene, TermsScene, TrainingStepScene } from './LessonScenes';
+import { FactsNotFiles, NeuronParameters, ParameterLadder } from './ParameterLesson';
 import { AnalogyTrio, BuildOrderPanel, DataSorter, DecisionHelper, PhotoQuantize, SplitPicture, StickyNotes, StorytellerScene, StrengthChart, TwoExamples } from './HybridLesson';
 import {
   ApproachPicker, BatchCalculator, CompareCards, EXTRA_QUIZ, EvaluationPanel, FormatExplorer, FrozenCalculator, Glossary, InitDemo,
@@ -580,9 +581,9 @@ export function FineTuneLab() {
               'يستخدم الضبط الدقيق عددًا قليلًا من الكلمات مرة بعد مرة: المعامل، والمجمَّد، والقابل للتدريب، والتنشيط، والخسارة، والتدرّج، والمحسّن، والدفعة، والحقبة. وليست موضوعات منفصلة: إنها خطوات حلقة واحدة تتكرر حتى يلائم النموذج الأمثلة.'),
             why: tx('The most important sentence of the lesson: frozen means not updated. It does not mean inactive. The original weights calculate every answer; only the small adapter learns.',
               'أهم جملة في الدرس: المجمَّد يعني أنه لا يُحدَّث، ولا يعني أنه لا يعمل. فالأوزان الأصلية تحسب كل إجابة، والمهايئ الصغير وحده يتعلم.'),
-            tryIt: tx('Play the loop, then turn the calculator’s free knob with “Train one step”. Which part still contributes to the answer, and which part learns?',
-              'شغّل الحلقة، ثم حرّك زر الآلة الحاسبة الحر بزر “درّب خطوة واحدة”. أي جزء ما زال يساهم في الإجابة، وأي جزء يتعلم؟'),
-          }}><FrozenCalculator/><Glossary goTo={goTo}/></Stage>
+            tryIt: tx('Start with the neuron: check that 2 × 0.5 + 3 × 0.4 + 0.2 = 2.4. Then train it “the LoRA way” and watch “original parameters changed” stay at 0. Finally play the loop.',
+              'ابدأ بالعصبون: تحقق من أن 2 × 0.5 + 3 × 0.4 + 0.2 = 2.4. ثم درّبه “بطريقة LoRA” وراقب “معاملات أصلية تغيّرت” وهي تبقى 0. وأخيرًا شغّل الحلقة.'),
+          }}><NeuronParameters/><ParameterLadder/><FactsNotFiles/><FrozenCalculator/><Glossary goTo={goTo}/></Stage>
 
         <Stage index={2} summary={tx('document → JSONL → tokens', 'مستند ← JSONL ← رموز')} scene={<DocsScene/>} flow={tx('examples go to the model', 'الأمثلة تذهب إلى النموذج')}
           notes={{

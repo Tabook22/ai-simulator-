@@ -39,8 +39,8 @@ const T_OUT = 'M 490 175 L 500 175';
 
 const TERM_STEPS = [
   { title: t('Parameters: the numbers a model is made of', 'المعاملات: الأرقام التي يتكوّن منها النموذج'),
-    text: t('Every small square here is a parameter, a learned number. A layer multiplies its input x by them. A 27B model has 27 billion of them: numbers, not stored facts.',
-      'كل مربع صغير هنا معامل، أي رقم متعلَّم. والطبقة تضرب مدخلها x بها. ونموذج 27B فيه 27 مليارًا منها: أرقام لا حقائق مخزَّنة.') },
+    text: t('Every small square here is a parameter, a learned number: a weight, or a bias added after. A layer multiplies its input x by the weights. A 27B model has 27 billion of them: numbers, not stored facts.',
+      'كل مربع صغير هنا معامل، أي رقم متعلَّم: وزن، أو انحياز يُضاف بعده. والطبقة تضرب مدخلها x بالأوزان. ونموذج 27B فيه 27 مليارًا منها: أرقام لا حقائق مخزَّنة.') },
   { title: t('Frozen: locked, but still working', 'مجمَّد: مقفل لكنه ما زال يعمل'),
     text: t('The base weights W are frozen: training will never change them. But every input still passes through W. Frozen means not updated. It does not mean inactive.',
       'أوزان الأساس W مجمَّدة: لن يغيّرها التدريب أبدًا. لكن كل مدخل ما زال يمر عبر W. المجمَّد يعني أنه لا يُحدَّث، ولا يعني أنه لا يعمل.') },

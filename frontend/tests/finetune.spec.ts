@@ -370,3 +370,32 @@ test('shows the three analogies: extra lessons, sticky notes and a compressed ph
   await quant.getByRole('button', { name: '2 bits per colour' }).click();
   await expect(quant.locator('.hy-photos figcaption').last()).toContainText('4 shades per colour · file 25%');
 });
+
+test('explains what a parameter is: the neuron, the ladder and facts versus patterns', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  const words = page.locator('#ft-words .llm-stage-body');
+
+  // The worked example: z = 2 × 0.5 + 3 × 0.4 + 0.2 = 2.4.
+  await expect(words.getByTestId('neuron-equation')).toContainText('= 2.40');
+  await words.getByRole('slider', { name: 'b', exact: true }).fill('0.5');
+  await expect(words.getByTestId('neuron-equation')).toContainText('= 2.70');
+
+  // Full fine-tuning moves the original parameters; LoRA leaves them alone.
+  await words.getByRole('button', { name: 'Train every parameter' }).click();
+  await words.getByRole('button', { name: 'Train one step' }).first().click();
+  await expect(words.getByTestId('neuron-changed')).toHaveText('3');
+  await words.getByRole('button', { name: 'Train the LoRA way' }).click();
+  for (let step = 0; step < 15; step++) await words.getByRole('button', { name: 'Train one step' }).first().click();
+  await expect(words.getByTestId('neuron-changed')).toHaveText('0');
+  await expect(words.getByTestId('neuron-error')).toHaveText('-0.00');
+  await expect(words.getByTestId('neuron-equation')).toContainText('2.0 × (0.50 +');
+
+  await words.getByRole('button', { name: 'Zoom out' }).click();
+  await words.getByRole('button', { name: 'Zoom out' }).click();
+  await expect(words.locator('.pm-rungs li.shown')).toHaveCount(3);
+
+  await words.getByRole('button', { name: 'Muscat is the capital of Oman' }).click();
+  await expect(words.locator('.pm-rows li.hit')).toHaveText('Muscat is the capital of Oman');
+  expect(await words.locator('.pm-cells i.strong').count()).toBeGreaterThan(20);
+});

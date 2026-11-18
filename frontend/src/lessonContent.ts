@@ -20,9 +20,9 @@ export interface Term { name: Text; plain: Text; example: Text; part: number }
 /** The words in the order they happen in one round of training. */
 export const LOOP_TERMS: Term[] = [
   { name: t('Parameter (weight)', 'المعامل (الوزن)'), part: PART.words,
-    plain: t('A learned number inside the model or the adapter. A “27B” model holds 27 billion such numbers: numbers, not facts or documents. Knowledge is spread across many of them.',
-      'رقم متعلَّم داخل النموذج أو المهايئ. ونموذج “27B” يحمل 27 مليار رقم كهذا: أرقامًا لا حقائق ولا مستندات. والمعرفة موزعة على كثير منها.'),
-    example: t('One cell in the matrix W of the LoRA part is one parameter.', 'كل خلية في المصفوفة W في جزء LoRA معامل واحد.') },
+    plain: t('A learned number inside the model or the adapter. There are two kinds: weights (w), which set how strongly each input counts, and biases (b), extra numbers added before the activation function. A “27B” model holds 27 billion such numbers: numbers, not facts or documents. Knowledge is spread across many of them.',
+      'رقم متعلَّم داخل النموذج أو المهايئ. وهو نوعان: الأوزان (w) التي تحدد مقدار تأثير كل مدخل، والانحيازات (b) وهي أرقام إضافية تُضاف قبل دالة التنشيط. ونموذج “27B” يحمل 27 مليار رقم كهذا: أرقامًا لا حقائق ولا مستندات. والمعرفة موزعة على كثير منها.'),
+    example: t('z = (2 × 0.5) + (3 × 0.4) + 0.2 = 2.4: two weights and one bias.', 'z = (2 × 0.5) + (3 × 0.4) + 0.2 = 2.4: وزنان وانحياز واحد.') },
   { name: t('Frozen parameter', 'المعامل المجمَّد'), part: PART.freeze,
     plain: t('A parameter that training is told not to change. It still takes part in every calculation: frozen means not updated, not inactive.',
       'معامل يُطلب من التدريب ألا يغيّره. لكنه يشارك في كل حساب: المجمَّد يعني أنه لا يُحدَّث، لا أنه لا يعمل.'),

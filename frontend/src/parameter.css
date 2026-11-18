@@ -1,0 +1,83 @@
+/* "What is a parameter?" tools (ParameterLesson.tsx). */
+
+.pm-neuron, .pm-ladder, .pm-facts { display: grid; gap: 12px; }
+
+/* ---------- the neuron ---------- */
+.pm-svg { display: block; width: 100%; max-width: 640px; justify-self: center; padding: 8px; border-radius: 18px; background: #050814; border: 1px solid #2b3d75; }
+.pm-edge { fill: none; stroke: #5ee7ff88; stroke-linecap: round; transition: stroke-width .4s ease; }
+.pm-edge.bias { stroke: #a78bfa99; stroke-width: 3; }
+.pm-edge.out { stroke: #ffffff55; stroke-width: 3; }
+.pm-svg.lora .pm-edge:not(.out) { stroke: #7aa2ff77; }
+.pm-svg.full .pm-edge:not(.out) { stroke: #ff8f6b99; }
+.pm-delta { fill: none; stroke: #ffc46b; stroke-width: 3; stroke-dasharray: 6 4; animation: pm-dash 1s linear infinite; }
+.pm-flow { fill: #dffbff; filter: drop-shadow(0 0 6px #5ee7ff); offset-rotate: 0deg; opacity: 0; animation: pm-run 1.1s ease-in-out forwards; }
+.pm-flow.bias { fill: #e3d9ff; filter: drop-shadow(0 0 6px #a78bfa); }
+.pm-input { fill: #0b1530; stroke: #5ee7ff; stroke-width: 2; }
+.pm-in-text { fill: #9fe9ff; font: 800 13px var(--mono); }
+.pm-in-value { fill: #fff; font: 800 12px var(--mono); }
+.pm-weight rect { fill: #13224d; stroke: #5ee7ff; stroke-width: 1.4; transition: fill .4s ease, stroke .4s ease; }
+.pm-weight text { fill: #e6f6ff; font: 800 11.5px var(--mono); }
+.pm-weight.bias rect { stroke: #a78bfa; }
+.pm-weight.frozen rect { fill: #13224d; stroke: #7aa2ff; stroke-dasharray: 4 3; }
+.pm-weight.frozen text { fill: #b9cbff; }
+.pm-weight.hot rect { fill: #3a1a12; stroke: #ff8f6b; animation: ft-pulse .9s ease-in-out infinite alternate; }
+.pm-adapter rect { fill: #3a2408; stroke: #ffc46b; filter: drop-shadow(0 0 6px #ffc46b88); }
+.pm-adapter text { fill: #ffe6bd; font: 800 11px var(--mono); }
+.pm-sum { fill: #13224d; stroke: #fff; stroke-width: 2; filter: drop-shadow(0 0 10px #5ee7ff66); }
+.pm-sum-label { fill: #9fe9ff; font: 800 18px var(--mono); }
+.pm-sum-value { fill: #fff; font: 900 12.5px var(--mono); animation: ft-pop .4s ease both; }
+.pm-act { fill: #5ef2a014; stroke: #5ef2a0; }
+.pm-act-text { fill: #c9ffe2; font: 800 11px var(--sans); }
+.pm-act-text.small { font-family: var(--mono); fill: #8dffc4; }
+.pm-target { fill: #ffd79a; font: 800 11px var(--sans); }
+.pm-note { fill: #ffd08a; font: 700 10.5px var(--sans); }
+.pm-equation { padding: 11px 14px; border-radius: 14px; background: #060a18b3; border: 1px solid var(--line); font: 700 1.02em var(--mono); color: #dbe3f8; text-align: center; }
+.pm-equation .x { color: #9fe9ff; }
+.pm-equation .w { color: #5ee7ff; }
+.pm-equation .b { color: #cdbaff; }
+.pm-equation .frozen { color: #9db8ff; text-decoration: underline dotted; }
+.pm-equation .d { color: #ffc46b; }
+.pm-equation strong { color: #fff; font-size: 1.1em; }
+.pm-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 18px; }
+.pm-slider { display: grid; grid-template-columns: 26px minmax(0, 1fr) 44px auto; align-items: center; gap: 8px; color: #c6d1ee; font: 700 .9em var(--mono); }
+.pm-slider input { accent-color: var(--tone); min-width: 0; width: 100%; }
+.pm-slider b { color: #fff; }
+.pm-train { display: grid; gap: 10px; }
+
+/* ---------- the ladder ---------- */
+.pm-rungs { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pm-rungs li button { display: grid; grid-template-columns: minmax(130px, 200px) 1fr 76px; gap: 2px 12px; align-items: center; width: 100%; padding: 9px 12px;
+  border-radius: 12px; border: 1px solid var(--line); background: #ffffff05; color: #dbe3f8; text-align: start; cursor: pointer; opacity: .45; transition: opacity .35s ease, border-color .3s ease; font: inherit; }
+.pm-rungs li.shown button { opacity: 1; }
+.pm-rungs li.current button { border-color: var(--tone); background: color-mix(in srgb, var(--tone) 10%, transparent); }
+.pm-rung-name { font-weight: 750; color: #fff; }
+.pm-rung-bar { height: 14px; border-radius: 7px; background: #ffffff0a; overflow: hidden; }
+.pm-rung-bar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, #5ee7ff, #7aa2ff); transition: width .9s cubic-bezier(.3, .8, .2, 1); }
+.pm-rungs li.lora .pm-rung-bar i { background: linear-gradient(90deg, #ffc46b, #ff8f6b); }
+.pm-rungs b { font: 800 .95em var(--mono); color: #fff; text-align: end; }
+.pm-rungs small { grid-column: 1 / -1; color: #8f9cc2; font-size: .8em; }
+
+/* ---------- facts vs patterns ---------- */
+.pm-facts-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 12px; }
+.pm-facts-grid article { display: grid; gap: 8px; align-content: start; padding: 13px; border-radius: 16px; border: 1px solid var(--line); background: #060a18b3; }
+.pm-facts-grid h5 { display: flex; align-items: center; gap: 6px; margin: 0; color: #fff; font-size: .92em; }
+.pm-facts-grid p { color: #c9d3ee; font-size: .86em; line-height: 1.55; }
+.pm-rows { display: grid; gap: 4px; margin: 0; padding-inline-start: 22px; color: #9aa8cc; font-size: .88em; }
+.pm-rows li { padding: 4px 8px; border-radius: 8px; transition: background .3s ease, color .3s ease; }
+.pm-rows li.hit { background: #5ef2a022; color: #e9fff3; font-weight: 700; }
+.pm-cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; padding: 8px; border-radius: 12px; background: #050814; }
+.pm-cells i { aspect-ratio: 1; border-radius: 3px; background: #7aa2ff; transition: opacity .5s ease, background .5s ease; }
+.pm-cells i.strong { background: #5ee7ff; }
+.pm-cells i.shared { outline: 1.5px solid #fff; outline-offset: -1px; }
+
+@keyframes pm-run { 0% { offset-distance: 0%; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+@keyframes pm-dash { to { stroke-dashoffset: -20; } }
+
+@media (max-width: 860px) {
+  .pm-facts-grid { grid-template-columns: minmax(0, 1fr); }
+  .pm-rungs li button { grid-template-columns: 1fr 70px; }
+  .pm-rung-bar { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-delta, .pm-weight.hot rect { animation: none !important; }
+}
