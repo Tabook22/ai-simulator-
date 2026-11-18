@@ -163,6 +163,8 @@ export const EVAL_ANSWERS = [
 export const TURATH_CODE = `from unsloth import FastModel
 
 # 1) Load the 27B base in 4-bit: it is frozen from here on (QLoRA)
+#    The project names "Qwen3.8-27B". Before a real run, use the exact model ID
+#    and revision from Unsloth's list of supported models, and check its licence.
 model, tokenizer = FastModel.from_pretrained(
     model_name = "unsloth/Qwen3.8-27B-unsloth-bnb-4bit",
     max_seq_length = 2048,

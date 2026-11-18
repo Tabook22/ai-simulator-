@@ -1,0 +1,186 @@
+/* The four scenes built from the course notes (LessonScenes.tsx). Shared scene styles live in finetune-scenes.css. */
+
+.ls-panel { fill: #ffffff07; stroke: #ffffff22; }
+.ls-heading { fill: #93c5fd; font: 800 12.5px var(--sans); }
+.ls-heading.green { fill: #8dffc4; }
+.ls-item-text { fill: #dfe8ff; font: 750 10.5px var(--sans); }
+.ls-item-text.orange { fill: #ffd08a; }
+.ls-item-text.green { fill: #8dffc4; }
+.ls-faded { opacity: .28; transition: opacity .8s ease; }
+.ls-focus { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--tone, #5ee7ff) 70%, transparent)); }
+.ls-arrow { stroke: #ffb35c; stroke-width: 4; stroke-linecap: round; marker-end: none; fill: none; }
+
+/* ---------- key words loop ---------- */
+.ls-loop { fill: none; stroke: #ffffff1c; stroke-width: 2; stroke-dasharray: 5 6; }
+.ls-node rect { fill: #0a1230; stroke: #ffffff26; transition: fill .4s ease, stroke .4s ease; }
+.ls-node.done rect { stroke: color-mix(in srgb, var(--tone, #5ee7ff) 45%, transparent); }
+.ls-node.current rect { fill: color-mix(in srgb, var(--tone, #5ee7ff) 22%, #0a1230); stroke: var(--tone, #5ee7ff); stroke-width: 2;
+  filter: drop-shadow(0 0 8px var(--tone, #5ee7ff)); }
+.ls-node-number { fill: #8a97bf; font: 800 11px var(--mono); }
+.ls-node.current .ls-node-number { fill: var(--tone, #5ee7ff); }
+.ls-node-name { fill: #f2f6ff; font: 800 11.5px var(--sans); }
+.ls-w rect:first-child { fill: #13224d; stroke: #7aa2ff; stroke-width: 1.5; transition: filter .4s ease; }
+.ls-w .ls-cell { fill: #9db8ff; }
+.ls-w.lit rect:first-child { filter: drop-shadow(0 0 8px #7aa2ff); }
+.ls-ab rect:first-child { fill: #24190a; stroke: #ffc46b; stroke-width: 1.5; transition: filter .4s ease; }
+.ls-ab .ls-cell { fill: #ffffff2a; transition: fill .8s ease, opacity .8s ease; }
+.ls-ab .ls-cell.learned { fill: #ffc46b; }
+.ls-ab.lit rect:first-child { filter: drop-shadow(0 0 9px #ffc46b); animation: ft-pulse 1s ease-in-out infinite alternate; }
+.ls-card { fill: #a78bfa33; stroke: #a78bfa; }
+
+/* ---------- documents to JSONL ---------- */
+.ls-icon path, .ls-icon rect { fill: #13224d; stroke: #9db8ff; stroke-width: 1.5; }
+.ls-icon .ls-icon-line { fill: none; stroke: #9db8ff99; stroke-width: 1.4; }
+.ls-icon .ls-wave { fill: #5ee7ff; stroke: none; }
+.ls-badge { fill: #ffffff0a; stroke: #ffffff2e; }
+.ls-badge.ok { fill: #5ef2a01a; stroke: #5ef2a088; }
+.ls-badge-text { fill: #dfe8ff; font: 700 9.5px var(--sans); }
+.ls-textline { fill: #ffffff1f; }
+.ls-textline.same { fill: #a78bfa66; }
+.ls-ocr { fill: #dfe8ff; font: 700 13px var(--sans); }
+.ls-ocr .wrong { fill: #ff8f6b; text-decoration: line-through; }
+.ls-ocr .right { fill: #8dffc4; }
+.ls-fix { opacity: 0; }
+.step-1 .ls-fix { animation: ft-type .6s ease 1.8s forwards; }
+.ls-tag { fill: #a78bfa1f; stroke: #a78bfa; }
+.ls-tag-text { fill: #ece5ff; font: 700 9.5px var(--sans); }
+.ls-clean.duplicate { animation: ls-drop 1s ease 1s forwards; }
+.ls-clean.unsupported .ls-panel { stroke: #ff8f6b; }
+.ls-strike { stroke: #ff8f6b; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 200; stroke-dashoffset: 200; }
+.step-3 .ls-strike { animation: ls-strike .6s ease .4s forwards; }
+.ls-flag { fill: #ff8f6b; }
+.ls-flag-text { fill: #1a0a06; font: 900 14px var(--sans); }
+.ls-bubble { stroke-width: 1.2; }
+.ls-bubble.user { fill: #5ee7ff14; stroke: #5ee7ff88; }
+.ls-bubble.answer { fill: #a78bfa1f; stroke: #a78bfa; }
+.ls-bubble.honest { fill: #ffc46b14; stroke: #ffc46b99; }
+.ls-bubble-text { fill: #eef3ff; font: 700 11px var(--sans); }
+.ls-file { fill: #060a18; stroke: #a78bfa88; }
+.ls-jrow { fill: #ffffff06; stroke: #ffffff14; }
+.ls-jline { opacity: 0; animation: ft-pop .5s ease forwards; }
+.ls-jline.fresh .ls-jrow { stroke: #a78bfa; fill: #a78bfa14; }
+.ls-lineno { fill: #6f7da6; font: 800 11px var(--mono); }
+.ls-json { font: 700 10.5px var(--mono); }
+.ls-json .p { fill: #8593b8; }
+.ls-json .k { fill: #93c5fd; }
+.ls-json .s { fill: #ffd08a; }
+.ls-bin { fill: #ffffff05; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ls-bin.train { stroke: #5ee7ff88; }
+.ls-bin.val { stroke: #ffc46b88; }
+.ls-bin.test { stroke: #ff8fd088; }
+.ls-chunk { transition: transform 1s cubic-bezier(.3, .8, .2, 1); }
+.ls-chunk.g0 { fill: #5ee7ff; }
+.ls-chunk.g1 { fill: #7aa2ff; }
+.ls-chunk.g2 { fill: #5ef2a0; }
+.ls-chunk.g3 { fill: #ffc46b; }
+.ls-chunk.g4 { fill: #ff8fd0; }
+.ls-token { opacity: 0; animation: ft-pop .35s ease forwards; }
+.ls-token rect { stroke-width: 1.2; }
+.ls-token.prompt rect { fill: #ffffff0d; stroke: #ffffff33; }
+.ls-token.answer rect { fill: #a78bfa2e; stroke: #a78bfa; }
+.ls-token-text { fill: #eef3ff; font: 700 10.5px var(--mono); }
+.ls-token.prompt .ls-token-text { fill: #a3afd0; }
+.ls-token-id { fill: #8593b8; font: 700 9px var(--mono); }
+.ls-token.answer .ls-token-id { fill: #cdbaff; }
+.ls-key.prompt { fill: #ffffff22; }
+.ls-key.answer { fill: #a78bfa; }
+.ls-track { stroke: #ffffff1c; stroke-width: 2; }
+.ls-station rect { fill: #0a1230; stroke: #ffffff22; transition: fill .4s ease, stroke .4s ease; }
+.ls-station.done rect { stroke: color-mix(in srgb, var(--tone, #a78bfa) 50%, transparent); }
+.ls-station.current rect { fill: color-mix(in srgb, var(--tone, #a78bfa) 26%, #0a1230); stroke: var(--tone, #a78bfa); }
+.ls-station-text { fill: #cfd8f2; font: 750 9.5px var(--sans); }
+.ls-station.current .ls-station-text { fill: #fff; }
+
+/* ---------- kitchen ---------- */
+.ls-wall { fill: #0c1636; stroke: #ffffff12; }
+.ls-counter { stroke: #ffffff22; stroke-width: 3; }
+.ls-panel.bring { fill: #5ee7ff08; stroke: #5ee7ff44; }
+.ls-panel.out { fill: #5ef2a008; stroke: #5ef2a055; }
+.ls-robot .body { fill: #2f6fe0; stroke: #9fc0ff; stroke-width: 1.5; }
+.ls-robot .screen { fill: #0a1532; }
+.ls-robot .eye { fill: none; stroke: #5ee7ff; stroke-width: 2; stroke-linecap: round; }
+.ls-robot .gear { fill: #2758b8; stroke: #9fc0ff; stroke-width: 1.5; }
+.ls-robot .gear-hole { fill: #0a1532; }
+.ls-robot .vent { fill: #9fc0ff88; }
+.ls-adapter .box { fill: #f08a24; stroke: #ffd08a; stroke-width: 1.5; }
+.ls-adapter .track { stroke: #5a2a00; stroke-width: 2.4; stroke-linecap: round; }
+.ls-adapter .knob { fill: #fff3df; }
+.ls-adapter.moving .knob { animation: ls-slide 1.4s ease-in-out infinite alternate; }
+.ls-book { fill: #f2e6c9; stroke: #c9a86a; stroke-width: 1.4; }
+.ls-book-line { stroke: #c9a86a; stroke-width: 1.4; }
+.ls-jsonl { fill: #eaf2ff; stroke: #2f6fe0; stroke-width: 1.5; }
+.ls-jsonl-text { fill: #1f4fb0; font: 900 12px var(--mono); }
+.ls-jsonl-text.small { font-size: 9px; }
+.ls-rack { fill: #8a5a2b; stroke: #c99a62; }
+.ls-rack-text { fill: #fff3df; font: 800 10px var(--sans); }
+.ls-hook { stroke: #c9cfdf; stroke-width: 1.5; }
+.ls-tool { fill: #e9edf7; stroke: #9aa6c4; }
+.ls-tool-text { fill: #1d2a4d; font: 900 9px var(--mono); }
+.ls-whisk { fill: none; stroke: #c9cfdf; stroke-width: 1.5; }
+.ls-chef .hat circle, .ls-chef .hat rect { fill: #ffffff; stroke: #d8deef; }
+.ls-chef .head { fill: #f4f6fb; stroke: #cfd6ea; }
+.ls-chef .face { fill: #0a1532; }
+.ls-chef .eye { fill: none; stroke: #5ee7ff; stroke-width: 2; stroke-linecap: round; }
+.ls-chef .torso { fill: #f4f6fb; stroke: #cfd6ea; }
+.ls-chef .apron { fill: #ffffff; stroke: #2f6fe0; stroke-width: 1.2; }
+.ls-chef .apron-text { fill: #1f4fb0; font: 900 9px var(--sans); }
+.ls-chef .arm { fill: none; stroke: #f4f6fb; stroke-width: 9; stroke-linecap: round; transition: d .6s ease; }
+.ls-recipe rect { fill: #fff8e8; stroke: #e0c48c; }
+.ls-recipe-title { fill: #1d2a4d; font: 900 9.5px var(--sans); }
+.ls-recipe-text { fill: #33405f; font: 700 8px var(--sans); }
+.ls-speech { fill: #fff6e6; stroke: #f0a73a; stroke-width: 1.5; }
+.ls-loop-word { fill: #5a3600; font: 800 10.5px var(--sans); }
+.ls-loop-word.cycle tspan { animation: ls-word 3.6s ease-in-out infinite; }
+.ls-oven .ov-shell { fill: #59647d; stroke: #9aa6c4; stroke-width: 2; }
+.ls-oven .ov-window { fill: #101a36; stroke: #2b3757; stroke-width: 3; transition: fill .6s ease; }
+.ls-oven.on .ov-window { fill: #2a2412; }
+.ls-oven .ov-light { fill: #3a4258; }
+.ls-oven.on .ov-light { fill: #ffb35c; animation: ft-blink .9s ease-in-out infinite alternate; }
+.ls-oven .ov-panel { fill: #2b3348; stroke: #7d89a6; }
+.ls-oven .ov-chip { fill: #1d2440; stroke: #5ee7ff; }
+.ls-oven .ov-pin { stroke: #5ee7ff; stroke-width: 1.4; }
+.ls-oven .ov-chip-text { fill: #5ee7ff; font: 900 8.5px var(--mono); }
+.ls-oven .ov-gauge { fill: none; stroke: #5ef2a0; stroke-width: 5; stroke-linecap: round; }
+.ls-oven .ov-needle { stroke: #fff; stroke-width: 2.4; stroke-linecap: round; transform-origin: 0 0; transform: rotate(0deg); transition: transform 1.2s ease; }
+.ls-oven .ov-needle.swing { transform: rotate(80deg); }
+.ls-chip.base { fill: #13224dee; stroke: #7aa2ff; }
+.ls-chip.adapter { fill: #3a2408ee; stroke: #ffc46b; }
+.ls-chip-text { fill: #eef3ff; font: 750 8.5px var(--sans); }
+.ls-tray { fill: #c9cfdf; stroke: #8a95b3; }
+.ls-check { fill: #5ef2a014; stroke: #5ef2a0; }
+.ls-tick { fill: none; stroke: #5ef2a0; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.ls-footer rect { fill: #1f4fb0cc; }
+.ls-footer-text { fill: #fff; font: 800 10.5px var(--sans); }
+
+/* ---------- one training step ---------- */
+.ls-stoken rect { stroke-width: 1.3; }
+.ls-stoken text { font: 750 12px var(--sans); fill: #eef3ff; }
+.ls-stoken.prompt rect { fill: #ffffff0d; stroke: #ffffff33; }
+.ls-stoken.prompt text { fill: #a3afd0; }
+.ls-stoken.answer rect { fill: #a78bfa2e; stroke: #a78bfa; }
+.ls-stoken.next rect { fill: #5ef2a012; stroke: #5ef2a0; stroke-dasharray: 4 3; }
+.ls-stoken.next text { fill: #8dffc4; font-weight: 900; }
+.ls-layer .base { fill: #13224d; stroke: #7aa2ff; stroke-width: 1.4; }
+.ls-layer.flow .base { filter: drop-shadow(0 0 6px #7aa2ff); }
+.ls-layer .adapter { fill: #24190a; stroke: #ffc46b; stroke-width: 1.4; transition: fill .8s ease; }
+.ls-layer .adapter.glow { filter: drop-shadow(0 0 8px #ffc46b); animation: ft-pulse 1s ease-in-out infinite alternate; }
+.ls-layer .adapter.learned { fill: #6b4210; }
+.ls-ab-text { fill: #ffd08a; font: 800 10px var(--mono); }
+.ls-prob .track { fill: #ffffff0d; }
+.ls-prob .fill { fill: #7aa2ff; transition: width 1s cubic-bezier(.3, .8, .2, 1); }
+.ls-prob.right .fill { fill: #5ef2a0; }
+.ls-prob.right .track { stroke: #5ef2a0; stroke-width: 1.2; }
+.ls-prob-text { fill: #dfe8ff; font: 700 10px var(--mono); }
+.ls-loss { fill: #ffd79a; font: 800 15px var(--mono); }
+.ls-curve { fill: none; stroke: #ffc46b; stroke-width: 2; stroke-linejoin: round; }
+.ls-checkpoint { fill: #5ef2a01a; stroke: #5ef2a0; }
+.ls-checkpoint-text { fill: #b9ffd9; font: 800 9px var(--mono); }
+
+@keyframes ls-drop { to { opacity: .25; transform: translateY(16px); } }
+@keyframes ls-strike { to { stroke-dashoffset: 0; } }
+@keyframes ls-slide { from { transform: translateY(-6px); } to { transform: translateY(6px); } }
+@keyframes ls-word { 0%, 20% { fill: #b4500a; } 25%, 100% { fill: #5a3600; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-adapter.moving .knob, .ls-loop-word.cycle tspan, .ls-ab.lit rect:first-child, .ls-layer .adapter.glow { animation: none !important; }
+}

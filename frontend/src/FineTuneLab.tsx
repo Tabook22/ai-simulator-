@@ -6,6 +6,13 @@ import { Icon } from './ui';
 import type { IconName } from './ui';
 import { useI18n } from './i18n';
 import { AdapterScene, QuantScene, UnslothScene } from './FineTuneScenes';
+import { DocsScene, KitchenScene, TermsScene, TrainingStepScene } from './LessonScenes';
+import { AnalogyTrio, BuildOrderPanel, DataSorter, DecisionHelper, PhotoQuantize, SplitPicture, StickyNotes, StorytellerScene, StrengthChart, TwoExamples } from './HybridLesson';
+import {
+  ApproachPicker, BatchCalculator, CompareCards, EXTRA_QUIZ, EvaluationPanel, FormatExplorer, FrozenCalculator, Glossary, InitDemo,
+  JsonlChecker, KitchenTable, LearningRateDemo, LoraCalculator, MemoryTable, MythGame, OrderGame, OverfitChart, PrecisionFlow,
+  QloraOrder, SettingsTable, TokenView, WorkflowList,
+} from './FineTuneLessons';
 import { TurathCase } from './TurathCase';
 import { CHOICES, QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
 import type { Text } from './finetuneContent';
@@ -27,12 +34,15 @@ const STAGES: { key: string; icon: IconName; tone: string; label: Text; question
   { key: 'why', icon: 'bulb', tone: '#5ee7ff',
     label: { en: 'Why fine-tune', ar: 'لماذا الضبط الدقيق' },
     question: { en: 'What does a ready-made model not know?', ar: 'ما الذي لا يعرفه النموذج الجاهز؟' } },
+  { key: 'words', icon: 'library', tone: '#93c5fd',
+    label: { en: 'Key words', ar: 'الكلمات الأساسية' },
+    question: { en: 'Which words link the whole process?', ar: 'ما الكلمات التي تربط العملية كلها؟' } },
   { key: 'data', icon: 'file', tone: '#a78bfa',
-    label: { en: 'The examples', ar: 'الأمثلة' },
-    question: { en: 'What do we teach it with?', ar: 'بماذا نعلّمه؟' } },
+    label: { en: 'From documents to JSONL', ar: 'من المستندات إلى JSONL' },
+    question: { en: 'How do documents become training data?', ar: 'كيف تصبح المستندات بيانات تدريب؟' } },
   { key: 'freeze', icon: 'lock', tone: '#7aa2ff',
-    label: { en: 'Freeze the base', ar: 'تجميد الأساس' },
-    question: { en: 'Why not retrain every weight?', ar: 'لماذا لا نعيد تدريب كل الأوزان؟' } },
+    label: { en: 'Four ways to fine-tune', ar: 'أربع طرق للضبط الدقيق' },
+    question: { en: 'Which weights should learn?', ar: 'أي الأوزان يجب أن تتعلم؟' } },
   { key: 'lora', icon: 'layers', tone: '#ffc46b',
     label: { en: 'LoRA', ar: 'LoRA' },
     question: { en: 'How are the new weights added?', ar: 'كيف تُضاف الأوزان الجديدة؟' } },
@@ -45,6 +55,15 @@ const STAGES: { key: string; icon: IconName; tone: string; label: Text; question
   { key: 'unsloth', icon: 'code', tone: '#ff8f6b',
     label: { en: 'Unsloth', ar: 'Unsloth' },
     question: { en: 'How is it done in real code?', ar: 'كيف يُنفَّذ ذلك في شيفرة حقيقية؟' } },
+  { key: 'step', icon: 'refresh', tone: '#f472b6',
+    label: { en: 'One training step', ar: 'خطوة تدريب واحدة' },
+    question: { en: 'What exactly happens in one step?', ar: 'ماذا يحدث بالضبط في خطوة واحدة؟' } },
+  { key: 'workflow', icon: 'check', tone: '#facc15',
+    label: { en: 'Workflow and evaluation', ar: 'سير العمل والتقييم' },
+    question: { en: 'How do we know it worked?', ar: 'كيف نعرف أنه نجح؟' } },
+  { key: 'hybrid', icon: 'search', tone: '#c084fc',
+    label: { en: 'Fine-tuning, RAG, or both?', ar: 'ضبط دقيق أم RAG أم الاثنان؟' },
+    question: { en: 'What goes in the library, and what in the lessons?', ar: 'ماذا يذهب إلى المكتبة، وماذا إلى الدروس؟' } },
   { key: 'turath', icon: 'book', tone: '#2dd4bf',
     label: { en: 'Real project: TurathAI', ar: 'مشروع حقيقي: تراث AI' },
     question: { en: 'How is a whole project planned?', ar: 'كيف يُخطَّط لمشروع كامل؟' } },
@@ -159,68 +178,19 @@ function WhyStage() {
 // ----------------------------------------------------------------- 2 data
 
 function DataStage() {
-  const tx = useTx();
-  const [pick, setPick] = useState(0);
-  const examples = SCENARIOS[0].examples;
-  const example = examples[pick];
   return <>
-    <h4 className="llm-sub">{tx('A training file is a list of questions with the answers you want', 'ملف التدريب قائمة أسئلة مع الإجابات التي تريدها')}</h4>
-    <div className="ft-rows">
-      {examples.map((item, index) => <button key={item.ask.en} type="button" className={index === pick ? 'current' : ''}
-        aria-pressed={index === pick} onClick={() => setPick(index)}>
-        <span className="ft-row-number">{index + 1}</span>
-        <span><b>{say(tx, item.ask)}</b><small>{say(tx, item.answer)}</small></span>
-      </button>)}
-    </div>
-    <h4 className="llm-sub">{tx('How the model sees example', 'كيف يرى النموذج المثال')} {pick + 1}</h4>
-    <div className="ft-chat" dir="ltr">
-      <span className="ft-tag">&lt;|im_start|&gt;user</span>
-      <p dir="auto">{say(tx, example.ask)}</p>
-      <span className="ft-tag">&lt;|im_end|&gt;</span>
-      <span className="ft-tag">&lt;|im_start|&gt;assistant</span>
-      <p dir="auto" className="ft-learned">{say(tx, example.answer)}</p>
-      <span className="ft-tag">&lt;|im_end|&gt;</span>
-    </div>
-    <div className="llm-strip-legend">
-      <span><i className="ft-swatch tag"/>{tx('chat markers the model already knows', 'علامات المحادثة التي يعرفها النموذج مسبقًا')}</span>
-      <span><i className="ft-swatch learned"/>{tx('the part it is trained to produce', 'الجزء الذي يُدرَّب على إنتاجه')}</span>
-    </div>
+    <FormatExplorer/>
+    <JsonlChecker/>
+    <TokenView/>
   </>;
 }
 
 // --------------------------------------------------------------- 3 freeze
 
 function FreezeStage() {
-  const tx = useTx();
-  const [lora, setLora] = useState(true);
-  const plan = budget(MODEL_SIZES[2], 16, 16, true);
-  const cells = Array.from({ length: 160 }, (_, index) => index);
   return <>
-    <div className="ft-tabs" role="group" aria-label={tx('Training method', 'طريقة التدريب')}>
-      <button type="button" className={!lora ? 'current' : ''} aria-pressed={!lora} onClick={() => setLora(false)}>
-        {tx('Full fine-tuning', 'ضبط دقيق كامل')}</button>
-      <button type="button" className={lora ? 'current' : ''} aria-pressed={lora} onClick={() => setLora(true)}>
-        {tx('Frozen base + adapter', 'أساس مجمَّد + مهايئ')}</button>
-    </div>
-    <div className={lora ? 'ft-wall frozen' : 'ft-wall'}>
-      <div className="ft-wall-grid" aria-hidden="true">{cells.map(index => <i key={index} style={{ animationDelay: `${(index * 37 % 100) / 50}s` }}/>)}</div>
-      {lora && <div className="ft-wall-adapter" aria-hidden="true"><i/><i/><i/><i/><i/><i/></div>}
-      <p>{lora
-        ? tx('Every original weight is locked. A thin strip of new weights is added beside them, and only that strip learns.',
-          'كل وزن أصلي مقفل. ويُضاف بجانبها شريط رفيع من أوزان جديدة، وهذا الشريط وحده يتعلم.')
-        : tx('Every weight is unlocked and updated on every step. Each one also needs a gradient and optimizer memory.',
-          'كل الأوزان مفتوحة وتُحدَّث في كل خطوة. وكل وزن يحتاج أيضًا إلى تدرّج وذاكرة للمحسّن.')}</p>
-    </div>
-    <dl className="ft-facts">
-      <div><dt>{tx('Model', 'النموذج')}</dt><dd>8B</dd></div>
-      <div><dt>{tx('Weights that learn', 'الأوزان التي تتعلم')}</dt>
-        <dd>{lora ? millions(plan.adapterParameters) : millions(plan.parameters)}</dd>
-        <small>{lora ? `${(plan.trainableShare * 100).toFixed(2)}%` : '100%'}</small></div>
-      <div><dt>{tx('Memory to train (16-bit)', 'ذاكرة التدريب (16 بت)')}</dt>
-        <dd>≈ {gb(lora ? plan.totalGb : plan.fullGb)} GB</dd></div>
-      <div><dt>{tx('File you save', 'الملف الذي تحفظه')}</dt>
-        <dd>{lora ? `≈ ${plan.adapterFileMb.toFixed(0)} MB` : `≈ ${gb(plan.parameters * 2 / 1024 ** 3)} GB`}</dd></div>
-    </dl>
+    <ApproachPicker/>
+    <CompareCards/>
   </>;
 }
 
@@ -298,6 +268,9 @@ function LoraStage() {
       <Heat matrix={result} peak={peak} label={tx('W + B·A: the merged weights', 'W + B·A: الأوزان المدموجة')} note={tx(`${all} numbers`, `${all} رقمًا`)}/>
       <Heat matrix={state.goal} peak={peak} label={tx('What the task wanted', 'ما أرادته المهمة')} note={tx(`${all} numbers`, `${all} رقمًا`)}/>
     </div>}
+    <StickyNotes/>
+    <LoraCalculator/>
+    <InitDemo/>
   </>;
 }
 
@@ -368,6 +341,7 @@ function QuantStage() {
         'صيغة NF4 تضع عددًا أكبر من مستوياتها الستة عشر قرب الصفر، حيث تقع معظم الأوزان، فتخسر البتات الأربع نفسها أقل. وهذه هي الصيغة التي تستخدمها QLoRA.')
       : tx('Each weight is rounded to the nearest level and only the level’s number is stored. Fewer bits mean fewer levels and a larger rounding error.',
         'كل وزن يُقرَّب إلى أقرب مستوى ويُخزَّن رقم المستوى فقط. البتات الأقل تعني مستويات أقل وخطأ تقريب أكبر.')}</p>
+    <PhotoQuantize/>
   </>;
 }
 
@@ -441,6 +415,9 @@ function QloraStage() {
     </ul>
     <p className="llm-panel-note">{tx('These are rough classroom estimates. Real use also depends on the longest example and the batch size.',
       'هذه تقديرات تقريبية للصف. والاستخدام الفعلي يعتمد أيضًا على أطول مثال وحجم الدفعة.')}</p>
+    <QloraOrder/>
+    <PrecisionFlow/>
+    <MemoryTable/>
   </>;
 }
 
@@ -484,22 +461,25 @@ function UnslothStage() {
     </div>
     <p className="llm-panel-note">{tx('Model names and options change between versions. Check the Unsloth documentation for the current ones before you run this.',
       'أسماء النماذج والخيارات تتغير بين الإصدارات. راجع توثيق Unsloth لمعرفة الحالية منها قبل التشغيل.')}</p>
+    <KitchenTable/>
   </>;
 }
 
 // ------------------------------------------------------------------- quiz
 
+const ALL_QUIZ = [...QUIZ, ...EXTRA_QUIZ];
+
 function Quiz() {
   const tx = useTx();
-  const [answers, setAnswers] = useState<(number | null)[]>(() => QUIZ.map(() => null));
-  const score = answers.filter((answer, index) => answer === QUIZ[index].right).length;
+  const [answers, setAnswers] = useState<(number | null)[]>(() => ALL_QUIZ.map(() => null));
+  const score = answers.filter((answer, index) => answer === ALL_QUIZ[index].right).length;
   const done = answers.every(answer => answer !== null);
   return <section className="ft-quiz" aria-labelledby="ft-quiz-title">
     <header>
       <h3 id="ft-quiz-title">{tx('Check yourself', 'اختبر نفسك')}</h3>
-      <span className="llm-stage-out" data-testid="quiz-score">{score} / {QUIZ.length}</span>
+      <span className="llm-stage-out" data-testid="quiz-score">{score} / {ALL_QUIZ.length}</span>
     </header>
-    {QUIZ.map((item, index) => {
+    {ALL_QUIZ.map((item, index) => {
       const picked = answers[index];
       return <fieldset key={item.ask.en}>
         <legend>{index + 1}. {say(tx, item.ask)}</legend>
@@ -511,7 +491,7 @@ function Quiz() {
           <strong>{picked === item.right ? tx('Correct.', 'صحيح.') : tx('Not quite.', 'ليس تمامًا.')}</strong> {say(tx, item.why)}</p>}
       </fieldset>;
     })}
-    {done && <button type="button" className="button" onClick={() => setAnswers(QUIZ.map(() => null))}>
+    {done && <button type="button" className="button" onClick={() => setAnswers(ALL_QUIZ.map(() => null))}>
       <Icon name="reset" size={14}/>{tx('Try again', 'حاول مرة أخرى')}</button>}
   </section>;
 }
@@ -542,13 +522,13 @@ export function FineTuneLab() {
   }
 
   const trio = [
-    { stage: 4, icon: 'grid' as IconName, name: tx('Quantization', 'التكميم'),
+    { stage: 5, icon: 'grid' as IconName, name: tx('Quantization', 'التكميم'),
       job: tx('Makes the model small enough to load.', 'يجعل النموذج صغيرًا بما يكفي لتحميله.'),
       how: tx('Stores each weight in 4 bits instead of 16 or 32.', 'يخزّن كل وزن في 4 بتات بدلًا من 16 أو 32.') },
-    { stage: 5, icon: 'chip' as IconName, name: 'QLoRA',
+    { stage: 6, icon: 'chip' as IconName, name: 'QLoRA',
       job: tx('Trains the model without changing it.', 'يدرّب النموذج دون أن يغيّره.'),
       how: tx('Freezes the 4-bit base and trains a tiny adapter beside it.', 'يجمّد الأساس ذا الـ 4 بت ويدرّب مهايئًا صغيرًا بجانبه.') },
-    { stage: 6, icon: 'code' as IconName, name: 'Unsloth',
+    { stage: 7, icon: 'code' as IconName, name: 'Unsloth',
       job: tx('The toolkit that does both for you.', 'الأداة التي تنفّذ الاثنين لك.'),
       how: tx('A Python library: load, adapt, train and export in a few lines.', 'مكتبة Python: تحميل وتهيئة وتدريب وتصدير في بضعة أسطر.') },
   ];
@@ -592,29 +572,39 @@ export function FineTuneLab() {
               'تدريب نموذج من الصفر يحتاج إلى شهور وملايين. أما البدء من أوزان مفتوحة فيسمح لفريق صغير ببناء نموذج متخصص في ظهيرة واحدة.'),
             tryIt: tx('Switch between the three situations. In which one did the model gain knowledge, and in which one did it only gain a habit?',
               'بدّل بين المواقف الثلاثة. في أيها اكتسب النموذج معرفة، وفي أيها اكتسب عادة فقط؟'),
-          }}><WhyStage/></Stage>
+          }}><WhyStage/><AnalogyTrio goTo={goTo}/></Stage>
 
-        <Stage index={1} summary={tx('question → answer', 'سؤال ← جواب')} flow={tx('examples go to the model', 'الأمثلة تذهب إلى النموذج')}
+        <Stage index={1} summary={tx('8 words, 1 loop', '8 كلمات، حلقة واحدة')} scene={<TermsScene/>} flow={tx('the loop needs examples', 'الحلقة تحتاج إلى أمثلة')}
           notes={{
-            what: tx('The model learns from pairs: a question, and the answer you want. Each pair is wrapped in the chat markers the model was built with, then training teaches it to produce the answer part.',
-              'النموذج يتعلم من أزواج: سؤال، والجواب الذي تريده. يُغلَّف كل زوج بعلامات المحادثة التي بُني بها النموذج، ثم يعلّمه التدريب إنتاج جزء الجواب.'),
-            why: tx('The examples are the lesson. A few hundred clear, correct pairs teach more than thousands of careless ones, and the model will copy their mistakes too.',
-              'الأمثلة هي الدرس. بضع مئات من الأزواج الواضحة الصحيحة تعلّم أكثر من آلاف الأزواج المهملة، والنموذج سينسخ أخطاءها أيضًا.'),
-            tryIt: tx('Click each example and find the part the model is trained to produce.',
-              'انقر على كل مثال وابحث عن الجزء الذي يُدرَّب النموذج على إنتاجه.'),
+            what: tx('Fine-tuning uses a handful of words again and again: parameter, frozen, trainable, activation, loss, gradient, optimizer, batch and epoch. They are not separate topics: they are the steps of one loop that repeats until the model fits the examples.',
+              'يستخدم الضبط الدقيق عددًا قليلًا من الكلمات مرة بعد مرة: المعامل، والمجمَّد، والقابل للتدريب، والتنشيط، والخسارة، والتدرّج، والمحسّن، والدفعة، والحقبة. وليست موضوعات منفصلة: إنها خطوات حلقة واحدة تتكرر حتى يلائم النموذج الأمثلة.'),
+            why: tx('The most important sentence of the lesson: frozen means not updated. It does not mean inactive. The original weights calculate every answer; only the small adapter learns.',
+              'أهم جملة في الدرس: المجمَّد يعني أنه لا يُحدَّث، ولا يعني أنه لا يعمل. فالأوزان الأصلية تحسب كل إجابة، والمهايئ الصغير وحده يتعلم.'),
+            tryIt: tx('Play the loop, then turn the calculator’s free knob with “Train one step”. Which part still contributes to the answer, and which part learns?',
+              'شغّل الحلقة، ثم حرّك زر الآلة الحاسبة الحر بزر “درّب خطوة واحدة”. أي جزء ما زال يساهم في الإجابة، وأي جزء يتعلم؟'),
+          }}><FrozenCalculator/><Glossary goTo={goTo}/></Stage>
+
+        <Stage index={2} summary={tx('document → JSONL → tokens', 'مستند ← JSONL ← رموز')} scene={<DocsScene/>} flow={tx('examples go to the model', 'الأمثلة تذهب إلى النموذج')}
+          notes={{
+            what: tx('Every source, a PDF, a recording or a scanned page, ends up as text. The text is cleaned, described, turned into reviewed question–answer pairs, and saved as JSONL: one complete JSON object per line. At training time each line is put into the model’s chat template and cut into tokens.',
+              'كل مصدر، ملف PDF أو تسجيل أو صفحة ممسوحة، ينتهي نصًا. ويُنظَّف النص ويُوثَّق ويُحوَّل إلى أزواج سؤال وجواب مراجَعة، ويُحفظ بصيغة JSONL: كائن JSON كامل في كل سطر. وعند التدريب يوضع كل سطر في قالب المحادثة الخاص بالنموذج ويُقطَّع إلى رموز.'),
+            why: tx('The examples are the lesson. JSONL is only the box they travel in: it guarantees neither truth nor coverage. A few hundred clean, reviewed, well-split pairs teach more than thousands of careless ones.',
+              'الأمثلة هي الدرس. و JSONL مجرد الصندوق الذي تنتقل فيه: لا تضمن صحة ولا شمولًا. وبضع مئات من الأزواج النظيفة المراجَعة المقسَّمة جيدًا تعلّم أكثر من آلاف الأزواج المهملة.'),
+            tryIt: tx('Load the file with mistakes in the checker and fix every red line. Then shorten max_seq_length until the answer is cut off.',
+              'حمّل الملف ذا الأخطاء في الفاحص وأصلح كل سطر أحمر. ثم قلّل max_seq_length حتى تُقطع الإجابة.'),
           }}><DataStage/></Stage>
 
-        <Stage index={2} summary={tx('lock, then add', 'اقفل ثم أضف')} flow={tx('how the new weights are built', 'كيف تُبنى الأوزان الجديدة')}
+        <Stage index={3} summary={tx('full · partial · LoRA · QLoRA', 'كامل · جزئي · LoRA · QLoRA')} flow={tx('how the new weights are built', 'كيف تُبنى الأوزان الجديدة')}
           notes={{
-            what: tx('Full fine-tuning updates every weight. For an 8B model that is 8 billion numbers, each needing extra training memory. The alternative: lock all the original weights and add a small set of new ones that do the learning.',
-              'الضبط الدقيق الكامل يحدّث كل الأوزان. وفي نموذج 8B يعني ذلك 8 مليارات رقم، كل واحد يحتاج إلى ذاكرة تدريب إضافية. والبديل: اقفل كل الأوزان الأصلية وأضف مجموعة صغيرة من أوزان جديدة تقوم بالتعلّم.'),
-            why: tx('Frozen weights keep everything the model already knows, so it cannot forget its language while learning your subject. And training a fraction of a percent needs a fraction of the memory.',
-              'الأوزان المجمَّدة تحفظ كل ما يعرفه النموذج مسبقًا، فلا ينسى لغته وهو يتعلم مادتك. وتدريب جزء من واحد بالمئة يحتاج إلى جزء صغير من الذاكرة.'),
-            tryIt: tx('Switch between the two methods and compare the four numbers below the picture.',
-              'بدّل بين الطريقتين وقارن الأرقام الأربعة تحت الرسم.'),
+            what: tx('Full fine-tuning updates every weight. Partial fine-tuning updates chosen layers. LoRA freezes every original weight and adds small new matrices that learn. QLoRA does the same with the frozen base stored in 4-bit.',
+              'الضبط الدقيق الكامل يحدّث كل الأوزان. والجزئي يحدّث طبقات مختارة. و LoRA تجمّد كل الأوزان الأصلية وتضيف مصفوفات جديدة صغيرة تتعلم. و QLoRA تفعل الشيء نفسه مع تخزين الأساس المجمَّد بدقة 4 بت.'),
+            why: tx('Frozen weights keep everything the model already knows, and training a fraction of a percent needs a fraction of the memory. Neither method guarantees perfect recall of facts: data, settings and evaluation decide that.',
+              'الأوزان المجمَّدة تحفظ كل ما يعرفه النموذج، وتدريب جزء من واحد بالمئة يحتاج إلى جزء صغير من الذاكرة. ولا تضمن أي طريقة تذكّر الحقائق تمامًا: فالبيانات والإعدادات والتقييم هي التي تحدد ذلك.'),
+            tryIt: tx('Switch between the four approaches and watch which layers light up, how many numbers learn, and what file you would save.',
+              'بدّل بين الطرق الأربع وراقب أي الطبقات تضيء، وكم رقمًا يتعلم، وأي ملف ستحفظ.'),
           }}><FreezeStage/></Stage>
 
-        <Stage index={3} summary="W + B·A" scene={<AdapterScene/>} flow={tx('but the base is still too big', 'لكن الأساس ما زال كبيرًا جدًا')}
+        <Stage index={4} summary="W + B·A" scene={<AdapterScene/>} flow={tx('but the base is still too big', 'لكن الأساس ما زال كبيرًا جدًا')}
           notes={{
             what: tx('LoRA adds two thin matrices, A and B, beside the frozen matrix W. The layer’s output becomes W·x + B·(A·x). B starts at zero, so at first nothing changes. Training then moves only A and B until B·A equals the change the task needs.',
               'تقنية LoRA تضيف مصفوفتين رفيعتين، A و B، بجانب المصفوفة المجمَّدة W. فيصبح مخرج الطبقة W·x + B·(A·x). تبدأ B من الصفر فلا يتغير شيء في البداية. ثم يحرّك التدريب A و B فقط حتى يساوي B·A التغيير الذي تحتاجه المهمة.'),
@@ -624,7 +614,7 @@ export function FineTuneLab() {
               'درّب بالرتبة 1: الخسارة تعلق. ثم اختر الرتبة 2 ودرّب من جديد. وراقب «أرقام مجمَّدة تغيّرت» وهي تبقى 0 طوال الوقت.'),
           }}><LoraStage/></Stage>
 
-        <Stage index={4} summary={tx('32 bits → 4 bits', '32 بت ← 4 بت')} scene={<QuantScene/>} flow={tx('small base + small adapter', 'أساس صغير + مهايئ صغير')}
+        <Stage index={5} summary={tx('32 bits → 4 bits', '32 بت ← 4 بت')} scene={<QuantScene/>} flow={tx('small base + small adapter', 'أساس صغير + مهايئ صغير')}
           notes={{
             what: tx('A weight is normally stored in 32 or 16 bits. Quantization keeps a short list of allowed values (levels), rounds each weight to the nearest one, and stores only that level’s number. With 4 bits there are 16 levels.',
               'الوزن يُخزَّن عادةً في 32 أو 16 بت. والتكميم يحتفظ بقائمة قصيرة من القيم المسموحة (المستويات)، ويقرّب كل وزن إلى أقربها، ويخزّن رقم ذلك المستوى فقط. ومع 4 بتات يوجد 16 مستوى.'),
@@ -634,7 +624,7 @@ export function FineTuneLab() {
               'انزل من 8 بتات إلى 2 وراقب الخطأ يكبر. ثم اختر 4 بتات وبدّل إلى NF4: ينخفض الخطأ دون استخدام بتات أكثر.'),
           }}><QuantStage/></Stage>
 
-        <Stage index={5} summary={tx('4-bit base + adapters', 'أساس 4 بت + مهايئات')} flow={tx('now in real code', 'والآن في شيفرة حقيقية')}
+        <Stage index={6} summary={tx('4-bit base + adapters', 'أساس 4 بت + مهايئات')} flow={tx('now in real code', 'والآن في شيفرة حقيقية')}
           notes={{
             what: tx('QLoRA is the two ideas together: load the base model quantized to 4-bit and frozen, then train LoRA adapters beside it at normal precision. The 4-bit weights are only read; the learning is stored in the adapters.',
               'تقنية QLoRA هي الفكرتان معًا: حمّل النموذج الأساسي مكمَّمًا إلى 4 بت ومجمَّدًا، ثم درّب مهايئات LoRA بجانبه بالدقة العادية. أوزان الـ 4 بت تُقرأ فقط، والتعلّم يُخزَّن في المهايئات.'),
@@ -644,18 +634,50 @@ export function FineTuneLab() {
               'اختر نموذج 27B. هل يتسع في 24 غ.ب بدقة 4 بت؟ ثم بدّل الأساس إلى 16 بت وانظر أي بطاقات GPU تبقى.'),
           }}><QloraStage/></Stage>
 
-        <Stage index={6} summary={tx('7 steps', '7 خطوات')} scene={<UnslothScene/>}
-          flow={tx('now a real student project', 'والآن مشروع طلابي حقيقي')}
+        <Stage index={7} summary={tx('7 steps', '7 خطوات')} scene={<><KitchenScene/><UnslothScene/></>}
+          flow={tx('inside one training step', 'داخل خطوة تدريب واحدة')}
           notes={{
             what: tx('Unsloth is an open-source Python library, not a model. It gives you ready 4-bit versions of popular open-weight models and wraps the whole QLoRA recipe: load, add adapters, train, test, export.',
               'Unsloth مكتبة Python مفتوحة المصدر وليس نموذجًا. يعطيك نسخًا جاهزة بدقة 4 بت من النماذج مفتوحة الأوزان الشائعة، ويغلّف وصفة QLoRA كلها: تحميل، إضافة مهايئات، تدريب، اختبار، تصدير.'),
             why: tx('The same steps are possible with lower-level libraries, but take far more code and care. Unsloth also trains faster and with less memory, so the lesson fits on a free cloud notebook.',
               'الخطوات نفسها ممكنة بمكتبات أدنى مستوى، لكنها تحتاج إلى شيفرة وعناية أكثر بكثير. و Unsloth يدرّب أيضًا بسرعة أكبر وذاكرة أقل، فيتسع الدرس في دفتر سحابي مجاني.'),
             tryIt: tx('Find the one line that does the quantization, and the one argument that sets the rank you tried in part 4.',
-              'ابحث عن السطر الوحيد الذي ينفّذ التكميم، وعن المعامل الوحيد الذي يحدد الرتبة التي جرّبتها في الجزء 4.'),
+              'ابحث عن السطر الوحيد الذي ينفّذ التكميم، وعن المعامل الوحيد الذي يحدد الرتبة التي جرّبتها في الجزء 5.'),
           }}><UnslothStage/></Stage>
 
-        <TurathCase index={7} total={STAGES.length}/>
+        <Stage index={8} summary={tx('forward → loss → backward → update', 'أمامي ← خسارة ← خلفي ← تحديث')} scene={<TrainingStepScene/>}
+          flow={tx('then: is the model any good?', 'ثم: هل النموذج جيد؟')}
+          notes={{
+            what: tx('One training step: a batch of examples goes forward through the frozen base and the adapters, the loss compares the predicted next tokens with the target answer, gradients flow back to the adapters, and the optimizer nudges them. Then the next batch.',
+              'خطوة التدريب الواحدة: تمر دفعة من الأمثلة إلى الأمام عبر الأساس المجمَّد والمهايئات، وتقارن الخسارة الرموز التالية المتوقعة بالإجابة المستهدفة، وتعود التدرجات إلى المهايئات، فيحرّكها المحسّن قليلًا. ثم الدفعة التالية.'),
+            why: tx('The settings (learning rate, batch size, gradient accumulation, epochs, sequence length) control these steps. Understanding one step makes every setting make sense.',
+              'الإعدادات (معدل التعلم وحجم الدفعة وتجميع التدرجات والحقب وطول التسلسل) تتحكم في هذه الخطوات. وفهم خطوة واحدة يجعل كل إعداد مفهومًا.'),
+            tryIt: tx('Try the three learning rates. Then set batch 2, accumulation 8 and one GPU: you get the effective batch of 16 from the notes. Finally drag the epochs until validation loss starts rising.',
+              'جرّب معدلات التعلم الثلاثة. ثم اجعل الدفعة 2 والتجميع 8 وبطاقة GPU واحدة: تحصل على الدفعة الفعلية 16 من الملاحظات. وأخيرًا اسحب الحقب حتى تبدأ خسارة التحقق في الارتفاع.'),
+          }}><LearningRateDemo/><BatchCalculator/><OverfitChart/><SettingsTable/></Stage>
+
+        <Stage index={9} summary={tx('8 stages', '8 مراحل')} flow={tx('fine-tuning, RAG, or both?', 'ضبط دقيق أم RAG أم الاثنان؟')}
+          notes={{
+            what: tx('A real project is more than a training run: define the tasks and a baseline, choose a supported model, prepare and check the data, configure QLoRA, run a short check, train while watching validation, evaluate and package, then deploy and reassess.',
+              'المشروع الحقيقي أكثر من تجربة تدريب: حدّد المهام وخط الأساس، واختر نموذجًا مدعومًا، وجهّز البيانات وافحصها، واضبط QLoRA، وشغّل تجربة قصيرة، ودرّب مع مراقبة التحقق، وقيّم وجمّع، ثم انشر وأعد التقييم.'),
+            why: tx('A falling loss proves that training ran, not that the model is better. Only unseen questions, compared with the base model and reviewed by an expert, show real improvement.',
+              'انخفاض الخسارة يثبت أن التدريب جرى، لا أن النموذج صار أفضل. ووحدها الأسئلة التي لم يرها النموذج، مقارنةً بالنموذج الأساسي ومراجَعةً من خبير، تُظهر التحسن الحقيقي.'),
+            tryIt: tx('Put the six cards in order, then answer the true-or-false statements. Which of them did you believe before this lesson?',
+              'رتّب البطاقات الست، ثم أجب عن عبارات الصح والخطأ. أيها كنت تصدّقه قبل هذا الدرس؟'),
+          }}><WorkflowList/><OrderGame/><EvaluationPanel/><MythGame/></Stage>
+
+        <Stage index={10} summary={tx('library + storyteller', 'مكتبة + راوٍ')} scene={<StorytellerScene/>}
+          flow={tx('now a real student project', 'والآن مشروع طلابي حقيقي')}
+          notes={{
+            what: tx('Fine-tuning and RAG do different jobs. RAG is the library: all the real stories, searched at answer time, with their sources. Fine-tuning is the lessons: a smaller set of examples that teach the model how to tell those stories, use the retrieved context, cite it, and admit when a story is missing.',
+              'الضبط الدقيق و RAG يؤديان مهمتين مختلفتين. RAG هو المكتبة: كل القصص الحقيقية، يُبحث فيها وقت الإجابة، مع مصادرها. والضبط الدقيق هو الدروس: مجموعة أصغر من الأمثلة تعلّم النموذج كيف يروي تلك القصص، ويستخدم السياق المسترجَع، ويستشهد به، ويعترف حين تغيب قصة.'),
+            why: tx('Fine-tuning alone sounds good but can invent details and gives no source. RAG alone is accurate but sounds generic. Together they are faithful and natural, which is what a heritage project needs.',
+              'الضبط الدقيق وحده يبدو جيدًا لكنه قد يختلق تفاصيل ولا يعطي مصدرًا. و RAG وحده دقيق لكنه يبدو عامًّا. ومعًا يكونان أمينين وطبيعيين، وهذا ما يحتاجه مشروع تراثي.'),
+            tryIt: tx('Play the scene and compare steps 7, 8 and 9. Then sort the six data items into the library or the lessons, and switch the split to “same data in both” to see why it is a bad idea.',
+              'شغّل المشهد وقارن الخطوات 7 و 8 و 9. ثم صنّف عناصر البيانات الستة إلى المكتبة أو الدروس، وبدّل التقسيم إلى “البيانات نفسها في الاثنين” لترى لماذا هي فكرة سيئة.'),
+          }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><TwoExamples/><BuildOrderPanel/></Stage>
+
+        <TurathCase index={11} total={STAGES.length}/>
 
         <Quiz/>
       </div>
