@@ -129,9 +129,11 @@ function Explainer({ figures, step, selected, pick, go, stepTitle }: FigureState
   </div>;
 }
 
-export function Scene({ id, title, steps, player, figures = [], children }: {
+export function Scene({ id, title, steps, player, figures = [], detail, children }: {
   id: string; title: Text; steps: { title: Text; text: Text }[];
   player: ReturnType<typeof usePlayer>; figures?: Figure[]; children: ReactNode;
+  /** Extra teaching content for the current step, shown under the controls. */
+  detail?: ReactNode;
 }) {
   const say = useTx();
   const { step, playing, go, toggle } = player;
@@ -173,6 +175,7 @@ export function Scene({ id, title, steps, player, figures = [], children }: {
         </li>)}
       </ol>
     </div>
+    {detail}
   </section>;
 }
 

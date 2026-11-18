@@ -399,3 +399,29 @@ test('explains what a parameter is: the neuron, the ladder and facts versus patt
   await expect(words.locator('.pm-rows li.hit')).toHaveText('Muscat is the capital of Oman');
   expect(await words.locator('.pm-cells i.strong').count()).toBeGreaterThan(20);
 });
+
+test('explains each key-word step as input, processing and output with one worked example', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  const scene = page.locator('#ft-scene-terms');
+  const detail = scene.locator('.ts-detail');
+
+  await expect(detail.locator('.ts-card.input')).toContainText('pre-training');
+  await expect(detail.getByTestId('term-output')).toHaveText('w = [0.5, 0.4] · b = 0.2');
+
+  // The output of each step is the input of the next.
+  const outputs = ['w = [0.5, 0.4] 🔒', 'Δ = [0, 0]', 'ŷ = 2.4', 'loss = 0.64', '∇Δ = [−3.2, −4.8]', 'Δ = [0.038, 0.058]', 'ŷ = 2.65 → 3.2'];
+  for (const [index, value] of outputs.entries()) {
+    await detail.getByRole('button', { name: `Go to step ${index + 2}` }).click();
+    await expect(detail.getByTestId('term-output')).toHaveText(value);
+    await expect(scene.locator('.ft-scene-count')).toHaveText(`${index + 2} / 8`);
+  }
+  await expect(detail.locator('.ts-maths')).toContainText('= 2.65');
+  await detail.getByRole('button', { name: 'Go round again: step 4' }).click();
+  await expect(scene.locator('.ls-node.current')).toContainText('Activation');
+
+  // The trail jumps straight to any step.
+  await detail.getByRole('button', { name: 'Step 5 output' }).click();
+  await expect(detail.locator('.ts-card.process')).toContainText('squared error');
+  await expect(scene.locator('.ls-value.hot')).toHaveText('2.4');
+});

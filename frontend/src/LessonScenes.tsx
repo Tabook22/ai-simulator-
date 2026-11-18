@@ -8,6 +8,7 @@ import './lesson-scenes.css';
 import { useI18n } from './i18n';
 import { Hotspots, Lock, Scene, packet, show, t, usePlayer, useTx } from './FineTuneScenes';
 import type { Figure } from './FineTuneScenes';
+import { TermStepDetail } from './TermSteps';
 
 /** SVG text that reads correctly in Arabic too. The picture itself stays left-to-right. */
 export function Txt({ x, y, children, anchor = 'middle', className = 'ft-tiny' }: {
@@ -85,7 +86,7 @@ export function TermsScene() {
   const player = usePlayer(TERM_STEPS.length);
   const { step } = player;
   return <Scene id="ft-scene-terms" title={t('The key words, in the order they happen', 'الكلمات الأساسية بترتيب حدوثها')}
-    steps={TERM_STEPS} player={player} figures={TERM_FIGURES}>
+    steps={TERM_STEPS} player={player} figures={TERM_FIGURES} detail={<TermStepDetail step={step} go={player.go}/>}>
     <svg viewBox="0 0 760 340" className={`ft-svg ls-terms step-${step}`} role="img" aria-label={say(TERM_STEPS[step].title)}>
       <path className="ls-loop" d={LOOP}/>
       <circle className="ft-packet" r="4.5" style={packet(LOOP, 0, { animationName: 'ft-orbit', animationDuration: '9s' })}/>
@@ -114,15 +115,30 @@ export function TermsScene() {
       {step === 5 && [0, 1, 2].map(index => <circle key={`bm${index}`} className="ft-packet error back" r="4.5" style={packet(T_MAIN, -index * 0.8)}/>)}
       {step === 5 && [0, 1, 2].map(index => <circle key={`bs${index}`} className="ft-packet error back" r="4.5" style={packet(T_SIDE, -index * 0.8 - 0.4)}/>)}
 
+      {/* the worked example's numbers, step by step */}
+      <g className={show(step <= 1)}>
+        <text className="ls-value" x="376" y="104" textAnchor="middle" direction="ltr">w = [0.5, 0.4] · b = 0.2</text>
+      </g>
+      <g className={show(step >= 3)}>
+        <text className="ls-value" x="262" y="208" textAnchor="middle">[2, 3]</text>
+        <text className="ls-value hot" x="514" y="208" textAnchor="middle" key={`y${step >= 7}`}>{step >= 7 ? '2.65' : '2.4'}</text>
+      </g>
+      <g className={show(step === 2)}>
+        <text className="ls-value warm" x="376" y="250" textAnchor="middle">Δ = [0, 0]</text>
+      </g>
       <g className={show(step === 4)}>
-        <Txt x={514} y={212} className="ft-tiny strong warm">{say(t('target: y', 'الهدف: y'))}</Txt>
-        <Txt x={514} y={228} className="ft-tiny strong warm">{say(t('loss = 1.51', 'الخسارة = 1.51'))}</Txt>
+        <Txt x={514} y={226} className="ft-tiny strong warm">{say(t('target y = 3.2', 'الهدف y = 3.2'))}</Txt>
+        <Txt x={514} y={242} className="ft-tiny strong warm">{say(t('loss = 0.64', 'الخسارة = 0.64'))}</Txt>
       </g>
       <g className={show(step === 5)}>
         <Txt x={376} y={112} className="ft-note">{say(t('gradient passes through · no update', 'التدرّج يمر · لا تحديث'))}</Txt>
+        <text className="ls-value warm" x="376" y="250" textAnchor="middle">∇Δ = [−3.2, −4.8]</text>
       </g>
       <g className={show(step === 6)}>
-        <Txt x={376} y={250} className="ft-tiny strong warm">{say(t('A, B ← A, B − lr × gradient', 'A و B ← A و B − lr × التدرّج'))}</Txt>
+        <text className="ls-value warm" x="376" y="250" textAnchor="middle">Δ = [0.038, 0.058]</text>
+      </g>
+      <g className={show(step === 7)}>
+        <Txt x={514} y={226} className="ft-tiny strong">{say(t('loss 0.64 → 0.30', 'الخسارة 0.64 ← 0.30'))}</Txt>
       </g>
       <g className={show(step === 7)}>
         {[0, 1, 2].map(index => <rect key={index} className="ls-card" x={196 - index * 5} y={120 + index * 6} width="34" height="24" rx="4"/>)}
