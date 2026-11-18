@@ -65,27 +65,6 @@ export const DATA_ITEMS: { text: Text; goes: 'rag' | 'tune'; why: Text }[] = [
     why: t('It shows the model how to use context it is given.', 'إنه يُري النموذج كيف يستخدم السياق المعطى له.') },
 ];
 
-/** The two kinds of data, side by side. Illustrative: the story and narrator are invented for the lesson. */
-export const RAG_DOC = {
-  meta: [
-    { key: t('Source', 'المصدر'), value: t('Dhofar oral collection, recorded 2019', 'مجموعة ظفار الشفهية، سُجّلت عام 2019') },
-    { key: t('Narrator', 'الراوي'), value: t('a woman from Salalah (name kept in the archive)', 'امرأة من صلالة (الاسم محفوظ في الأرشيف)') },
-    { key: t('Region', 'المنطقة'), value: t('Salalah, Dhofar', 'صلالة، ظفار') },
-  ],
-  story: t('Once upon a time, in the mountains near Salalah, there lived a clever goat named Hameed…',
-    'كان يا ما كان، في الجبال القريبة من صلالة، عاش تيس ذكي اسمه حميد…'),
-};
-
-export const TUNE_EXAMPLE = {
-  user: t('Tell me a story about a clever goat from Dhofar.', 'احكِ لي قصة عن تيس ذكي من ظفار.'),
-  context: t('Source: Dhofar oral collection, 2019. Story: Once upon a time, in the mountains near Salalah, there lived a clever goat named Hameed…',
-    'المصدر: مجموعة ظفار الشفهية، 2019. القصة: كان يا ما كان، في الجبال القريبة من صلالة، عاش تيس ذكي اسمه حميد…'),
-  answer: t('Let me tell you this story the way it was told in Dhofar. Once upon a time, in the mountains near Salalah, there lived a clever goat named Hameed… (Source: Dhofar oral collection, 2019)',
-    'دعني أحكي لك هذه القصة كما كانت تُروى في ظفار. كان يا ما كان، في الجبال القريبة من صلالة، عاش تيس ذكي اسمه حميد… (المصدر: مجموعة ظفار الشفهية، 2019)'),
-  system: t('You are a careful Omani storyteller. Tell only what the context supports, and name its source. If the context has no story, say so.',
-    'أنت راوٍ عُماني دقيق. لا تروِ إلا ما يدعمه السياق، واذكر مصدره. وإن لم يكن في السياق قصة فقل ذلك.'),
-};
-
 export const BUILD_ORDER = [
   { title: t('Build and test RAG first', 'ابنِ RAG واختبره أولًا'),
     text: t('Good chunks, good search, and the source shown with every answer. This alone is already a useful, safe system.',
@@ -96,10 +75,4 @@ export const BUILD_ORDER = [
   { title: t('Compare three systems', 'قارن ثلاثة أنظمة'),
     text: t('Pure RAG, pure fine-tuning, and the combination, on the same unseen questions.',
       'RAG وحده، والضبط الدقيق وحده، والجمع بينهما، على الأسئلة الجديدة نفسها.') },
-];
-
-export const HYBRID_METRICS = [
-  { name: t('Faithfulness', 'الأمانة'), test: t('Does every detail match the retrieved source?', 'هل يطابق كل تفصيل المصدر المسترجَع؟') },
-  { name: t('Storytelling and tone', 'السرد والنبرة'), test: t('Does it sound natural and culturally right? Judged by people.', 'هل يبدو طبيعيًا ومناسبًا ثقافيًا؟ يحكم عليه أشخاص.') },
-  { name: t('Honest “not found”', '“غير موجود” بأمانة'), test: t('How often does it say “I don’t have this story” instead of inventing one?', 'كم مرة يقول “ليست لدي هذه القصة” بدلًا من اختلاق واحدة؟') },
 ];

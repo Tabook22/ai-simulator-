@@ -10,8 +10,7 @@ import type { IconName } from './ui';
 import { useI18n } from './i18n';
 import { t, useTx } from './FineTuneScenes';
 import {
-  APPROACHES, CRITERIA, EXTRA_QUIZ, FORMATS, GLOSSARY, KEY_SENTENCE, MYTHS, ORDER_CARDS, ORDER_SHUFFLE, PACKAGE, PAIR, PAIR_2,
-  SETTINGS, WORKFLOW, brokenJsonl, checkLine, cleanJsonl,
+  APPROACHES, CRITERIA, EXTRA_QUIZ, FORMATS, KEY_SENTENCE, MYTHS, ORDER_CARDS, ORDER_SHUFFLE, PACKAGE, PAIR, PAIR_2, SETTINGS, WORKFLOW, brokenJsonl, checkLine, cleanJsonl,
 } from './lessonContent';
 import type { Approach } from './lessonContent';
 import { LORA_SIZE, MODEL_SIZES, budget, createLora, loraLoss, trainLora } from './finetuneModel';
@@ -40,79 +39,6 @@ export function JsonCode({ text }: { text: string }) {
       return <span key={index} className="p">{part}</span>;
     })}
     {'\n'}</span>)}</code></pre>;
-}
-
-// ============================================================ 2 key words
-
-/** Activity 1 from the notes: a calculator with a locked rule and one adjustable correction knob. */
-export function FrozenCalculator() {
-  const say = useTx();
-  const [x, setX] = useState(4);
-  const [knob, setKnob] = useState(0);
-  const [steps, setSteps] = useState(0);
-  const base = 3 * x;
-  const extra = knob * x;
-  const target = 3.5 * x;
-  const error = base + extra - target;
-  const train = () => { setKnob(value => value + 0.45 * (0.5 - value)); setSteps(value => value + 1); };
-  const dial = (angle: number, locked: boolean, label: string, caption: string) => <svg viewBox="0 0 120 120" className={cls('lx-dial', locked && 'locked')} aria-hidden="true">
-    <circle cx="60" cy="60" r="44" className="face"/>
-    {Array.from({ length: 9 }, (_, index) => { const a = (-120 + index * 30) * Math.PI / 180; return <line key={index} className="tick"
-      x1={60 + Math.sin(a) * 38} y1={60 - Math.cos(a) * 38} x2={60 + Math.sin(a) * 44} y2={60 - Math.cos(a) * 44}/>; })}
-    <line className="needle" x1="60" y1="60" x2={60 + Math.sin(angle * Math.PI / 180) * 34} y2={60 - Math.cos(angle * Math.PI / 180) * 34}/>
-    <circle cx="60" cy="60" r="6" className="hub"/>
-    <text x="60" y="88" textAnchor="middle" className="label">{label}</text>
-    <text x="60" y="116" textAnchor="middle" className="caption">{caption}</text>
-  </svg>;
-  return <div className="lx-calc">
-    <Sub>{say(t('Activity: the calculator with a locked knob', 'نشاط: الآلة الحاسبة ذات الزر المقفل'))}</Sub>
-    <p className="lx-lead">{say(t('The base rule is “× 3” and it is locked. The task needs “× 3.5”. A small correction knob is added beside it, and only that knob may turn.',
-      'القاعدة الأساسية “× 3” وهي مقفلة. والمهمة تحتاج إلى “× 3.5”. فيُضاف بجانبها زر تصحيح صغير، وهذا الزر وحده يُسمح بتحريكه.'))}</p>
-    <div className="lx-calc-row">
-      <div className="lx-calc-dial">{dial(-30, true, '× 3', say(t('base · locked', 'الأساس · مقفل')))}<Icon name="lock" size={14}/></div>
-      <span className="lx-op">+</span>
-      <div className="lx-calc-dial hot">{dial(knob * 160, false, `× ${knob.toFixed(2)}`, say(t('adapter · learns', 'المهايئ · يتعلم')))}</div>
-      <span className="lx-op">=</span>
-      <div className="lx-calc-out">
-        <label>x = <input type="range" min="1" max="10" value={x} onChange={event => setX(Number(event.target.value))}
-          aria-label={say(t('Input number x', 'الرقم المدخل x'))}/> <b>{x}</b></label>
-        <p><span className="frozen">{say(t('base', 'الأساس'))}: 3 × {x} = {base.toFixed(1)}</span></p>
-        <p><span className="hot">{say(t('adapter', 'المهايئ'))}: {knob.toFixed(2)} × {x} = {extra.toFixed(2)}</span></p>
-        <p><strong>{say(t('answer', 'الإجابة'))}: {(base + extra).toFixed(2)}</strong> · {say(t('target', 'الهدف'))} {target.toFixed(1)}</p>
-        <p className={Math.abs(error) < 0.05 ? 'good' : 'bad'} data-testid="calc-error">{say(t('error', 'الخطأ'))}: {error.toFixed(2)}</p>
-      </div>
-    </div>
-    <div className="button-row">
-      <button type="button" className="button primary" onClick={train}><Icon name="play" size={14}/>{say(t('Train one step', 'درّب خطوة واحدة'))}</button>
-      <button type="button" className="button quiet" onClick={() => { setKnob(0); setSteps(0); }}><Icon name="reset" size={14}/>{say(t('Start again', 'ابدأ من جديد'))}</button>
-      <span className="lx-muted">{say(t(`${steps} steps · the locked knob never moved`, `${steps} خطوة · الزر المقفل لم يتحرك أبدًا`))}</span>
-    </div>
-    <p className="lx-key"><Icon name="lock" size={14}/><span><strong>{say(KEY_SENTENCE)}</strong> {say(t('The base still produces most of the answer on every step; only the adapter learns.',
-      'ما زال الأساس ينتج معظم الإجابة في كل خطوة؛ والمهايئ وحده يتعلم.'))}</span></p>
-  </div>;
-}
-
-export function Glossary({ goTo }: { goTo: (part: number) => void }) {
-  const say = useTx();
-  const [query, setQuery] = useState('');
-  const shown = GLOSSARY.filter(term => !query.trim() || `${term.name.en} ${term.name.ar} ${term.plain.en} ${term.plain.ar}`.toLowerCase().includes(query.trim().toLowerCase()));
-  return <div className="lx-glossary">
-    <Sub icon="book">{say(t('Glossary: every word, in plain language', 'المسرد: كل كلمة بلغة بسيطة'))}</Sub>
-    <label className="lx-search"><Icon name="search" size={15}/>
-      <input type="search" value={query} onChange={event => setQuery(event.target.value)}
-        placeholder={say(t('Search a word, e.g. rank, JSONL, gradient', 'ابحث عن كلمة، مثل الرتبة أو JSONL أو التدرّج'))}
-        aria-label={say(t('Search the glossary', 'ابحث في المسرد'))}/></label>
-    <div className="lx-terms">
-      {shown.map(term => <article key={term.name.en} className="lx-term">
-        <h5>{say(term.name)}</h5>
-        <p>{say(term.plain)}</p>
-        <small><bdi dir="auto">{say(term.example)}</bdi></small>
-        <button type="button" className="lx-link" onClick={() => goTo(term.part - 1)}>
-          {say(t(`See it in part ${term.part}`, `شاهده في الجزء ${term.part}`))}<Icon name="next" size={12}/></button>
-      </article>)}
-      {!shown.length && <p className="lx-muted">{say(t('No word matches.', 'لا توجد كلمة مطابقة.'))}</p>}
-    </div>
-  </div>;
 }
 
 // ================================================================= 3 data
@@ -550,34 +476,6 @@ export function PrecisionFlow() {
 }
 
 // ============================================================== 8 Unsloth
-
-export function KitchenTable() {
-  const say = useTx();
-  const rows = [
-    [t('Recipe or cooking method', 'الوصفة أو طريقة الطهي'), t('The LoRA or QLoRA training approach', 'طريقة التدريب LoRA أو QLoRA')],
-    [t('Chef and tools', 'الطاهي والأدوات'), t('Your code using Unsloth and supporting libraries', 'شيفرتك التي تستخدم Unsloth والمكتبات المساندة')],
-    [t('Ingredients', 'المكونات'), t('The pretrained model and the prepared heritage examples', 'النموذج المدرَّب مسبقًا وأمثلة التراث المجهَّزة')],
-    [t('Adjustable orange module', 'الوحدة البرتقالية القابلة للتعديل'), t('The LoRA adapter weights being trained', 'أوزان مهايئ LoRA التي تُدرَّب')],
-    [t('Stove', 'الموقد'), t('The GPU hardware doing the calculations', 'عتاد GPU الذي ينفذ الحسابات')],
-    [t('Finished dish', 'الطبق الجاهز'), t('The matching base model working with the trained adapters', 'النموذج الأساسي المطابق يعمل مع المهايئات المدرَّبة')],
-  ];
-  return <div className="lx-kitchen">
-    <Sub icon="book">{say(t('The kitchen picture, decoded', 'صورة المطبخ، مفكوكة الرموز'))}</Sub>
-    <div className="table-scroll ft-table">
-      <table>
-        <thead><tr><th>{say(t('In the kitchen', 'في المطبخ'))}</th><th>{say(t('In fine-tuning', 'في الضبط الدقيق'))}</th></tr></thead>
-        <tbody>{rows.map(([kitchen, meaning]) => <tr key={kitchen.en}><td>{say(kitchen)}</td><td>{say(meaning)}</td></tr>)}</tbody>
-      </table>
-    </div>
-    <h5 className="lx-h5">{say(t('What Unsloth does not do', 'ما لا يفعله Unsloth'))}</h5>
-    <ul className="lx-extras">
-      <li>{say(t('It does not check whether the heritage facts are true.', 'لا يتحقق من صحة معلومات التراث.'))}</li>
-      <li>{say(t('It does not create trustworthy sources or citations.', 'لا يصنع مصادر أو استشهادات موثوقة.'))}</li>
-      <li>{say(t('It does not guarantee that any model fits on any GPU.', 'لا يضمن أن أي نموذج يتسع لأي بطاقة GPU.'))}</li>
-      <li>{say(t('It does not choose the data, model, targets, settings or evaluation: you do.', 'لا يختار البيانات أو النموذج أو الأهداف أو الإعدادات أو التقييم: أنت من يفعل.'))}</li>
-    </ul>
-  </div>;
-}
 
 // ===================================================== 9 one training step
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import './llm.css';
 import './finetune.css';
@@ -11,12 +11,18 @@ import { FactsNotFiles, NeuronParameters, ParameterLadder } from './ParameterLes
 import { AnalogyTrio, BuildOrderPanel, DataSorter, DecisionHelper, PhotoQuantize, SplitPicture, StickyNotes, StorytellerScene, StrengthChart } from './HybridLesson';
 import { JsonlBuilder, RagAppScene, SameStoryTwoUses, TrainJsonlFlow, VectorSearchMap } from './RagLesson';
 import {
-  ApproachPicker, BatchCalculator, CompareCards, EXTRA_QUIZ, EvaluationPanel, FormatExplorer, FrozenCalculator, Glossary, InitDemo,
-  JsonlChecker, KitchenTable, LearningRateDemo, LoraCalculator, MemoryTable, MythGame, OrderGame, OverfitChart, PrecisionFlow,
+  ApproachPicker, BatchCalculator, CompareCards, EXTRA_QUIZ, EvaluationPanel, FormatExplorer, InitDemo,
+  JsonlChecker, LearningRateDemo, LoraCalculator, MemoryTable, MythGame, OrderGame, OverfitChart, PrecisionFlow,
   QloraOrder, SettingsTable, TokenView, WorkflowList,
 } from './FineTuneLessons';
 import { TurathCase } from './TurathCase';
-import { CHOICES, QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
+import { QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
+import {
+  ChapterRail, LabHeaderActions, PartFooter, PartNavContext, PartTabs, PipelineMap, QUIZ as QUIZ_VIEW, REFERENCE, ReferenceSheet,
+  RememberCard, SearchPalette, ToolIndex, flashWhenReady, useLabProgress, usePartNav, useSearchShortcut,
+} from './LabShell';
+import type { Hit } from './LabShell';
+import type { PartTab } from './labNav';
 import type { Text } from './finetuneContent';
 import {
   GPUS, LORA_RANKS, LORA_SIZE, MODEL_SIZES, PRECISIONS, budget, createLora, frozenChanges, loraDelta, quantize,
@@ -75,40 +81,47 @@ const tone = (color: string) => ({ '--tone': color }) as CSSProperties;
 const gb = (value: number) => value >= 10 ? value.toFixed(0) : value.toFixed(1);
 const millions = (value: number) => value >= 1e9 ? `${(value / 1e9).toFixed(1)}B` : `${(value / 1e6).toFixed(1)}M`;
 
-function Stage({ index, summary, notes, flow, scene, children }: {
+function Stage({ index, summary, notes, flow, scene, sceneNames, children }: {
   index: number; summary: ReactNode; flow?: string; children: ReactNode;
-  /** An animated scene shown across the full width, above the hands-on part. */
-  scene?: ReactNode;
+  /** One or more animated scenes, shown in the Watch tab. */
+  scene?: ReactNode | ReactNode[];
+  sceneNames?: string[];
   notes: { what: string; why: string; tryIt: string };
 }) {
   const tx = useTx();
   const stage = STAGES[index];
-  return <>
-    <section className="llm-stage" id={`ft-${stage.key}`} data-stage={index} style={tone(stage.tone)}
-      aria-labelledby={`ft-${stage.key}-title`}>
-      <header className="llm-stage-top">
-        <span className="llm-stage-number"><Icon name={stage.icon} size={20}/></span>
-        <div className="llm-stage-title">
-          <span className="llm-stage-eyebrow">{tx(`Part ${index + 1} of ${STAGES.length}`, `الجزء ${index + 1} من ${STAGES.length}`)}</span>
-          <h3 id={`ft-${stage.key}-title`}>{say(tx, stage.label)}</h3>
-          <p>{say(tx, stage.question)}</p>
-        </div>
-        <span className="llm-stage-out" data-keep="">{summary}</span>
-      </header>
-      {scene && <div className="ft-scene-row">{scene}</div>}
-      <div className="llm-stage-body">
-        <div className="llm-stage-visual">{children}</div>
-        <aside className="llm-notes">
-          <h4>{tx('The idea', 'الفكرة')}</h4>
-          <p>{notes.what}</p>
-          <h4>{tx('Why it matters', 'لماذا يهم ذلك')}</h4>
-          <p>{notes.why}</p>
-          <p className="llm-try"><Icon name="bulb" size={15}/><span><strong>{tx('Try it.', 'جرّب.')}</strong> {notes.tryIt}</span></p>
-        </aside>
+  const { tab: chosen } = usePartNav();
+  const scenes = scene === undefined ? [] : Array.isArray(scene) ? scene : [scene];
+  const tab: PartTab = chosen === 'watch' && !scenes.length ? 'try' : chosen ?? (scenes.length ? 'watch' : 'try');
+  const [which, setWhich] = useState(0);
+  return <section className="llm-stage ft-part" id={`ft-${stage.key}`} data-stage={index} style={tone(stage.tone)}
+    aria-labelledby={`ft-${stage.key}-title`}>
+    <header className="llm-stage-top">
+      <span className="llm-stage-number"><Icon name={stage.icon} size={20}/></span>
+      <div className="llm-stage-title">
+        <span className="llm-stage-eyebrow">{tx(`Part ${index + 1} of ${STAGES.length}`, `الجزء ${index + 1} من ${STAGES.length}`)}</span>
+        <h3 id={`ft-${stage.key}-title`}>{say(tx, stage.label)}</h3>
+        <p>{say(tx, stage.question)}</p>
       </div>
-    </section>
-    {flow && <div className="llm-flow" aria-hidden="true"><i/><span>{flow}</span></div>}
-  </>;
+      <span className="llm-stage-out" data-keep="">{summary}</span>
+    </header>
+    <PartTabs hasScene={scenes.length > 0} tab={tab}/>
+    {tab === 'watch' && <div className="ft-scene-row" role="tabpanel">
+      <p className="ft-part-idea">{notes.what}</p>
+      {scenes.length > 1 && <div className="ft-tabs ft-scene-pick" role="group" aria-label={tx('Choose an animation', 'اختر مشهدًا')}>
+        {scenes.map((_, number) => <button key={number} type="button" className={number === which ? 'current' : ''} aria-pressed={number === which}
+          onClick={() => setWhich(number)}><Icon name="play" size={12}/>{sceneNames?.[number] ?? `${number + 1}`}</button>)}
+      </div>}
+      {scenes[Math.min(which, scenes.length - 1)]}
+    </div>}
+    {tab === 'try' && <div className="llm-stage-body ft-try" role="tabpanel">
+      <p className="llm-try"><Icon name="bulb" size={15}/><span><strong>{tx('Try it.', 'جرّب.')}</strong> {notes.tryIt}</span></p>
+      <ToolIndex owner={`ft-${stage.key}`}/>
+      <div className="llm-stage-visual">{children}</div>
+    </div>}
+    {tab === 'remember' && <div className="ft-remember" role="tabpanel"><RememberCard index={index} idea={notes.what} why={notes.why}/></div>}
+    <PartFooter index={index} flow={flow}/>
+  </section>;
 }
 
 /** A matrix drawn as coloured cells: cyan positive, coral negative, brighter is larger. */
@@ -166,14 +179,6 @@ function WhyStage() {
       </article>
     </div>
     <p className="llm-panel-note">{say(tx, scenario.lesson)} {tx('(An illustration written for this lesson, not a live model.)', '(توضيح كُتب لهذا الدرس، وليس نموذجًا يعمل مباشرة.)')}</p>
-    <h4 className="llm-sub">{tx('Three ways to change what a model does', 'ثلاث طرق لتغيير ما يفعله النموذج')}</h4>
-    <div className="ft-choices">
-      {CHOICES.map((choice, index) => <div key={choice.name.en} className={index === 2 ? 'chosen' : ''}>
-        <strong>{say(tx, choice.name)}</strong>
-        <p>{say(tx, choice.what)}</p>
-        <small>{say(tx, choice.use)}</small>
-      </div>)}
-    </div>
   </>;
 }
 
@@ -463,7 +468,6 @@ function UnslothStage() {
     </div>
     <p className="llm-panel-note">{tx('Model names and options change between versions. Check the Unsloth documentation for the current ones before you run this.',
       'أسماء النماذج والخيارات تتغير بين الإصدارات. راجع توثيق Unsloth لمعرفة الحالية منها قبل التشغيل.')}</p>
-    <KitchenTable/>
   </>;
 }
 
@@ -502,70 +506,27 @@ function Quiz() {
 
 export function FineTuneLab() {
   const tx = useTx();
-  const [active, setActive] = useState(0);
-  const lab = useRef<HTMLDivElement>(null);
+  const progress = useLabProgress();
+  const [tab, setTab] = useState<PartTab | null>(null);
+  const [searching, setSearching] = useState(false);
+  const active = progress.active;
 
-  useEffect(() => {
-    if (!lab.current) return;
-    const observer = new IntersectionObserver(entries => {
-      const seen = entries.filter(entry => entry.isIntersecting)
-        .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
-      if (seen) setActive(Number((seen.target as HTMLElement).dataset.stage));
-    }, { rootMargin: '-25% 0px -55% 0px', threshold: [0, 0.2, 0.6] });
-    lab.current.querySelectorAll('.llm-stage').forEach(section => observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
-
-  function goTo(index: number) {
-    document.getElementById(`ft-${STAGES[index].key}`)?.scrollIntoView({
-      block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+  const goTo = useCallback((index: number, nextTab: PartTab | null = null) => {
+    progress.go(index);
+    setTab(nextTab);
+    window.requestAnimationFrame(() => {
+      const stages = document.querySelector('.ft-stages');
+      if (stages && stages.getBoundingClientRect().top < 0) stages.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
     });
-    setActive(index);
-  }
+  }, [progress]);
+  const openSearch = useCallback(() => setSearching(true), []);
+  useSearchShortcut(openSearch);
+  const pick = (hit: Hit) => {
+    goTo(hit.part, hit.tab);
+    if (hit.selector) flashWhenReady(hit.selector);
+  };
 
-  const trio = [
-    { stage: 5, icon: 'grid' as IconName, name: tx('Quantization', 'التكميم'),
-      job: tx('Makes the model small enough to load.', 'يجعل النموذج صغيرًا بما يكفي لتحميله.'),
-      how: tx('Stores each weight in 4 bits instead of 16 or 32.', 'يخزّن كل وزن في 4 بتات بدلًا من 16 أو 32.') },
-    { stage: 6, icon: 'chip' as IconName, name: 'QLoRA',
-      job: tx('Trains the model without changing it.', 'يدرّب النموذج دون أن يغيّره.'),
-      how: tx('Freezes the 4-bit base and trains a tiny adapter beside it.', 'يجمّد الأساس ذا الـ 4 بت ويدرّب مهايئًا صغيرًا بجانبه.') },
-    { stage: 7, icon: 'code' as IconName, name: 'Unsloth',
-      job: tx('The toolkit that does both for you.', 'الأداة التي تنفّذ الاثنين لك.'),
-      how: tx('A Python library: load, adapt, train and export in a few lines.', 'مكتبة Python: تحميل وتهيئة وتدريب وتصدير في بضعة أسطر.') },
-  ];
-
-  return <div className="llm-lab ft-lab" ref={lab}>
-    <header className="llm-hero ft-hero">
-      <div className="llm-hero-copy">
-        <div className="eyebrow">{tx('Fine-tuning lab', 'مختبر الضبط الدقيق')}</div>
-        <h2>{tx('Teach a ready-made model your own subject', 'علّم نموذجًا جاهزًا مادتك أنت')}</h2>
-        <p>{tx('A foundation model such as Qwen has already read a huge amount of text, and its weights are free to download. Fine-tuning continues its training on your examples, so it learns your subject, your format, or your way of answering. This lab shows what really happens to the weights, and how quantization, QLoRA and Unsloth make it possible on an ordinary computer.',
-          'النموذج الأساسي مثل Qwen قرأ مسبقًا كمًّا هائلًا من النصوص، وأوزانه متاحة للتنزيل مجانًا. والضبط الدقيق يكمل تدريبه على أمثلتك، فيتعلم مادتك أو صيغتك أو طريقتك في الإجابة. هذا المختبر يعرض ما يحدث فعلًا للأوزان، وكيف يجعل التكميم و QLoRA و Unsloth ذلك ممكنًا على حاسوب عادي.')}</p>
-      </div>
-      <div className="ft-trio">
-        {trio.map(item => <button key={item.name} type="button" style={tone(STAGES[item.stage].tone)} onClick={() => goTo(item.stage)}>
-          <span className="ft-trio-icon"><Icon name={item.icon} size={18}/></span>
-          <span><strong>{item.name}</strong><b>{item.job}</b><small>{item.how}</small></span>
-        </button>)}
-      </div>
-    </header>
-
-    <div className="llm-layout">
-      <nav className="llm-rail" aria-label={tx('Parts of the lesson', 'أجزاء الدرس')}>
-        <span className="llm-rail-title">{tx('From base model to your model', 'من النموذج الأساسي إلى نموذجك')}</span>
-        <ol>
-          {STAGES.map((stage, index) => <li key={stage.key} style={tone(stage.tone)}>
-            <button type="button" className={active === index ? 'current' : ''} aria-current={active === index ? 'step' : undefined}
-              aria-label={tx(`Part ${index + 1}: ${stage.label.en}`, `الجزء ${index + 1}: ${stage.label.ar}`)} onClick={() => goTo(index)}>
-              <span className="llm-rail-dot">{index + 1}</span>
-              <span className="llm-rail-text"><strong>{say(tx, stage.label)}</strong><small>{say(tx, stage.question)}</small></span>
-            </button>
-          </li>)}
-        </ol>
-      </nav>
-
-      <div className="llm-stages">
+  const content: ReactNode[] = [
         <Stage index={0} summary={tx('base → specialist', 'أساسي ← متخصص')} flow={tx('so we need examples', 'إذن نحتاج إلى أمثلة')}
           notes={{
             what: tx('A base (foundation) model knows language and general knowledge, but nothing about your college, your format, or your course. Fine-tuning is extra training on your own examples, starting from the weights it already has.',
@@ -574,7 +535,7 @@ export function FineTuneLab() {
               'تدريب نموذج من الصفر يحتاج إلى شهور وملايين. أما البدء من أوزان مفتوحة فيسمح لفريق صغير ببناء نموذج متخصص في ظهيرة واحدة.'),
             tryIt: tx('Switch between the three situations. In which one did the model gain knowledge, and in which one did it only gain a habit?',
               'بدّل بين المواقف الثلاثة. في أيها اكتسب النموذج معرفة، وفي أيها اكتسب عادة فقط؟'),
-          }}><WhyStage/><AnalogyTrio goTo={goTo}/></Stage>
+          }}><WhyStage/><AnalogyTrio goTo={goTo}/></Stage>,
 
         <Stage index={1} summary={tx('8 words, 1 loop', '8 كلمات، حلقة واحدة')} scene={<TermsScene/>} flow={tx('the loop needs examples', 'الحلقة تحتاج إلى أمثلة')}
           notes={{
@@ -584,7 +545,7 @@ export function FineTuneLab() {
               'أهم جملة في الدرس: المجمَّد يعني أنه لا يُحدَّث، ولا يعني أنه لا يعمل. فالأوزان الأصلية تحسب كل إجابة، والمهايئ الصغير وحده يتعلم.'),
             tryIt: tx('Start with the neuron: check that 2 × 0.5 + 3 × 0.4 + 0.2 = 2.4. Then train it “the LoRA way” and watch “original parameters changed” stay at 0. Finally play the loop.',
               'ابدأ بالعصبون: تحقق من أن 2 × 0.5 + 3 × 0.4 + 0.2 = 2.4. ثم درّبه “بطريقة LoRA” وراقب “معاملات أصلية تغيّرت” وهي تبقى 0. وأخيرًا شغّل الحلقة.'),
-          }}><NeuronParameters/><ParameterLadder/><FactsNotFiles/><FrozenCalculator/><Glossary goTo={goTo}/></Stage>
+          }}><NeuronParameters/><ParameterLadder/><FactsNotFiles/></Stage>,
 
         <Stage index={2} summary={tx('document → JSONL → tokens', 'مستند ← JSONL ← رموز')} scene={<DocsScene/>} flow={tx('examples go to the model', 'الأمثلة تذهب إلى النموذج')}
           notes={{
@@ -594,7 +555,7 @@ export function FineTuneLab() {
               'الأمثلة هي الدرس. و JSONL مجرد الصندوق الذي تنتقل فيه: لا تضمن صحة ولا شمولًا. وبضع مئات من الأزواج النظيفة المراجَعة المقسَّمة جيدًا تعلّم أكثر من آلاف الأزواج المهملة.'),
             tryIt: tx('Load the file with mistakes in the checker and fix every red line. Then shorten max_seq_length until the answer is cut off.',
               'حمّل الملف ذا الأخطاء في الفاحص وأصلح كل سطر أحمر. ثم قلّل max_seq_length حتى تُقطع الإجابة.'),
-          }}><DataStage/></Stage>
+          }}><DataStage/></Stage>,
 
         <Stage index={3} summary={tx('full · partial · LoRA · QLoRA', 'كامل · جزئي · LoRA · QLoRA')} flow={tx('how the new weights are built', 'كيف تُبنى الأوزان الجديدة')}
           notes={{
@@ -604,7 +565,7 @@ export function FineTuneLab() {
               'الأوزان المجمَّدة تحفظ كل ما يعرفه النموذج، وتدريب جزء من واحد بالمئة يحتاج إلى جزء صغير من الذاكرة. ولا تضمن أي طريقة تذكّر الحقائق تمامًا: فالبيانات والإعدادات والتقييم هي التي تحدد ذلك.'),
             tryIt: tx('Switch between the four approaches and watch which layers light up, how many numbers learn, and what file you would save.',
               'بدّل بين الطرق الأربع وراقب أي الطبقات تضيء، وكم رقمًا يتعلم، وأي ملف ستحفظ.'),
-          }}><FreezeStage/></Stage>
+          }}><FreezeStage/></Stage>,
 
         <Stage index={4} summary="W + B·A" scene={<AdapterScene/>} flow={tx('but the base is still too big', 'لكن الأساس ما زال كبيرًا جدًا')}
           notes={{
@@ -614,7 +575,7 @@ export function FineTuneLab() {
               'المهارة الجديدة تحتاج عادةً إلى بضعة اتجاهات من التغيير، لا إلى كل الأرقام. والرتبة r هي عدد الاتجاهات المسموح بها للمهايئ: إن قلّت لم يستطع المطابقة، وإن كفت طابق بأرقام أقل بكثير.'),
             tryIt: tx('Train with rank 1: the loss gets stuck. Now choose rank 2 and train again. Watch “frozen numbers changed” stay at 0 the whole time.',
               'درّب بالرتبة 1: الخسارة تعلق. ثم اختر الرتبة 2 ودرّب من جديد. وراقب «أرقام مجمَّدة تغيّرت» وهي تبقى 0 طوال الوقت.'),
-          }}><LoraStage/></Stage>
+          }}><LoraStage/></Stage>,
 
         <Stage index={5} summary={tx('32 bits → 4 bits', '32 بت ← 4 بت')} scene={<QuantScene/>} flow={tx('small base + small adapter', 'أساس صغير + مهايئ صغير')}
           notes={{
@@ -624,7 +585,7 @@ export function FineTuneLab() {
               'الذاكرة هي العائق. نموذج 8B حجمه نحو 15 غ.ب بدقة 16 بت وأقل من 4 غ.ب بدقة 4 بت، وهذا هو الفرق بين الحاجة إلى خادم واستخدام بطاقة GPU سحابية مجانية. والثمن خطأ تقريب صغير.'),
             tryIt: tx('Go down from 8 bits to 2 and watch the error grow. Then pick 4 bits and switch to NF4: the error drops without using more bits.',
               'انزل من 8 بتات إلى 2 وراقب الخطأ يكبر. ثم اختر 4 بتات وبدّل إلى NF4: ينخفض الخطأ دون استخدام بتات أكثر.'),
-          }}><QuantStage/></Stage>
+          }}><QuantStage/></Stage>,
 
         <Stage index={6} summary={tx('4-bit base + adapters', 'أساس 4 بت + مهايئات')} flow={tx('now in real code', 'والآن في شيفرة حقيقية')}
           notes={{
@@ -634,9 +595,10 @@ export function FineTuneLab() {
               'التكميم يصغّر ما تحمّله، و LoRA تصغّر ما تدرّبه. ومعًا ينزلان بالضبط الدقيق لنموذج بمليارات الأوزان إلى بطاقة GPU استهلاكية واحدة، بنتائج قريبة من الضبط الدقيق الكامل.'),
             tryIt: tx('Choose the 27B model. Does it fit in 24 GB at 4-bit? Now switch the base to 16-bit and see which GPUs are left.',
               'اختر نموذج 27B. هل يتسع في 24 غ.ب بدقة 4 بت؟ ثم بدّل الأساس إلى 16 بت وانظر أي بطاقات GPU تبقى.'),
-          }}><QloraStage/></Stage>
+          }}><QloraStage/></Stage>,
 
-        <Stage index={7} summary={tx('7 steps', '7 خطوات')} scene={<><KitchenScene/><UnslothScene/></>}
+        <Stage index={7} summary={tx('7 steps', '7 خطوات')} scene={[<KitchenScene key="kitchen"/>, <UnslothScene key="unsloth"/>]}
+          sceneNames={[tx('The AI kitchen', 'مطبخ الذكاء الاصطناعي'), tx('Unsloth, step by step', 'Unsloth خطوة بخطوة')]}
           flow={tx('inside one training step', 'داخل خطوة تدريب واحدة')}
           notes={{
             what: tx('Unsloth is an open-source Python library, not a model. It gives you ready 4-bit versions of popular open-weight models and wraps the whole QLoRA recipe: load, add adapters, train, test, export.',
@@ -645,7 +607,7 @@ export function FineTuneLab() {
               'الخطوات نفسها ممكنة بمكتبات أدنى مستوى، لكنها تحتاج إلى شيفرة وعناية أكثر بكثير. و Unsloth يدرّب أيضًا بسرعة أكبر وذاكرة أقل، فيتسع الدرس في دفتر سحابي مجاني.'),
             tryIt: tx('Find the one line that does the quantization, and the one argument that sets the rank you tried in part 4.',
               'ابحث عن السطر الوحيد الذي ينفّذ التكميم، وعن المعامل الوحيد الذي يحدد الرتبة التي جرّبتها في الجزء 5.'),
-          }}><UnslothStage/></Stage>
+          }}><UnslothStage/></Stage>,
 
         <Stage index={8} summary={tx('forward → loss → backward → update', 'أمامي ← خسارة ← خلفي ← تحديث')} scene={<TrainingStepScene/>}
           flow={tx('then: is the model any good?', 'ثم: هل النموذج جيد؟')}
@@ -656,7 +618,7 @@ export function FineTuneLab() {
               'الإعدادات (معدل التعلم وحجم الدفعة وتجميع التدرجات والحقب وطول التسلسل) تتحكم في هذه الخطوات. وفهم خطوة واحدة يجعل كل إعداد مفهومًا.'),
             tryIt: tx('Try the three learning rates. Then set batch 2, accumulation 8 and one GPU: you get the effective batch of 16 from the notes. Finally drag the epochs until validation loss starts rising.',
               'جرّب معدلات التعلم الثلاثة. ثم اجعل الدفعة 2 والتجميع 8 وبطاقة GPU واحدة: تحصل على الدفعة الفعلية 16 من الملاحظات. وأخيرًا اسحب الحقب حتى تبدأ خسارة التحقق في الارتفاع.'),
-          }}><LearningRateDemo/><BatchCalculator/><OverfitChart/><SettingsTable/></Stage>
+          }}><LearningRateDemo/><BatchCalculator/><OverfitChart/><SettingsTable/></Stage>,
 
         <Stage index={9} summary={tx('8 stages', '8 مراحل')} flow={tx('fine-tuning, RAG, or both?', 'ضبط دقيق أم RAG أم الاثنان؟')}
           notes={{
@@ -666,9 +628,10 @@ export function FineTuneLab() {
               'انخفاض الخسارة يثبت أن التدريب جرى، لا أن النموذج صار أفضل. ووحدها الأسئلة التي لم يرها النموذج، مقارنةً بالنموذج الأساسي ومراجَعةً من خبير، تُظهر التحسن الحقيقي.'),
             tryIt: tx('Put the six cards in order, then answer the true-or-false statements. Which of them did you believe before this lesson?',
               'رتّب البطاقات الست، ثم أجب عن عبارات الصح والخطأ. أيها كنت تصدّقه قبل هذا الدرس؟'),
-          }}><WorkflowList/><OrderGame/><EvaluationPanel/><MythGame/></Stage>
+          }}><WorkflowList/><OrderGame/><EvaluationPanel/><MythGame/></Stage>,
 
-        <Stage index={10} summary={tx('library + storyteller', 'مكتبة + راوٍ')} scene={<><StorytellerScene/><RagAppScene/></>}
+        <Stage index={10} summary={tx('library + storyteller', 'مكتبة + راوٍ')} scene={[<StorytellerScene key="story"/>, <RagAppScene key="app"/>]}
+          sceneNames={[tx('The storyteller and the library', 'الراوي والمكتبة'), tx('The whole RAG application', 'تطبيق RAG كاملًا')]}
           flow={tx('now a real student project', 'والآن مشروع طلابي حقيقي')}
           notes={{
             what: tx('Fine-tuning and RAG do different jobs. RAG is the library: all the real stories, searched at answer time, with their sources. Fine-tuning is the lessons: a smaller set of examples that teach the model how to tell those stories, use the retrieved context, cite it, and admit when a story is missing.',
@@ -677,12 +640,33 @@ export function FineTuneLab() {
               'الضبط الدقيق وحده يبدو جيدًا لكنه قد يختلق تفاصيل ولا يعطي مصدرًا. و RAG وحده دقيق لكنه يبدو عامًّا. ومعًا يكونان أمينين وطبيعيين، وهذا ما يحتاجه مشروع تراثي.'),
             tryIt: tx('Play the first scene and compare steps 7, 8 and 9; then play the second to follow a question through the whole application. Write your own example in the JSONL builder, and ask the flying-camel question on the meaning map.',
               'شغّل المشهد الأول وقارن الخطوات 7 و 8 و 9، ثم شغّل الثاني لتتبع سؤالًا عبر التطبيق كله. واكتب مثالك الخاص في منشئ JSONL، واسأل عن الجمل الطائر في خريطة المعاني.'),
-          }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><SameStoryTwoUses/><JsonlBuilder/><TrainJsonlFlow/><VectorSearchMap/><BuildOrderPanel/></Stage>
+          }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><SameStoryTwoUses/><JsonlBuilder/><TrainJsonlFlow/><VectorSearchMap/><BuildOrderPanel/></Stage>,
+  ];
 
-        <TurathCase index={11} total={STAGES.length}/>
+  const nav = { tab, setTab, go: (index: number) => goTo(index), parts: STAGES };
+  return <PartNavContext.Provider value={nav}>
+    <div className="llm-lab ft-lab">
+      <header className="ft-lab-head">
+        <div className="ft-lab-title">
+          <div className="eyebrow">{tx('Fine-tuning lab', 'مختبر الضبط الدقيق')}</div>
+          <h2>{tx('Teach a ready-made model your own subject', 'علّم نموذجًا جاهزًا مادتك أنت')}</h2>
+          <p>{tx('Twelve short parts in five chapters, in the order a real project follows: from the base model and its data, through LoRA, quantization, QLoRA and Unsloth, to training, evaluation and RAG. Each part has an animation to watch, tools to try and a card to remember.',
+            'اثنا عشر جزءًا قصيرًا في خمسة فصول، بالترتيب الذي يتبعه مشروع حقيقي: من النموذج الأساسي وبياناته، مرورًا بـ LoRA والتكميم و QLoRA و Unsloth، إلى التدريب والتقييم و RAG. ولكل جزء مشهد للمشاهدة وأدوات للتجربة وبطاقة للتذكّر.')}</p>
+        </div>
+        <LabHeaderActions onSearch={openSearch} onReference={() => goTo(REFERENCE)}/>
+        <PipelineMap active={active} visited={progress.visited} onPick={index => goTo(index)}/>
+      </header>
 
-        <Quiz/>
+      <div className="llm-layout">
+        <ChapterRail parts={STAGES} active={active} visited={progress.visited} onPick={index => goTo(index)}/>
+        <div className="llm-stages ft-stages" key={`${active}`}>
+          {active < content.length && content[active]}
+          {active === 11 && <><TurathCase index={11} total={STAGES.length}/><PartFooter index={11}/></>}
+          {active === REFERENCE && <ReferenceSheet/>}
+          {active === QUIZ_VIEW && <Quiz/>}
+        </div>
       </div>
+      <SearchPalette open={searching} onClose={() => setSearching(false)} onPick={pick}/>
     </div>
-  </div>;
+  </PartNavContext.Provider>;
 }

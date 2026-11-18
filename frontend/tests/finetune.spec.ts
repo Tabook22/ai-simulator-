@@ -1,10 +1,26 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
+/** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
+const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'turath'];
+const TABS = { watch: /^(Watch|شاهد)/, try: /^(Try|جرّب)/, remember: /^(Remember|تذكّر)/ };
+async function part(page: Page, key: string, tab: keyof typeof TABS = 'try', scene = 0) {
+  const number = PARTS.indexOf(key) + 1;
+  await page.locator('.ft-rail').getByRole('button', { name: new RegExp(`^(Part|الجزء) ${number}:`) }).click();
+  if (key === 'turath') return;
+  await page.locator(`#ft-${key} .ft-part-tabs`).getByRole('tab', { name: TABS[tab] }).click();
+  if (tab === 'watch' && scene) await page.locator(`#ft-${key} .ft-scene-pick button`).nth(scene).click();
+}
 
 test('trains a LoRA adapter beside frozen weights and shows rank matters', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
   await expect(page.getByRole('heading', { name: 'Teach a ready-made model your own subject' })).toBeVisible();
-  await expect(page.locator('.llm-stage')).toHaveCount(12);
+  // One part at a time: five chapters on the pipeline map, 12 parts and 2 review pages in the rail.
+  await expect(page.locator('.llm-stage')).toHaveCount(1);
+  await expect(page.locator('.ft-map-step')).toHaveCount(5);
+  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(14);
+  await part(page, 'lora');
 
   const lora = page.locator('#ft-lora .llm-stage-body');
   const loss = async () => Number(await lora.getByTestId('lora-loss').textContent());
@@ -32,6 +48,7 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
 
+  await part(page, 'quant');
   const quant = page.locator('#ft-quant .llm-stage-body');
   const error = async () => Number(await quant.getByTestId('quant-error').textContent());
   const even = await error();
@@ -41,17 +58,20 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
   expect(await error()).toBeGreaterThan(even);
 
   // An 8B model at 4-bit trains on a 16 GB card; at 16-bit it does not.
+  await part(page, 'qlora');
   const qlora = page.locator('#ft-qlora');
   const sixteen = qlora.locator('.ft-gpus li', { hasText: '16 GB' });
   await expect(sixteen).toHaveClass(/fits/);
   await qlora.getByRole('button', { name: '16-bit base' }).click();
   await expect(sixteen).not.toHaveClass(/fits/);
 
+  await part(page, 'unsloth');
   const unsloth = page.locator('#ft-unsloth .llm-stage-body');
   await expect(unsloth.locator('pre')).toContainText('load_in_4bit = True');
   await unsloth.getByRole('button', { name: 'Next step' }).click();
   await expect(unsloth.locator('pre')).toContainText('get_peft_model');
 
+  await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
   const quiz = page.locator('.ft-quiz');
   await quiz.getByRole('button', { name: 'They are frozen; only the small adapters change.' }).click();
   await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 10');
@@ -62,7 +82,9 @@ test('shows the fine-tuning lab in Arabic', async ({ page }) => {
   await page.getByRole('button', { name: 'العربية' }).click();
   await page.getByRole('button', { name: 'مختبر الضبط الدقيق' }).click();
   await expect(page.getByRole('heading', { name: 'علّم نموذجًا جاهزًا مادتك أنت' })).toBeVisible();
+  await part(page, 'lora');
   await expect(page.locator('#ft-lora')).toContainText('الأوزان الأصلية');
+  await part(page, 'unsloth');
   await expect(page.locator('#ft-unsloth pre')).toContainText('load_in_4bit = True');
 });
 
@@ -71,6 +93,7 @@ test('steps through the animated scenes for adapters, quantization and Unsloth',
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
 
   // Adding adapters: the frozen W gets a lock, then A and B appear and finally merge into W.
+  await part(page, 'lora', 'watch');
   const adapter = page.locator('#ft-scene-adapter');
   await expect(adapter.locator('.ft-scene-caption strong')).toHaveText('A layer of the base model');
   await adapter.getByRole('button', { name: 'Next step' }).click();
@@ -83,12 +106,14 @@ test('steps through the animated scenes for adapters, quantization and Unsloth',
   await expect(adapter.getByRole('button', { name: 'Play again' })).toBeVisible();
 
   // Quantization: 16 real float16 bits per weight become 4-bit codes.
+  await part(page, 'quant', 'watch');
   const quant = page.locator('#ft-scene-quant');
   await expect(quant.locator('.ft-memory-line')).toHaveText('8 × 16 bits = 128 bits');
   await quant.getByRole('button', { name: /^6: Keep the 4-bit code/ }).click();
   await expect(quant.locator('.ft-memory-line')).toContainText('8 × 4 bits = 32 bits');
 
   // Unsloth: the code line follows the step, and Play advances on its own.
+  await part(page, 'unsloth', 'watch', 1);
   const unsloth = page.locator('#ft-scene-unsloth');
   await expect(unsloth.locator('.ft-code-text')).toHaveText('pip install unsloth');
   await unsloth.getByRole('button', { name: 'Play', exact: true }).click();
@@ -99,6 +124,7 @@ test('steps through the animated scenes for adapters, quantization and Unsloth',
 test('explains each part of a scene when it is clicked', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'quant', 'watch');
   const quant = page.locator('#ft-scene-quant');
 
   // Clicking a part of the picture opens its explanation, which follows the current step.
@@ -132,6 +158,7 @@ test('explains each part of a scene when it is clicked', async ({ page }) => {
 
   // The other scenes are explained the same way, in Arabic too.
   await page.getByRole('button', { name: 'العربية' }).click();
+  await part(page, 'unsloth', 'watch', 1);
   const unsloth = page.locator('#ft-scene-unsloth');
   await unsloth.getByRole('button', { name: 'اشرح: بطاقة GPU وشريط ذاكرتها' }).click();
   await expect(unsloth.locator('.ft-explain-card')).toContainText('نفاد الذاكرة');
@@ -140,6 +167,7 @@ test('explains each part of a scene when it is clicked', async ({ page }) => {
 test('walks the TurathAI case study: journey, dataset split, evaluation and checklist', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'turath');
   const turath = page.locator('#ft-turath');
   await expect(turath.getByRole('heading', { name: 'TurathAI: fine-tuning a model on Omani heritage' })).toBeVisible();
   await expect(turath.locator('.tj-questions > div')).toHaveCount(4);
@@ -162,10 +190,10 @@ test('walks the TurathAI case study: journey, dataset split, evaluation and chec
   await expect(builder.locator('.tj-verdict-box')).toHaveClass(/bad/);
   await expect(builder.locator('.tj-verdict-box')).toContainText('Leak!');
 
-  // The RAG scene ends with an admin update that needs no retraining.
-  const rag = page.locator('#tj-rag');
-  await rag.getByRole('button', { name: /^7: An admin adds new heritage/ }).click();
-  await expect(rag.locator('.ft-scene-caption strong')).toHaveText('An admin adds new heritage, no retraining needed');
+  // The online RAG flow is shown once, in part 11; TurathAI links to it.
+  await turath.getByRole('button', { name: 'Watch the RAG application' }).click();
+  await expect(page.locator('#ft-scene-hybrid')).toBeVisible();
+  await part(page, 'turath');
 
   // Scoring an answer, then revealing the teacher's scores.
   const evaluation = turath.locator('.tj-eval');
@@ -187,41 +215,41 @@ test('shows the TurathAI case study in Arabic', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'العربية' }).click();
   await page.getByRole('button', { name: 'مختبر الضبط الدقيق' }).click();
+  await part(page, 'turath');
   const turath = page.locator('#ft-turath');
   await expect(turath.getByRole('heading', { name: 'تراث AI: ضبط نموذج بدقة على التراث العُماني' })).toBeVisible();
   await expect(page.locator('#tj-journey .ft-scene-caption strong')).toHaveText('المرحلة 2 · جمع التراث من مصادر موثوقة');
   await expect(turath.locator('.tj-builder')).toContainText('مدخل في سجل المصادر');
 });
 
-test('teaches the key words: the loop scene, the locked calculator and the glossary', async ({ page }) => {
+test('teaches the key words: the loop scene, and the glossary in the reference sheet', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
-  const words = page.locator('#ft-words');
-  const loop = words.locator('#ft-scene-terms');
+  await part(page, 'words', 'watch');
+  const loop = page.locator('#ft-scene-terms');
   await loop.getByRole('button', { name: /^6: Gradient/ }).click();
   await expect(loop.locator('.ls-node.current')).toContainText('Gradient');
   await expect(loop.locator('.ft-packet.error')).toHaveCount(6);
 
-  // Only the free knob turns; the locked base keeps doing most of the work.
-  const body = words.locator('.llm-stage-body');
-  await expect(body.getByTestId('calc-error')).toContainText('-2.00');
-  for (let step = 0; step < 12; step++) await body.getByRole('button', { name: 'Train one step' }).click();
-  await expect(body.getByTestId('calc-error')).toContainText('0.00');
-  await expect(body).toContainText('12 steps · the locked knob never moved');
-
-  await body.getByRole('searchbox', { name: 'Search the glossary' }).fill('accumulation');
-  await expect(body.locator('.lx-term')).toHaveCount(1);
-  await body.locator('.lx-term', { hasText: 'Gradient accumulation' }).getByRole('button', { name: 'See it in part 9' }).click();
-  await expect(page.locator('#ft-step')).toBeInViewport();
+  // The reference sheet: every part's summary card and the glossary on one page.
+  await page.locator('.ft-rail').getByRole('button', { name: /Reference sheet/ }).click();
+  const sheet = page.locator('.ft-reference');
+  await expect(sheet.locator('.ft-card')).toHaveCount(12);
+  await sheet.getByRole('searchbox', { name: 'Search the glossary' }).fill('accumulation');
+  await expect(sheet.locator('.ft-glossary > div')).toHaveCount(1);
+  await sheet.getByTestId('card-step').getByRole('button', { name: 'Open the part' }).click();
+  await expect(page.locator('#ft-step-title')).toHaveText('One training step');
 });
 
 test('turns documents into JSONL: formats, the line checker and the token mask', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'data', 'watch');
   const docs = page.locator('#ft-scene-docs');
   await docs.getByRole('button', { name: /^6: Save each pair/ }).click();
   await expect(docs.locator('.ls-jline')).toHaveCount(3);
 
+  await part(page, 'data');
   const data = page.locator('#ft-data .llm-stage-body');
   await data.getByRole('tab', { name: /instruction \(Alpaca\)/ }).click();
   await expect(data.locator('.lx-json')).toContainText('"instruction"');
@@ -249,6 +277,7 @@ test('turns documents into JSONL: formats, the line checker and the token mask',
 test('compares the approaches and works through LoRA, QLoRA and a training step', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'freeze');
   const freeze = page.locator('#ft-freeze .llm-stage-body');
   await freeze.getByRole('button', { name: 'Full fine-tuning' }).click();
   await expect(freeze.getByTestId('approach-learn')).toHaveText('8.2B');
@@ -256,6 +285,7 @@ test('compares the approaches and works through LoRA, QLoRA and a training step'
   await expect(freeze.locator('.lx-wall-cells.q4')).toHaveCount(8);
 
   // Activity 2 from the notes: 2,000 × 2,000 at rank 4.
+  await part(page, 'lora');
   const lora = page.locator('#ft-lora .llm-stage-body');
   await expect(lora.getByTestId('lora-total')).toContainText('16,000 (1.60%)');
   await lora.getByRole('button', { name: 'Activity 2' }).click();
@@ -265,14 +295,17 @@ test('compares the approaches and works through LoRA, QLoRA and a training step'
   await expect(lora.getByTestId('init-zero')).toHaveText('2.01');
   expect(Number(await lora.getByTestId('init-good').textContent())).toBeLessThan(0.05);
 
+  await part(page, 'qlora');
   const qlora = page.locator('#ft-qlora .llm-stage-body');
   await qlora.getByRole('button', { name: 'LoRA, then quantize later' }).click();
   await expect(qlora.locator('.lx-order-steps')).toContainText('Merge, then quantize');
   await expect(qlora.locator('.lx-memory-row').last()).toContainText('13.5 GB');
 
+  await part(page, 'step', 'watch');
   const step = page.locator('#ft-step');
   await step.locator('#ft-scene-step').getByRole('button', { name: /^4: Loss/ }).click();
   await expect(step.locator('.ls-loss')).toHaveText('−log 0.22 = 1.51');
+  await part(page, 'step');
   const body = step.locator('.llm-stage-body');
   await expect(body.getByTestId('effective-batch')).toHaveText('16');
   await expect(body.getByTestId('steps-epoch')).toHaveText('50');
@@ -286,6 +319,7 @@ test('compares the approaches and works through LoRA, QLoRA and a training step'
 test('walks the workflow: order the cards, unpack the adapter and judge the myths', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'workflow');
   const flow = page.locator('#ft-workflow .llm-stage-body');
   for (const card of ['Prepare source-based examples', 'Load the 4-bit base', 'Attach adapters', 'Train', 'Evaluate on unseen questions', 'Save the adapters']) {
     await flow.locator('.lx-cards').getByRole('button', { name: card, exact: true }).click();
@@ -307,19 +341,22 @@ test('shows the new parts and the kitchen scene in Arabic', async ({ page }) => 
   await page.goto('/');
   await page.getByRole('button', { name: 'العربية' }).click();
   await page.getByRole('button', { name: 'مختبر الضبط الدقيق' }).click();
-  await expect(page.locator('#ft-words-title')).toHaveText('الكلمات الأساسية');
-  await expect(page.locator('#ft-data-title')).toHaveText('من المستندات إلى JSONL');
+  await expect(page.locator('.ft-rail')).toContainText('الكلمات الأساسية');
+  await expect(page.locator('.ft-rail')).toContainText('من المستندات إلى JSONL');
+  await part(page, 'unsloth', 'watch');
   const kitchen = page.locator('#ft-scene-kitchen');
   await kitchen.getByRole('button', { name: /^4: إلى الفرن/ }).click();
   await expect(kitchen.locator('.ls-chip-text').first()).toHaveText('أوزان الأساس:');
   await kitchen.getByRole('button', { name: 'اشرح: الطاهي: شيفرتك مع Unsloth' }).locator('rect').first().click();
   await expect(kitchen.locator('.ft-explain-card')).toContainText('الباحث ما زال يختار');
+  await part(page, 'data');
   await expect(page.locator('#ft-data .lx-results').first()).toContainText('علامات تنصيص مزدوجة');
 });
 
 test('explains fine-tuning versus RAG: the storyteller scene, the decision, the data sorting', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'hybrid', 'watch');
   const hybrid = page.locator('#ft-hybrid');
   const scene = hybrid.locator('#ft-scene-hybrid');
 
@@ -331,6 +368,7 @@ test('explains fine-tuning versus RAG: the storyteller scene, the decision, the 
   await scene.getByRole('button', { name: /^7: Without the library/ }).click();
   await expect(scene.locator('.hy-answer.invented')).toBeVisible();
 
+  await part(page, 'hybrid');
   const body = hybrid.locator('.llm-stage-body');
   await body.getByRole('button', { name: 'New facts or documents' }).click();
   await expect(body.getByTestId('decide-usual')).toHaveText('RAG (retrieval)');
@@ -358,6 +396,7 @@ test('shows the three analogies: extra lessons, sticky notes and a compressed ph
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
   await expect(page.locator('#ft-why .hy-analogy')).toHaveCount(3);
 
+  await part(page, 'lora');
   const lora = page.locator('#ft-lora .llm-stage-body');
   await lora.getByRole('button', { name: 'Train: add a note' }).click();
   await lora.getByRole('button', { name: 'Train: add a note' }).click();
@@ -366,6 +405,7 @@ test('shows the three analogies: extra lessons, sticky notes and a compressed ph
   await expect(lora.locator('.hy-printed')).toHaveCount(2);
   await expect(lora.getByTestId('sticky-note')).toContainText('W′ = W + B·A');
 
+  await part(page, 'quant');
   const quant = page.locator('#ft-quant .llm-stage-body');
   await quant.getByRole('button', { name: '2 bits per colour' }).click();
   await expect(quant.locator('.hy-photos figcaption').last()).toContainText('4 shades per colour · file 25%');
@@ -374,6 +414,7 @@ test('shows the three analogies: extra lessons, sticky notes and a compressed ph
 test('explains what a parameter is: the neuron, the ladder and facts versus patterns', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'words');
   const words = page.locator('#ft-words .llm-stage-body');
 
   // The worked example: z = 2 × 0.5 + 3 × 0.4 + 0.2 = 2.4.
@@ -403,6 +444,7 @@ test('explains what a parameter is: the neuron, the ladder and facts versus patt
 test('explains each key-word step as input, processing and output with one worked example', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'words', 'watch');
   const scene = page.locator('#ft-scene-terms');
   const detail = scene.locator('.ts-detail');
 
@@ -429,6 +471,7 @@ test('explains each key-word step as input, processing and output with one worke
 test('teaches RAG and JSONL in fine-tuning: one story two uses, the builder, the app flow and vector search', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'hybrid');
   const hybrid = page.locator('#ft-hybrid');
   const body = hybrid.locator('.llm-stage-body');
 
@@ -449,6 +492,7 @@ test('teaches RAG and JSONL in fine-tuning: one story two uses, the builder, the
   await expect(builder.getByTestId('train-file').locator('li')).toHaveCount(2);
 
   // The application flow, as a cartoon.
+  await part(page, 'hybrid', 'watch', 1);
   const app = hybrid.locator('#ft-scene-ragapp');
   await app.getByRole('button', { name: /^3: Upload sources/ }).click();
   await expect(app.locator('.rg-chunk')).toHaveCount(3);
@@ -458,9 +502,41 @@ test('teaches RAG and JSONL in fine-tuning: one story two uses, the builder, the
   await expect(app.locator('.rg-answer-cite')).toContainText('Source: oral collection from Salalah');
 
   // Vector search: near questions find chunks; the flying camel finds nothing.
+  await part(page, 'hybrid');
   const search = body.locator('.rg-search');
   await expect(search.locator('.rg-results li.found')).toHaveCount(2);
   await search.getByRole('button', { name: 'Tell me about the flying camel.' }).click();
   await expect(search.locator('.rg-results li.found')).toHaveCount(0);
   await expect(search.getByTestId('search-result')).toContainText('I don’t have a recorded source');
+});
+
+test('navigates the lab: tabs, remember cards, next part, search and remembered progress', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+
+  // A part without an animation opens on Try; the Remember tab holds its summary card.
+  await expect(page.locator('#ft-why .ft-part-tabs [role="tab"]')).toHaveCount(2);
+  await page.locator('#ft-why').getByRole('tab', { name: /^Remember/ }).click();
+  await expect(page.getByTestId('card-why')).toContainText('Common mistake');
+
+  // Next part, and the pipeline map follows.
+  await page.locator('.ft-part-footer').getByRole('button', { name: /Key words/ }).click();
+  await expect(page.locator('#ft-words-title')).toHaveText('Key words');
+  await expect(page.locator('#ft-words .ft-part-tabs [role="tab"][aria-selected="true"]')).toContainText('Watch');
+  await page.locator('.ft-map').getByRole('button', { name: /Methods/ }).click();
+  await expect(page.locator('#ft-freeze-title')).toHaveText('Four ways to fine-tune');
+  await expect(page.locator('.ft-map-step.current')).toContainText('Methods');
+
+  // Search jumps straight to a tool inside a part.
+  await page.keyboard.press('Control+k');
+  await page.getByRole('dialog').getByRole('textbox', { name: 'Search' }).fill('vector search');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#ft-hybrid-title')).toBeVisible();
+  await expect(page.locator('.rg-search')).toBeVisible();
+
+  // The position and the visited parts are remembered.
+  await page.reload();
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await expect(page.locator('#ft-hybrid-title')).toBeVisible();
+  await expect(page.locator('.ft-rail button.seen')).toHaveCount(4);
 });

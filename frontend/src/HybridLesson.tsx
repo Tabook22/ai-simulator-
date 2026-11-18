@@ -11,8 +11,7 @@ import { useI18n } from './i18n';
 import { Hotspots, Scene, packet, show, t, usePlayer, useTx } from './FineTuneScenes';
 import type { Figure } from './FineTuneScenes';
 import { Txt } from './LessonScenes';
-import { JsonCode } from './FineTuneLessons';
-import { BUILD_ORDER, DATA_ITEMS, GOALS, HYBRID_METRICS, RAG_DOC, SITUATIONS, TUNE_EXAMPLE } from './hybridContent';
+import { BUILD_ORDER, DATA_ITEMS, GOALS, SITUATIONS } from './hybridContent';
 import type { Level, Method } from './hybridContent';
 
 const cls = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ');
@@ -307,45 +306,14 @@ export function SplitPicture() {
   </div>;
 }
 
-export function TwoExamples() {
-  const say = useTx();
-  const record = JSON.stringify({ messages: [
-    { role: 'system', content: say(TUNE_EXAMPLE.system) },
-    { role: 'user', content: `${say(TUNE_EXAMPLE.user)}\n\n${say(t('Context:', 'السياق:'))} ${say(TUNE_EXAMPLE.context)}` },
-    { role: 'assistant', content: say(TUNE_EXAMPLE.answer) },
-  ] });
-  return <div className="hy-examples">
-    <Sub icon="file">{say(t('The two kinds of data, side by side', 'نوعا البيانات جنبًا إلى جنب'))}</Sub>
-    <div className="hy-example-grid">
-      <article className="hy-doc">
-        <h5><Icon name="library" size={14}/>{say(t('Goes into RAG: a real story', 'يذهب إلى RAG: قصة حقيقية'))}</h5>
-        <dl>{RAG_DOC.meta.map(item => <div key={item.key.en}><dt>{say(item.key)}</dt><dd>{say(item.value)}</dd></div>)}</dl>
-        <p className="hy-story">{say(RAG_DOC.story)} <span className="lx-muted">{say(t('[the full story continues]', '[تستمر القصة كاملة]'))}</span></p>
-        <small className="lx-muted">{say(t('Stored as text chunks with their metadata, then searched.', 'تُخزَّن مقاطع نصية مع بياناتها الوصفية، ثم يُبحث فيها.'))}</small>
-      </article>
-      <article className="hy-tune">
-        <h5><Icon name="layers" size={14}/>{say(t('Goes into fine-tuning: a teaching example (one JSONL line)', 'يذهب إلى الضبط الدقيق: مثال تعليمي (سطر JSONL واحد)'))}</h5>
-        <JsonCode text={record}/>
-        <ul className="hy-learns">
-          <li>{say(t('how to sound like a traditional storyteller', 'كيف يبدو كراوٍ تقليدي'))}</li>
-          <li>{say(t('how to use the retrieved context', 'كيف يستخدم السياق المسترجَع'))}</li>
-          <li>{say(t('how to name the source', 'كيف يذكر المصدر'))}</li>
-          <li>{say(t('how to structure the answer', 'كيف يبني الإجابة'))}</li>
-        </ul>
-      </article>
-    </div>
-    <p className="lx-muted">{say(t('The story and the narrator here are illustrations written for this lesson, not a real archive record.',
-      'القصة والراوي هنا توضيح كُتب لهذا الدرس، وليسا سجلًا حقيقيًا من الأرشيف.'))}</p>
-  </div>;
-}
-
 export function BuildOrderPanel() {
   const say = useTx();
   return <div className="hy-order">
     <Sub icon="layers">{say(t('A sensible order of work', 'ترتيب عمل معقول'))}</Sub>
     <ol className="hy-steps">{BUILD_ORDER.map((item, index) => <li key={item.title.en} style={{ animationDelay: `${index * 0.15}s` }}>
       <span className="lx-order-no">{index + 1}</span><div><strong>{say(item.title)}</strong><p>{say(item.text)}</p></div></li>)}</ol>
-    <div className="lx-criteria">{HYBRID_METRICS.map(item => <article key={item.name.en}><h5>{say(item.name)}</h5><p>{say(item.test)}</p></article>)}</div>
+    <p className="lx-muted">{say(t('Then evaluate faithfulness to the sources, the storytelling tone, and how often it honestly says “I don’t have this story” (see part 10 for the full evaluation).',
+      'ثم قيّم الأمانة للمصادر ونبرة السرد وعدد المرات التي يقول فيها بأمانة “ليست لدي هذه القصة” (انظر الجزء 10 للتقييم الكامل).'))}</p>
     <p className="lx-key"><Icon name="book" size={14}/><span><strong>{say(t('For TurathAI (Part 12): ', 'لمشروع تراث AI (الجزء 12): '))}</strong>
       {say(t('combining fine-tuning and RAG is a solid, defensible choice. Keep the full archive in RAG, and let the fine-tuning set teach the storyteller’s voice, citing and honest “not found” answers, rather than asking the model to memorize every story.',
         'الجمع بين الضبط الدقيق و RAG خيار متين يمكن الدفاع عنه. احفظ الأرشيف كاملًا في RAG، ودع مجموعة الضبط تعلّم صوت الراوي والاستشهاد والإجابة الأمينة بـ“غير موجود”، بدلًا من مطالبة النموذج بحفظ كل قصة.'))}</span></p>

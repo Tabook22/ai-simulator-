@@ -1,13 +1,14 @@
 /**
- * Part 8 of the fine-tuning lab: a real student project, TurathAI, as a worked example of the
+ * Part 12 of the fine-tuning lab: a real student project, TurathAI, as a worked example of the
  * whole process, from heritage sources to a fine-tuned model that answers with citations.
  */
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import type { CSSProperties } from 'react';
 import './turath.css';
 import { Icon } from './ui';
 import { useI18n } from './i18n';
 import { readStored, writeStored } from './libraryStorage';
+import { PartNavContext } from './LabShell';
 import { Lock, Scene, packet, show, t, usePlayer, useTx } from './FineTuneScenes';
 import type { Text } from './FineTuneScenes';
 import { GPUS, MODEL_SIZES, budget } from './finetuneModel';
@@ -298,116 +299,6 @@ export function TurathJourney() {
   </Scene>;
 }
 
-// ------------------------------------------------------ the online (RAG) scene
-
-const RAG_STEPS = [
-  { title: t('A visitor asks a question', 'زائر يطرح سؤالًا'),
-    text: t('On the User Dashboard, someone asks about a heritage element in Arabic.', 'في لوحة المستخدم يسأل شخص عن عنصر من التراث باللغة العربية.') },
-  { title: t('The backend receives it', 'الخادم يستقبله'),
-    text: t('The backend checks who is asking, logs the request, and passes the question on.', 'يتحقق الخادم من هوية السائل، ويسجّل الطلب، ثم يمرّر السؤال.') },
-  { title: t('The retriever searches the verified archive', 'المسترجِع يبحث في الأرشيف الموثَّق'),
-    text: t('The question is compared with every verified record. The closest passages come back with their source IDs. This is the “R” in RAG: retrieval.',
-      'يُقارن السؤال بكل سجل موثَّق، فتعود أقرب المقاطع مع معرّفات مصادرها. وهذا هو حرف R في RAG: الاسترجاع.') },
-  { title: t('The model reads the question and the passages', 'النموذج يقرأ السؤال والمقاطع'),
-    text: t('The question and the passages are given to Qwen3.8-27B, with the TurathAI adapter loaded beside the frozen base. This is “augmented”: the model sees evidence, not only its memory.',
-      'يُعطى السؤال والمقاطع إلى Qwen3.8-27B مع تحميل مهايئ تراث AI بجانب الأساس المجمَّد. وهذا معنى «المعزَّز»: النموذج يرى الدليل لا ذاكرته فقط.') },
-  { title: t('It writes the answer', 'يكتب الإجابة'),
-    text: t('The model generates the answer token by token, in the style it learned during fine-tuning. This is the “G”: generation.', 'يولّد النموذج الإجابة رمزًا بعد رمز، بالأسلوب الذي تعلّمه أثناء الضبط الدقيق. وهذا حرف G: التوليد.') },
-  { title: t('…with its sources', '…مع مصادرها'),
-    text: t('Each claim is linked to the passage it came from, so the reader can check it. Research question Q2 tests exactly this.', 'كل ادعاء يرتبط بالمقطع الذي جاء منه، فيستطيع القارئ التحقق منه. وسؤال البحث Q2 يختبر هذا تحديدًا.') },
-  { title: t('An admin adds new heritage, no retraining needed', 'مشرف يضيف تراثًا جديدًا دون إعادة تدريب'),
-    text: t('Through the Admin Dashboard, a newly verified record goes into the archive. The very next question can use it. Fine-tuning changed how the model answers; the archive changes what it can cite.',
-      'عبر لوحة المشرف يدخل سجل موثَّق جديد إلى الأرشيف، ويستطيع السؤال التالي مباشرةً استخدامه. فالضبط الدقيق غيّر طريقة إجابة النموذج، والأرشيف يغيّر ما يستطيع الاستشهاد به.') },
-];
-
-export function TurathRag() {
-  const say = useTx();
-  const { isArabic } = useI18n();
-  const player = usePlayer(RAG_STEPS.length);
-  const { step } = player;
-  const lines = isArabic
-    ? ['البرعة فن أدائي من أودية ظفار يجمع', 'بين الرقص والموسيقى والشعر، ويؤديه', 'رجال ونساء في نصف دائرة. [1]']
-    : ['Al-Bar’ah is a performing art from the', 'Dhofari valleys that combines dance,', 'music and poetry, in a half circle. [1]'];
-  const textAt = isArabic ? { x: 742, textAnchor: 'start' as const, direction: 'rtl' as const } : { x: 512, textAnchor: 'start' as const };
-  return <Scene id="tj-rag" title={t('Answering a heritage question online: fine-tuned model + RAG', 'الإجابة عن سؤال تراثي: نموذج مضبوط بدقة + استرجاع RAG')}
-    steps={RAG_STEPS} player={player}>
-    <svg viewBox="0 0 760 330" className={`ft-svg rag-svg step-${step}`} role="img" aria-label={say(RAG_STEPS[step].title)}>
-      <path className="ft-wire dim" d="M150 155 L190 155"/>
-      <path className="ft-wire dim" d="M310 140 C 330 110 330 70 352 70"/>
-      <path className="ft-wire dim" d="M420 100 L420 158"/>
-      <path className="ft-wire dim" d="M490 70 C 515 70 520 110 532 126"/>
-      <path className="ft-wire dim" d="M600 202 L600 226"/>
-      <path className={`ft-wire dim ${show(step === 6)}`} d="M310 280 C 345 280 355 250 365 236"/>
-
-      <g className={`tj-node-box ${step <= 1 ? 'active' : ''}`}>
-        <rect x="20" y="122" width="130" height="66" rx="12"/>
-        <text className="ft-label" x="85" y="152" textAnchor="middle">{say(t('User Dashboard', 'لوحة المستخدم'))}</text>
-        <text className="ft-tiny" x="85" y="170" textAnchor="middle">{say(t('students, researchers', 'طلاب وباحثون'))}</text>
-      </g>
-      <g className={show(step >= 0)}>
-        <rect className="tj-bubble" x="20" y="62" width="150" height="44" rx="12"/>
-        <text className="tj-arabic" x="158" y="90" textAnchor="start" direction="rtl">ما هي البرعة؟</text>
-      </g>
-      <g className={`tj-node-box ${step === 1 ? 'active' : ''}`}>
-        <rect x="190" y="122" width="120" height="66" rx="12"/>
-        <text className="ft-label" x="250" y="152" textAnchor="middle">{say(t('Backend', 'الخادم'))}</text>
-        <text className="ft-tiny" x="250" y="170" textAnchor="middle">FastAPI</text>
-      </g>
-      <g className={`tj-node-box ${step === 2 ? 'active' : ''}`}>
-        <rect x="352" y="40" width="140" height="60" rx="12"/>
-        <text className="ft-label" x="422" y="66" textAnchor="middle">{say(t('Retriever', 'المسترجِع'))}</text>
-        <text className="ft-tiny" x="422" y="84" textAnchor="middle">{say(t('finds similar passages', 'يجد المقاطع المشابهة'))}</text>
-      </g>
-      <g className={`tj-archive ${step === 2 || step === 6 ? 'active' : ''}`}>
-        <path d="M360 170 a60 12 0 0 0 120 0 v64 a60 12 0 0 1 -120 0 z"/>
-        <ellipse cx="420" cy="170" rx="60" ry="12"/>
-        {[0, 1, 2, 3].map(index => <rect key={index} className={`tj-doc ${step >= 2 && index < 2 ? 'hit' : ''} ${step === 6 && index === 3 ? 'new' : ''}`}
-          x={374 + index * 26} y="192" width="20" height="28" rx="3"/>)}
-        <text className="ft-tiny" x="420" y="262" textAnchor="middle">{say(t('verified archive', 'الأرشيف الموثَّق'))}</text>
-      </g>
-      {step === 2 && [0, 1].map(index => <rect key={index} className="tj-doc hit moving" x="-8" y="-11" width="16" height="22" rx="3"
-        style={packet('M 420 192 L 420 100', -index * 0.7, { animationDuration: '1.6s' })}/>)}
-      <g className={show(step >= 2)}>
-        <rect className="tj-hits" x="500" y="22" width="244" height="40" rx="10"/>
-        <text className="ft-tiny strong" x="512" y="38">[1] UNESCO 2010 · Al-Bar’ah</text>
-        <text className="ft-tiny" x="512" y="53">[2] {say(t('archive record · Dhofar performing arts', 'سجل أرشيف · فنون ظفار الأدائية'))}</text>
-      </g>
-      <g className={`tj-node-box model ${step === 3 || step === 4 ? 'active' : ''}`}>
-        <rect x="532" y="112" width="148" height="90" rx="12"/>
-        <rect className="tj-base mini" x="544" y="140" width="94" height="50" rx="6"/>
-        <Lock x={590} y={160} size={0.9}/>
-        <rect className={`tj-adapter mini ${step === 3 || step === 4 ? 'glow' : ''}`} x="646" y="140" width="22" height="50" rx="5"/>
-        <text className="ft-label" x="606" y="132" textAnchor="middle">Qwen3.8-27B</text>
-      </g>
-      <text className="ft-tiny" x="606" y="216" textAnchor="middle">{say(t('base + TurathAI adapter', 'الأساس + مهايئ تراث AI'))}</text>
-
-      {step === 1 && [0, 1].map(index => <circle key={index} className="ft-packet" r="5" style={packet('M150 155 L190 155', -index * 0.5, { animationDuration: '1s' })}/>)}
-      {step === 2 && [0, 1].map(index => <circle key={index} className="ft-packet" r="5" style={packet('M310 140 C 330 110 330 70 352 70', -index * 0.6, { animationDuration: '1.4s' })}/>)}
-      {step === 3 && [0, 1, 2].map(index => <circle key={index} className="ft-packet hot" r="5" style={packet('M490 70 C 515 70 520 110 532 126', -index * 0.5, { animationDuration: '1.4s' })}/>)}
-      {step === 6 && [0, 1].map(index => <rect key={index} className="tj-doc new moving" x="-8" y="-11" width="16" height="22" rx="3"
-        style={packet('M310 280 C 345 280 355 250 365 236', -index * 0.8, { animationDuration: '1.8s' })}/>)}
-
-      <g className={show(step >= 4)}>
-        <rect className="tj-bubble answer" x="500" y="228" width="250" height="78" rx="12"/>
-        {lines.map((line, index) => <text key={`${step >= 4}-${index}`} className="ft-tiny strong tj-word" y={250 + index * 18} {...textAt}
-          style={{ animationDelay: `${index * 0.7}s` }}>{line}</text>)}
-      </g>
-      <g className={show(step >= 5)}>
-        <rect className="tj-cite" x="500" y="310" width="250" height="18" rx="6"/>
-        <text className="ft-tiny strong" x="510" y="323">[1] UNESCO ICH · Al-Bar’ah · inscribed 2010 ✓</text>
-      </g>
-      <g className={show(step === 6)}>
-        <g className="tj-node-box active">
-          <rect x="190" y="250" width="120" height="56" rx="12"/>
-          <text className="ft-label" x="250" y="275" textAnchor="middle">{say(t('Admin Dashboard', 'لوحة المشرف'))}</text>
-          <text className="ft-tiny" x="250" y="292" textAnchor="middle">{say(t('adds a verified record', 'يضيف سجلًا موثَّقًا'))}</text>
-        </g>
-        <text className="ft-tiny strong warm" x="20" y="232">{say(t('no retraining needed', 'دون إعادة تدريب'))}</text>
-      </g>
-    </svg>
-  </Scene>;
-}
-
 // -------------------------------------------------------- dataset builder
 
 function DatasetBuilder() {
@@ -626,6 +517,19 @@ function Checklist() {
   </div>;
 }
 
+/** The online RAG flow is shown once, in part 11; this links to it. */
+function RagLink() {
+  const say = useTx();
+  const nav = useContext(PartNavContext);
+  return <div className="tj-raglink">
+    <Icon name="play" size={16}/>
+    <p>{say(t('The online part works exactly like the RAG application in part 11: an admin uploads verified records, they are embedded into the vector database, and each question is answered from the retrieved passages with their sources — no retraining needed.',
+      'يعمل الجزء الإلكتروني تمامًا مثل تطبيق RAG في الجزء 11: يرفع المشرف سجلات موثقة، فتُضمَّن في قاعدة بيانات المتجهات، ويُجاب عن كل سؤال من المقاطع المسترجَعة مع مصادرها، دون إعادة تدريب.'))}</p>
+    {nav && <button type="button" className="button small" onClick={() => { nav.go(10); nav.setTab('watch'); }}>
+      {say(t('Watch the RAG application', 'شاهد تطبيق RAG'))}<Icon name="next" size={13}/></button>}
+  </div>;
+}
+
 // -------------------------------------------------------------- the section
 
 export function TurathCase({ index, total }: { index: number; total: number }) {
@@ -689,7 +593,7 @@ export function TurathCase({ index, total }: { index: number; total: number }) {
         <div><strong>{say(t('The archive (RAG) changes what it can cite', 'الأرشيف (RAG) يغيّر ما يستطيع الاستشهاد به'))}</strong>
           <p>{say(t('Verified passages with their sources. Adding a record needs no training at all.', 'مقاطع موثَّقة مع مصادرها. وإضافة سجل لا تحتاج إلى أي تدريب.'))}</p></div>
       </div>
-      <TurathRag/>
+      <RagLink/>
 
       <h4 className="llm-sub ft-handson"><Icon name="target" size={13}/>{say(t('Be the reviewer: score three answers', 'كن المراجع: قيّم ثلاث إجابات'))}</h4>
       <Evaluate/>

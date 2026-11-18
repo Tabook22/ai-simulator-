@@ -59,18 +59,6 @@ export const SCENARIOS = [
   },
 ];
 
-export const CHOICES = [
-  { name: t('Prompting', 'كتابة التعليمات (Prompting)'),
-    what: t('Tell the model what to do in the message itself.', 'تخبر النموذج بما تريد داخل الرسالة نفسها.'),
-    use: t('Try this first. It costs nothing and changes no weights.', 'جرّب هذا أولًا. لا يكلّف شيئًا ولا يغيّر أي وزن.') },
-  { name: t('Retrieval (RAG)', 'الاسترجاع (RAG)'),
-    what: t('Look up the right documents and paste them into the message.', 'تبحث عن المستندات المناسبة وتلصقها في الرسالة.'),
-    use: t('Best for facts that change often, such as prices or timetables.', 'الأفضل للحقائق التي تتغير كثيرًا، مثل الأسعار والجداول.') },
-  { name: t('Fine-tuning', 'الضبط الدقيق (Fine-tuning)'),
-    what: t('Train the model on examples so the behaviour is built into its weights.', 'تدرّب النموذج على أمثلة حتى يصبح السلوك مبنيًا في أوزانه.'),
-    use: t('Best for a style, a format, a skill, or a subject’s way of answering.', 'الأفضل لأسلوب أو صيغة أو مهارة أو طريقة مادة معيّنة في الإجابة.') },
-];
-
 export const UNSLOTH_STEPS = [
   {
     title: t('Install', 'التثبيت'),

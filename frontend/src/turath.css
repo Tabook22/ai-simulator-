@@ -214,3 +214,6 @@
 @media (prefers-reduced-motion: reduce) {
   .tj-scanbar, .tj-adapter, .tj-verdict-box.bad { animation: none !important; }
 }
+.tj-raglink { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; border-radius: 14px; border: 1px dashed #c084fc88; background: #c084fc0d; }
+.tj-raglink > svg { color: #d8b4fe; flex: none; }
+.tj-raglink p { flex: 1 1 320px; color: #dbe3f8; font-size: .92em; line-height: 1.6; }
