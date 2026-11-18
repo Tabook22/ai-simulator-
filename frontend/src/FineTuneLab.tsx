@@ -8,7 +8,8 @@ import { useI18n } from './i18n';
 import { AdapterScene, QuantScene, UnslothScene } from './FineTuneScenes';
 import { DocsScene, KitchenScene, TermsScene, TrainingStepScene } from './LessonScenes';
 import { FactsNotFiles, NeuronParameters, ParameterLadder } from './ParameterLesson';
-import { AnalogyTrio, BuildOrderPanel, DataSorter, DecisionHelper, PhotoQuantize, SplitPicture, StickyNotes, StorytellerScene, StrengthChart, TwoExamples } from './HybridLesson';
+import { AnalogyTrio, BuildOrderPanel, DataSorter, DecisionHelper, PhotoQuantize, SplitPicture, StickyNotes, StorytellerScene, StrengthChart } from './HybridLesson';
+import { JsonlBuilder, RagAppScene, SameStoryTwoUses, TrainJsonlFlow, VectorSearchMap } from './RagLesson';
 import {
   ApproachPicker, BatchCalculator, CompareCards, EXTRA_QUIZ, EvaluationPanel, FormatExplorer, FrozenCalculator, Glossary, InitDemo,
   JsonlChecker, KitchenTable, LearningRateDemo, LoraCalculator, MemoryTable, MythGame, OrderGame, OverfitChart, PrecisionFlow,
@@ -667,16 +668,16 @@ export function FineTuneLab() {
               'رتّب البطاقات الست، ثم أجب عن عبارات الصح والخطأ. أيها كنت تصدّقه قبل هذا الدرس؟'),
           }}><WorkflowList/><OrderGame/><EvaluationPanel/><MythGame/></Stage>
 
-        <Stage index={10} summary={tx('library + storyteller', 'مكتبة + راوٍ')} scene={<StorytellerScene/>}
+        <Stage index={10} summary={tx('library + storyteller', 'مكتبة + راوٍ')} scene={<><StorytellerScene/><RagAppScene/></>}
           flow={tx('now a real student project', 'والآن مشروع طلابي حقيقي')}
           notes={{
             what: tx('Fine-tuning and RAG do different jobs. RAG is the library: all the real stories, searched at answer time, with their sources. Fine-tuning is the lessons: a smaller set of examples that teach the model how to tell those stories, use the retrieved context, cite it, and admit when a story is missing.',
               'الضبط الدقيق و RAG يؤديان مهمتين مختلفتين. RAG هو المكتبة: كل القصص الحقيقية، يُبحث فيها وقت الإجابة، مع مصادرها. والضبط الدقيق هو الدروس: مجموعة أصغر من الأمثلة تعلّم النموذج كيف يروي تلك القصص، ويستخدم السياق المسترجَع، ويستشهد به، ويعترف حين تغيب قصة.'),
             why: tx('Fine-tuning alone sounds good but can invent details and gives no source. RAG alone is accurate but sounds generic. Together they are faithful and natural, which is what a heritage project needs.',
               'الضبط الدقيق وحده يبدو جيدًا لكنه قد يختلق تفاصيل ولا يعطي مصدرًا. و RAG وحده دقيق لكنه يبدو عامًّا. ومعًا يكونان أمينين وطبيعيين، وهذا ما يحتاجه مشروع تراثي.'),
-            tryIt: tx('Play the scene and compare steps 7, 8 and 9. Then sort the six data items into the library or the lessons, and switch the split to “same data in both” to see why it is a bad idea.',
-              'شغّل المشهد وقارن الخطوات 7 و 8 و 9. ثم صنّف عناصر البيانات الستة إلى المكتبة أو الدروس، وبدّل التقسيم إلى “البيانات نفسها في الاثنين” لترى لماذا هي فكرة سيئة.'),
-          }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><TwoExamples/><BuildOrderPanel/></Stage>
+            tryIt: tx('Play the first scene and compare steps 7, 8 and 9; then play the second to follow a question through the whole application. Write your own example in the JSONL builder, and ask the flying-camel question on the meaning map.',
+              'شغّل المشهد الأول وقارن الخطوات 7 و 8 و 9، ثم شغّل الثاني لتتبع سؤالًا عبر التطبيق كله. واكتب مثالك الخاص في منشئ JSONL، واسأل عن الجمل الطائر في خريطة المعاني.'),
+          }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><SameStoryTwoUses/><JsonlBuilder/><TrainJsonlFlow/><VectorSearchMap/><BuildOrderPanel/></Stage>
 
         <TurathCase index={11} total={STAGES.length}/>
 

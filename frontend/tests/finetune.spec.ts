@@ -350,7 +350,7 @@ test('explains fine-tuning versus RAG: the storyteller scene, the decision, the 
 
   await body.getByRole('button', { name: 'Same data in both' }).click();
   await expect(body.getByTestId('split-note')).toContainText('Avoid this');
-  await expect(body.locator('.hy-tune .lx-json')).toContainText('"system"');
+  await expect(body.locator('.rg-entry')).toContainText('DHF-2018-014');
 });
 
 test('shows the three analogies: extra lessons, sticky notes and a compressed photo', async ({ page }) => {
@@ -424,4 +424,43 @@ test('explains each key-word step as input, processing and output with one worke
   await detail.getByRole('button', { name: 'Step 5 output' }).click();
   await expect(detail.locator('.ts-card.process')).toContainText('squared error');
   await expect(scene.locator('.ls-value.hot')).toHaveText('2.4');
+});
+
+test('teaches RAG and JSONL in fine-tuning: one story two uses, the builder, the app flow and vector search', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  const hybrid = page.locator('#ft-hybrid');
+  const body = hybrid.locator('.llm-stage-body');
+
+  // The same story: highlighting shows what fine-tuning adds.
+  await body.getByRole('button', { name: 'what fine-tuning adds' }).click();
+  await expect(body.locator('.rg-same-grid')).toHaveClass(/mark-style/);
+  await expect(body.locator('.rg-same')).toContainText('the full original story lives in RAG');
+
+  // The builder turns the example into one valid JSONL line, in either style.
+  const builder = body.locator('.rg-builder');
+  await expect(builder.getByTestId('builder-check')).toContainText('A valid record with 2 turns.');
+  await expect(builder.locator('.lx-json')).toContainText('Context:');
+  await builder.getByRole('button', { name: 'Question → answer' }).click();
+  await expect(builder.locator('.lx-json')).not.toContainText('Context:');
+  await expect(builder.locator('.lx-warning')).toContainText('recall the story from memory');
+  await builder.getByRole('button', { name: 'Add to train.jsonl' }).click();
+  await builder.getByRole('button', { name: 'Add to train.jsonl' }).click();
+  await expect(builder.getByTestId('train-file').locator('li')).toHaveCount(2);
+
+  // The application flow, as a cartoon.
+  const app = hybrid.locator('#ft-scene-ragapp');
+  await app.getByRole('button', { name: /^3: Upload sources/ }).click();
+  await expect(app.locator('.rg-chunk')).toHaveCount(3);
+  await app.getByRole('button', { name: /^5: Search the vector database/ }).click();
+  await expect(app.locator('.rg-db .dot.hit')).toHaveCount(2);
+  await app.getByRole('button', { name: /^7: The answer/ }).click();
+  await expect(app.locator('.rg-answer-cite')).toContainText('Source: oral collection from Salalah');
+
+  // Vector search: near questions find chunks; the flying camel finds nothing.
+  const search = body.locator('.rg-search');
+  await expect(search.locator('.rg-results li.found')).toHaveCount(2);
+  await search.getByRole('button', { name: 'Tell me about the flying camel.' }).click();
+  await expect(search.locator('.rg-results li.found')).toHaveCount(0);
+  await expect(search.getByTestId('search-result')).toContainText('I don’t have a recorded source');
 });
