@@ -16,7 +16,7 @@ export const CHAPTERS: { key: string; icon: IconName; name: Text; stage: Text; p
   { key: 'methods', icon: 'layers', name: t('Methods', 'الطرق'), stage: t('LoRA · 4-bit · QLoRA', 'LoRA · 4 بت · QLoRA'), parts: [3, 4, 5, 6] },
   { key: 'training', icon: 'refresh', name: t('Training', 'التدريب'), stage: t('Unsloth · the loop', 'Unsloth · الحلقة'), parts: [7, 8] },
   { key: 'deploy', icon: 'target', name: t('Evaluate and deploy', 'التقييم والنشر'), stage: t('test · RAG', 'اختبار · RAG'), parts: [9, 10] },
-  { key: 'projects', icon: 'sparkle', name: t('Real projects', 'مشاريع حقيقية'), stage: t('TurathAI · vision · UTAS-70', 'تراث AI · الرؤية · UTAS-70'), parts: [11, 12, 13] },
+  { key: 'projects', icon: 'sparkle', name: t('Real projects', 'مشاريع حقيقية'), stage: t('TurathAI · vision · YOLO + RAG + fine-tuning', 'تراث AI · الرؤية · YOLO + RAG + ضبط دقيق'), parts: [11, 12, 13] },
 ];
 
 export const chapterOf = (part: number) => CHAPTERS.findIndex(chapter => chapter.parts.includes(part));
@@ -129,14 +129,14 @@ export const CARDS: Card[] = [
     ],
     mistake: t('“A confident prediction means a known plant.”', '“التنبؤ الواثق يعني نباتًا معروفًا.”'),
     fix: t('Softmax always picks a known class; test with out-of-scope photos.', 'softmax تختار دائمًا فئة معروفة؛ فاختبر بصور خارج النطاق.') },
-  { headline: t('photo → CNN → record → QLoRA model → sourced answer', 'صورة ← CNN ← سجل ← نموذج QLoRA ← إجابة بمصدرها'),
+  { headline: t('YOLO (eyes) → RAG archive (memory) → fine-tuned Qwen (brain)', 'YOLO (العينان) ← أرشيف RAG (الذاكرة) ← Qwen المضبوط (الدماغ)'),
     facts: [
-      t('Two tracks in parallel (text → LLM, images → CNN) that join at integration.', 'مساران بالتوازي (النص ← النموذج اللغوي، والصور ← CNN) يلتقيان عند الربط.'),
-      t('One key, the scientific name, joins the photo folder, the class label and the knowledge-base record.', 'مفتاح واحد، الاسم العلمي، يربط مجلد الصور وتسمية الفئة وسجل قاعدة المعرفة.'),
-      t('Compare base, fine-tuned, and fine-tuned + record on the same unseen questions.', 'قارن الأساسي والمضبوط والمضبوط + السجل على الأسئلة الجديدة نفسها.'),
+      t('YOLO names the plant; the name filters the archive search; the model writes from the passages.', 'يسمّي YOLO النبات، ويصفّي الاسمُ البحثَ في الأرشيف، ويكتب النموذج من المقاطع.'),
+      t('About 20% of the references teach the style (fine-tuning); the archive keeps 100% for the facts.', 'نحو 20٪ من المراجع تعلّم الأسلوب (ضبط دقيق)، والأرشيف يحفظ 100٪ للحقائق.'),
+      t('One key, the scientific name, is the YOLO class name and the species tag on every passage.', 'مفتاح واحد، الاسم العلمي، هو اسم فئة YOLO ووسم النوع على كل مقطع.'),
     ],
-    mistake: t('“Training on question → answer is enough.”', '“التدريب على سؤال ← إجابة يكفي.”'),
-    fix: t('Train in the shape you use: question + record → answer.', 'درّب بالشكل الذي تستخدمه: سؤال + سجل ← إجابة.') },
+    mistake: t('“Fine-tune on some references, put only the rest in RAG.”', '“اضبط على بعض المراجع، وضع الباقي فقط في RAG.”'),
+    fix: t('Keep every reference in the archive; fine-tuning teaches how to answer, not what.', 'احفظ كل المراجع في الأرشيف؛ فالضبط الدقيق يعلّم كيف تُجاب الأسئلة لا بماذا.') },
 ];
 
 export interface SearchItem { name: Text; part: number; tab: PartTab; selector?: string; kind: 'tool' | 'scene' }
@@ -192,11 +192,15 @@ export const TOOLS: SearchItem[] = [
   { kind: 'tool', part: 12, tab: 'try', selector: '.pc-split', name: t('Split by tree, not by photo (leakage)', 'التقسيم حسب الشجرة لا الصورة (التسرّب)') },
   { kind: 'tool', part: 12, tab: 'try', selector: '.pc-confusion', name: t('Confusion matrix, precision, recall, F1', 'مصفوفة الالتباس والضبط والاستدعاء و F1') },
   { kind: 'tool', part: 12, tab: 'try', selector: '.pc-threshold', name: t('Confidence threshold and unknown plants', 'عتبة الثقة والنباتات المجهولة') },
-  { kind: 'scene', part: 13, tab: 'watch', selector: '#ft-scene-utas', name: t('UTAS-70: from a plant photo to a sourced answer', 'UTAS-70: من صورة نبات إلى إجابة موثقة') },
+  { kind: 'scene', part: 13, tab: 'watch', selector: '#ft-scene-utas', name: t('UTAS-70: YOLO → RAG archive → fine-tuned Qwen', 'UTAS-70: YOLO ← أرشيف RAG ← Qwen المضبوط') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-system', name: t('Eyes, memory, brain: switch a part off', 'العينان والذاكرة والدماغ: أطفئ جزءًا') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-system', name: t('YOLO classify vs detect, training commands', 'تصنيف YOLO مقابل الكشف، وأوامر التدريب') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-refsplit', name: t('Share the references: 20% fine-tuning, all in RAG', 'توزيع المراجع: 20٪ للضبط الدقيق، والكل في RAG') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-archive-tool', name: t('Search the RAG digital archive with a name filter', 'البحث في الأرشيف الرقمي RAG بتصفية الاسم') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-brief', name: t('UTAS-70: problem, research questions, gap', 'UTAS-70: المشكلة وأسئلة البحث والفجوة') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-tracks', name: t('The twelve steps in two tracks', 'الخطوات الاثنتا عشرة في مسارين') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-layers', name: t('The four-layer architecture', 'البنية ذات الطبقات الأربع') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-jsonl', name: t('Species record → JSONL lines', 'سجل النوع ← أسطر JSONL') },
-  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-configs', name: t('Base vs fine-tuned vs fine-tuned + record', 'الأساسي مقابل المضبوط مقابل المضبوط + السجل') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-configs', name: t('Base vs fine-tuned vs fine-tuned + RAG', 'الأساسي مقابل المضبوط مقابل المضبوط + RAG') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-guide', name: t('A guide for your own project', 'دليل لمشروعك أنت') },
 ];

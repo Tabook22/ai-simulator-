@@ -585,26 +585,54 @@ test('fine-tunes a CNN: transfer learning scene, trained share, split, matrix an
   await expect(threshold.locator('.pc-pred.bad')).toHaveCount(0);
 });
 
-test('walks through the UTAS-70 project: flow, tracks, JSONL lines and the guide', async ({ page }) => {
+test('walks through the UTAS-70 project: YOLO, RAG archive, fine-tuning, tracks and the guide', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
 
   // The flow from a photo to a sourced answer.
   await part(page, 'utas', 'watch');
   const flow = page.locator('#ft-scene-utas');
-  await flow.locator('.ft-scene-dots button').nth(6).click();
-  await expect(flow.locator('.rg-answer-cite')).toContainText('Source A');
-  await flow.getByRole('button', { name: 'Knowledge base' }).first().click();
-  await expect(flow).toContainText('retrieval by name');
+  await flow.locator('.ft-scene-dots button').nth(3).click();
+  await expect(flow.locator('.pc-archive .tile.dim')).toHaveCount(3);
+  await flow.locator('.ft-scene-dots button').nth(7).click();
+  await expect(flow.locator('.rg-answer-cite')).toContainText('Source C');
+  await flow.getByRole('button', { name: 'Memory: RAG digital archive' }).first().click();
+  await expect(flow).toContainText('filter by name, then by meaning');
 
   await part(page, 'utas', 'try');
   const brief = page.locator('.pc-brief');
   await brief.getByRole('tab', { name: 'RQ2' }).click();
-  await expect(brief.getByTestId('rq-detail')).toContainText('transfer learning');
+  await expect(brief.getByTestId('rq-detail')).toContainText('YOLO');
+
+  // Eyes, memory, brain: switching a part off shows what it was for.
+  const system = page.locator('.pc-system');
+  await expect(system.getByTestId('system-checks').locator('.good')).toHaveCount(3);
+  await system.getByRole('button', { name: /Eyes · computer vision/ }).click();
+  await expect(system.getByTestId('part-detail')).toContainText('yolo detect train');
+  await system.locator('.pc-part.memory').getByRole('checkbox').uncheck();
+  await expect(system.getByTestId('system-checks').locator('.bad')).toHaveCount(1);
+  await expect(system.locator('.pc-reply')).toContainText('no source');
+
+  // Style from a slice of the references, facts from all of them.
+  const refs = page.locator('.pc-refsplit');
+  await expect(refs.getByTestId('split-stats')).toContainText('4 / 20');
+  await expect(refs.getByTestId('split-stats')).toContainText('20 / 20');
+  await refs.getByRole('checkbox').uncheck();
+  await expect(refs.getByTestId('split-stats')).toContainText('16 / 20');
+  await expect(refs.locator('.pc-split-stats .bad')).toContainText('4');
+
+  // The archive search: without the name filter another plant's passage can win.
+  const archive = page.locator('.pc-archive-tool');
+  await expect(archive.locator('.pc-hits li')).toHaveCount(2);
+  await archive.getByRole('checkbox').uncheck();
+  await expect(archive.locator('.pc-hits li.wrong')).toHaveCount(2);
+  await archive.getByRole('checkbox').check();
+  await archive.getByRole('button', { name: 'When does it flower?' }).click();
+  await expect(archive.getByTestId('archive-verdict')).toContainText('my sources do not say');
 
   // The tracks: steps open with their output and links to the parts that teach them.
   const tracks = page.locator('.pc-tracks');
-  await tracks.getByRole('button', { name: /Train and compare CNNs/ }).click();
+  await tracks.getByRole('button', { name: /Fine-tune YOLO/ }).click();
   await expect(tracks.getByTestId('step-detail')).toContainText('confidence threshold');
   await tracks.getByRole('checkbox').check();
   await expect(tracks.locator('.pc-step.is-critical')).toHaveCount(6);

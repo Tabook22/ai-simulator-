@@ -1,7 +1,7 @@
 /**
  * Parts 13 and 14 of the fine-tuning lab, built from the UTAS-70 student project (a Dhofar
  * native-plant assistant): fine-tuning a vision model with transfer learning, and the whole
- * project as a worked example that joins a CNN, a knowledge base and a QLoRA fine-tuned model.
+ * project as a worked example that joins YOLO (eyes), a RAG digital archive (memory) and a QLoRA fine-tuned model (brain).
  * Records and scores are illustrations for the lesson, not the project's results.
  */
 import { useMemo, useState } from 'react';
@@ -17,10 +17,10 @@ import { Txt } from './LessonScenes';
 import { JsonCode } from './FineTuneLessons';
 import { GPUS, MODEL_SIZES, budget } from './finetuneModel';
 import {
-  BACKBONES, CONFIGS, EVAL_QUESTION, GUIDE, IMAGENET_MEAN, IMAGENET_STD, LAYERS, MATRIX, MATRIX_SPECIES, PREDICTIONS,
-  PROCEDURE, PROJECT, QUESTIONS, RECORD, SCORE_NAMES, SPECIES, TRANSFER_STEPS, TWO_TUNINGS,
+  ANSWER_STYLE, BACKBONES, BRAINS, CONFIGS, EVAL_QUESTION, GUIDE, IMAGENET_MEAN, IMAGENET_STD, LAYERS, MATRIX, MATRIX_SPECIES, PREDICTIONS,
+  PROCEDURE, PROJECT, QUESTIONS, RECORD, REFERENCES, REFERENCE_KINDS, SCORE_NAMES, SPECIES, TOPICS, TRANSFER_STEPS, TWO_TUNINGS, searchArchive,
 } from './visionContent';
-import type { Track } from './visionContent';
+import type { PartKey, Topic, Track } from './visionContent';
 
 const cls = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ');
 const bySpecies = Object.fromEntries(SPECIES.map(species => [species.key, species]));
@@ -474,54 +474,58 @@ export function ThresholdTool() {
 
 const FLOW_STEPS = [
   { title: t('A photo and a question', 'صورة وسؤال'),
-    text: t('A hiker in Dhofar uploads a photo of a tree and asks: “What is this plant used for?” The interface sends both to the application layer.',
-      'يرفع متنزه في ظفار صورة شجرة ويسأل: “فيمَ يُستخدم هذا النبات؟” فترسل الواجهة الاثنين إلى طبقة التطبيق.') },
-  { title: t('The CNN classifier predicts', 'مصنِّف CNN يتنبأ'),
-    text: t('The fine-tuned CNN returns the top three species with their confidence: frankincense tree 89%, myrrh 7%, desert rose 2%.',
-      'تعيد شبكة CNN المضبوطة أعلى ثلاثة أنواع مع ثقتها: شجرة اللبان 89٪، والمُرّ 7٪، ووردة الصحراء 2٪.') },
+    text: t('A hiker in Dhofar uploads a photo of a tree and asks: “What is this plant used for?” The application sends the photo to the eyes and keeps the question for later.',
+      'يرفع متنزه في ظفار صورة شجرة ويسأل: “فيمَ يُستخدم هذا النبات؟” فيرسل التطبيق الصورة إلى العينين ويحتفظ بالسؤال لما بعد.') },
+  { title: t('Eyes: YOLO finds and names the plant', 'العينان: YOLO يجد النبات ويسمّيه'),
+    text: t('The fine-tuned YOLO model draws a box around the plant and returns its species with a confidence: frankincense tree 89%, myrrh 7%, desert rose 2%.',
+      'يرسم نموذج YOLO المضبوط مربعًا حول النبات ويعيد نوعه مع درجة الثقة: شجرة اللبان 89٪، والمُرّ 7٪، ووردة الصحراء 2٪.') },
   { title: t('Is the confidence high enough?', 'هل الثقة كافية؟'),
     text: t('89% is above the 70% threshold, so the system continues. Below it, the honest reply would be: “I could not recognize this plant. Please send a clearer photo.”',
       '89٪ أعلى من عتبة 70٪، فيتابع النظام. ولو كانت دونها لكان الرد الأمين: “لم أتعرف على هذا النبات. أرسل صورة أوضح من فضلك.”') },
-  { title: t('The species name finds its record', 'اسم النوع يجد سجله'),
-    text: t('The label “Boswellia sacra” is also the key of the knowledge base, so it finds the frankincense record directly: family, names, description, habitat, uses, each with its source and page.',
-      'التسمية “Boswellia sacra” هي أيضًا مفتاح قاعدة المعرفة، فتجد سجل اللبان مباشرة: الفصيلة والأسماء والوصف والموطن والاستخدامات، وكلٌّ مع مصدره وصفحته.') },
+  { title: t('Memory: the name goes to the RAG archive', 'الذاكرة: الاسم يذهب إلى أرشيف RAG'),
+    text: t('“Boswellia sacra” is the species tag on every passage in the digital archive. The search first filters by that tag, so passages about other plants cannot take part.',
+      '“Boswellia sacra” هو وسم النوع على كل مقطع في الأرشيف الرقمي. فيصفّي البحث أولًا بهذا الوسم، فلا تشارك مقاطع النباتات الأخرى.') },
+  { title: t('The archive returns the best passages', 'الأرشيف يعيد أفضل المقاطع'),
+    text: t('Among this plant’s passages, the ones closest in meaning to the question win: one from a flora book, one from field notes, each with its source and page.',
+      'من بين مقاطع هذا النبات، تفوز الأقرب معنًى إلى السؤال: واحد من كتاب نباتات، وآخر من ملاحظات ميدانية، كلٌّ مع مصدره وصفحته.') },
   { title: t('The prompt is built', 'يُبنى التلقين'),
-    text: t('The application puts together the record, the user’s question and the answer rules: answer only from the record, say when something is not in the sources, reply in the user’s language, add the safety notice.',
-      'يجمع التطبيق السجل وسؤال المستخدم وقواعد الإجابة: أجب من السجل فقط، وقل حين لا يوجد شيء في المصادر، وأجب بلغة المستخدم، وأضف تنبيه السلامة.') },
-  { title: t('The fine-tuned model writes the answer', 'النموذج المضبوط يكتب الإجابة'),
-    text: t('Qwen3.8-27B, stored in 4-bit with its UTAS-70 LoRA adapter, reads the prompt and writes the answer in the style it learned from the JSONL examples.',
-      'يقرأ Qwen3.8-27B، المخزَّن بدقة 4 بت مع مهايئ UTAS-70 من نوع LoRA، التلقينَ ويكتب الإجابة بالأسلوب الذي تعلّمه من أمثلة JSONL.') },
-  { title: t('The answer, its source, and memory', 'الإجابة ومصدرها والذاكرة'),
-    text: t('The interface shows the species, the answer, its source and the “education only” notice. The species is remembered, so a follow-up such as “When does it flower?” refers to the same tree; if the record has no season, the model says so.',
-      'تعرض الواجهة النوع والإجابة ومصدرها وتنبيه “للتعليم فقط”. ويُتذكَّر النوع، فيشير سؤال متابعة مثل “متى يُزهر؟” إلى الشجرة نفسها؛ وإذا خلا السجل من الموسم قال النموذج ذلك.') },
+    text: t('The application puts together the passages, the question and the answer rules: answer only from the passages, say when something is not in them, reply in the user’s language, add the safety notice.',
+      'يجمع التطبيق المقاطع والسؤال وقواعد الإجابة: أجب من المقاطع فقط، وقل حين لا يوجد شيء فيها، وأجب بلغة المستخدم، وأضف تنبيه السلامة.') },
+  { title: t('Brain: the fine-tuned model writes', 'الدماغ: النموذج المضبوط يكتب'),
+    text: t('Qwen3.8-27B in 4-bit with its UTAS-70 LoRA adapter reads the prompt. Fine-tuning taught it the style: names first, then what the plant looks like, where it grows, its uses, cautions and sources.',
+      'يقرأ Qwen3.8-27B بدقة 4 بت مع مهايئ UTAS-70 من نوع LoRA التلقينَ. وقد علّمه الضبط الدقيق الأسلوب: الأسماء أولًا، ثم شكل النبات وموطنه واستخداماته والتحذيرات والمصادر.') },
+  { title: t('A sourced answer', 'إجابة موثقة المصدر'),
+    text: t('The interface shows the species, the answer, its sources and the “education only” notice. The facts came from the archive, the way of saying them from fine-tuning. A follow-up such as “When does it flower?” searches the archive again for the same plant.',
+      'تعرض الواجهة النوع والإجابة ومصادرها وتنبيه “للتعليم فقط”. جاءت الحقائق من الأرشيف، وطريقة قولها من الضبط الدقيق. وسؤال متابعة مثل “متى يُزهر؟” يبحث في الأرشيف من جديد عن النبات نفسه.') },
 ];
 
 const FLOW_FIGURES: Figure[] = [
-  { id: 'cnn', title: t('CNN classifier', 'مصنِّف CNN'), areas: [[170, 44, 120, 60]],
-    what: t('The vision model from part 13: a fine-tuned MobileNetV2, EfficientNet-B0 or ResNet50, whichever won the comparison.', 'نموذج الرؤية من الجزء 13: MobileNetV2 أو EfficientNet-B0 أو ResNet50 المضبوط، أيها فاز في المقارنة.'),
-    why: t('It turns a photo into a species name, which is the key to everything else.', 'يحوّل الصورة إلى اسم نوع، وهو مفتاح كل ما بعده.') },
+  { id: 'yolo', title: t('Eyes: YOLO', 'العينان: YOLO'), areas: [[170, 44, 120, 60]],
+    what: t('A YOLO model fine-tuned on labelled photos of the selected species, starting from pretrained weights.', 'نموذج YOLO مضبوط على صور موسومة للأنواع المختارة، بدءًا من أوزان مدرَّبة مسبقًا.'),
+    why: t('It turns a photo into a species name, and the name is the key to the archive.', 'يحوّل الصورة إلى اسم نوع، والاسم هو مفتاح الأرشيف.') },
   { id: 'gate', title: t('Confidence threshold', 'عتبة الثقة'), areas: [[330, 44, 80, 60]],
-    what: t('A check: is the best guess’s probability at least the threshold chosen on validation data?', 'فحص: هل احتمال أفضل تخمين لا يقل عن العتبة المختارة على بيانات التحقق؟'),
-    why: t('It stops the chatbot from talking confidently about the wrong plant.', 'يمنع روبوت المحادثة من الحديث بثقة عن النبات الخطأ.') },
-  { id: 'kb', title: t('Knowledge base', 'قاعدة المعرفة'), areas: [[630, 150, 100, 70]],
-    what: t('One JSON record per species, every fact with its source and page, written from the digitized books.', 'سجل JSON لكل نوع، وكل حقيقة مع مصدرها وصفحتها، مكتوب من الكتب المرقمنة.'),
-    why: t('Used twice: to write the training JSONL, and as context at answer time. That second use is retrieval by name, so the system is a fine-tuning + retrieval hybrid.', 'يُستخدم مرتين: لكتابة JSONL التدريب، وسياقًا وقت الإجابة. والاستخدام الثاني استرجاع بالاسم، فالنظام هجين من الضبط الدقيق والاسترجاع.') },
+    what: t('A check: is the best guess’s confidence at least the threshold chosen on validation data?', 'فحص: هل ثقة أفضل تخمين لا تقل عن العتبة المختارة على بيانات التحقق؟'),
+    why: t('It stops the assistant from talking confidently about the wrong plant.', 'يمنع المساعد من الحديث بثقة عن النبات الخطأ.') },
+  { id: 'archive', title: t('Memory: RAG digital archive', 'الذاكرة: أرشيف رقمي RAG'), areas: [[610, 120, 140, 100]],
+    what: t('All the references as passages tagged with species, place, topic, source and page, in a vector index.', 'كل المراجع مقاطعَ موسومة بالنوع والمكان والموضوع والمصدر والصفحة، في فهرس متجهات.'),
+    why: t('Facts live here, not in the model: each can be cited, corrected or added without retraining. Search = filter by name, then by meaning.', 'الحقائق هنا لا في النموذج: يمكن الاستشهاد بكلٍّ منها أو تصحيحه أو إضافته دون إعادة تدريب. والبحث = تصفية بالاسم ثم بالمعنى.') },
   { id: 'prompt', title: t('Prompt builder', 'باني التلقين'), areas: [[330, 236, 190, 96]],
-    what: t('Joins the record, the question and fixed answer rules into one prompt.', 'يجمع السجل والسؤال وقواعد إجابة ثابتة في تلقين واحد.'),
+    what: t('Joins the passages, the question and fixed answer rules into one prompt.', 'يجمع المقاطع والسؤال وقواعد إجابة ثابتة في تلقين واحد.'),
     why: t('The model can only be faithful to what it is given; the rules make “not in the sources” an allowed answer.', 'لا يستطيع النموذج أن يكون أمينًا إلا لما يُعطى له، والقواعد تجعل “غير موجود في المصادر” إجابة مسموحة.') },
-  { id: 'llm', title: t('Fine-tuned UTAS-70 model', 'نموذج UTAS-70 المضبوط'), areas: [[170, 236, 110, 96]],
-    what: t('Qwen3.8-27B in 4-bit (frozen) with the UTAS-70 LoRA adapter, trained with QLoRA in Unsloth.', 'Qwen3.8-27B بدقة 4 بت (مجمَّد) مع مهايئ UTAS-70 من نوع LoRA، مدرَّب بـ QLoRA في Unsloth.'),
-    why: t('Fine-tuning gives the bilingual, botanical way of answering; the record gives the facts.', 'الضبط الدقيق يعطي طريقة الإجابة النباتية ثنائية اللغة، والسجل يعطي الحقائق.') },
+  { id: 'llm', title: t('Brain: fine-tuned Qwen', 'الدماغ: Qwen المضبوط'), areas: [[170, 236, 110, 96]],
+    what: t('Qwen3.8-27B in 4-bit (frozen) with the UTAS-70 LoRA adapter, trained with QLoRA in Unsloth on examples from about 20% of the references.', 'Qwen3.8-27B بدقة 4 بت (مجمَّد) مع مهايئ UTAS-70 من نوع LoRA، مدرَّب بـ QLoRA في Unsloth على أمثلة من نحو 20٪ من المراجع.'),
+    why: t('Fine-tuning gives the way of answering: structure, bilingual botanical language, citing, refusing to guess.', 'الضبط الدقيق يعطي طريقة الإجابة: البنية واللغة النباتية ثنائية اللغة والاستشهاد ورفض التخمين.') },
 ];
 
 const P_PHOTO = 'M 134 74 L 170 74';
 const P_CNN = 'M 290 74 L 330 74';
 const P_GATE = 'M 410 74 L 446 74';
-const P_KB = 'M 586 74 C 650 74 680 100 680 150';
+const P_KB = 'M 586 74 C 650 74 680 92 680 120';
 const P_RECORD = 'M 630 286 L 520 286';
 const P_QUESTION = 'M 80 172 C 90 350 280 360 330 312';
 const P_MODEL = 'M 330 286 L 282 286';
 const P_ANSWER = 'M 226 236 C 226 214 250 206 270 204';
+const TILES = ['boswellia', 'commiphora', 'boswellia', 'adenium', 'boswellia', 'commiphora'];
 
 export function PhotoToAnswerScene() {
   const say = useTx();
@@ -529,27 +533,34 @@ export function PhotoToAnswerScene() {
   const player = usePlayer(FLOW_STEPS.length);
   const { step } = player;
   const lit = (from: number, to = from) => step >= from && step <= to;
-  return <Scene id="ft-scene-utas" title={t('UTAS-70: from a plant photo to a sourced answer', 'UTAS-70: من صورة نبات إلى إجابة موثقة المصدر')}
+  const left = isArabic ? 548 : 172;
+  const anchor = isArabic ? 'end' : 'start';
+  return <Scene id="ft-scene-utas" title={t('UTAS-70: eyes, memory and brain', 'UTAS-70: العينان والذاكرة والدماغ')}
     steps={FLOW_STEPS} player={player} figures={FLOW_FIGURES}>
     <svg viewBox="0 0 760 380" className={`ft-svg pc-flow step-${step}`} role="img" aria-label={say(FLOW_STEPS[step].title)}>
       {/* user and photo */}
-      <g className={cls('pc-user', (step === 0 || step === 6) && 'active')}>
+      <g className={cls('pc-user', (step === 0 || step === 7) && 'active')}>
         <circle cx="34" cy="50" r="12"/><rect x="18" y="64" width="32" height="30" rx="12"/>
       </g>
       <rect className="pc-photo" x="64" y="40" width="68" height="68" rx="8"/>
       <g transform="translate(66 42) scale(.64)"><PlantArt kind="boswellia"/></g>
+      <g className={show(step >= 1)}>
+        <rect className="pc-bbox" x="72" y="48" width="52" height="56" rx="3"/>
+        <rect className="pc-bbox-tag" x="64" y="26" width="80" height="14" rx="3"/>
+        <text className="pc-bbox-text" x="104" y="36" textAnchor="middle" direction="ltr">B. sacra 0.89</text>
+      </g>
       <rect className="pc-bubble" x="12" y="124" width="134" height="44" rx="10"/>
       <Txt x={79} y={142} className="pc-bubble-text">{say(t('What is this plant', 'فيمَ يُستخدم'))}</Txt>
       <Txt x={79} y={157} className="pc-bubble-text">{say(t('used for?', 'هذا النبات؟'))}</Txt>
 
-      {/* classifier */}
+      {/* eyes: YOLO */}
       <path className={cls('rg-path', lit(0, 1) && 'on')} d={P_PHOTO}/>
       {step <= 1 && <rect className="ft-doc" x="-5" y="-6" width="10" height="12" rx="2" style={packet(P_PHOTO, 0, { animationDuration: '1.2s' })}/>}
       <g className={cls('pc-box', lit(1) && 'active')}>
         <rect x="170" y="44" width="120" height="60" rx="12"/>
-        {[0, 1, 2, 3].map(index => <rect key={index} className="pc-mini" x={184 + index * 14} y={58 + index * 3} width="10" height={32 - index * 6} rx="2"/>)}
-        <Txt x={258} y={70} className="pc-box-text">CNN</Txt>
-        <Txt x={258} y={86} className="ft-tiny">{say(t('classifier', 'مصنِّف'))}</Txt>
+        {[0, 1, 2].map(row => [0, 1, 2].map(col => <rect key={`${row}${col}`} className={cls('pc-mini', row === 1 && col === 1 && 'hit')} x={182 + col * 13} y={54 + row * 13} width="11" height="11" rx="2"/>))}
+        <Txt x={252} y={70} className="pc-box-text">YOLO</Txt>
+        <Txt x={252} y={86} className="ft-tiny">{say(t('eyes', 'العينان'))}</Txt>
       </g>
       <g className={show(step === 1)}>
         {[[t('frankincense', 'اللبان'), 0.89], [t('myrrh', 'المُرّ'), 0.07], [t('desert rose', 'وردة الصحراء'), 0.02]].map(([name, value], index) =>
@@ -575,7 +586,7 @@ export function PhotoToAnswerScene() {
         <Txt x={428} y={64} className="ft-tiny strong good">{say(t('yes', 'نعم'))}</Txt>
       </g>
 
-      {/* species card */}
+      {/* the species name */}
       <path className={cls('rg-path', lit(2, 3) && 'on')} d={P_GATE}/>
       <g className={cls('pc-species', show(step >= 2))}>
         <rect x="446" y="44" width="140" height="60" rx="10"/>
@@ -583,60 +594,231 @@ export function PhotoToAnswerScene() {
         <Txt x={516} y={88} className="ft-tiny strong">{say(t('frankincense tree · 89%', 'شجرة اللبان · 89٪'))}</Txt>
       </g>
 
-      {/* knowledge base and the record */}
+      {/* memory: the RAG digital archive */}
       <path className={cls('rg-path', show(step >= 3), step === 3 && 'on')} d={P_KB}/>
       {step === 3 && <circle className="ft-packet hot" r="5" style={packet(P_KB, 0, { animationDuration: '1.4s' })}/>}
-      <g className={cls('pc-kb', (step === 3) && 'active')}>
-        <path className="body" d="M 640 166 V 206 A 40 10 0 0 0 720 206 V 166"/>
-        <ellipse className="top" cx="680" cy="166" rx="40" ry="10"/>
-        {[180, 192].map(y => <path key={y} className="line" d={`M 652 ${y} H 708`}/>)}
-        <Txt x={680} y={234} className="ft-tiny strong">{say(t('knowledge base (JSON)', 'قاعدة المعرفة (JSON)'))}</Txt>
+      <g className={cls('pc-archive', lit(3, 4) && 'active')}>
+        <rect className="shell" x="610" y="120" width="140" height="100" rx="12"/>
+        <Txt x={680} y={136} className="ft-tiny strong">{say(t('RAG digital archive', 'الأرشيف الرقمي RAG'))}</Txt>
+        {TILES.map((species, index) => <rect key={index} className={cls('tile', step >= 3 && species !== 'boswellia' && 'dim')}
+          x={624 + (index % 3) * 40} y={146 + Math.floor(index / 3) * 30} width="32" height="24" rx="3"
+          style={{ fill: `${bySpecies[species].color}33`, stroke: bySpecies[species].color }}/>)}
+        <g className={show(step >= 3)}><text className="pc-filter" x="680" y="212" textAnchor="middle" direction="ltr">species = Boswellia sacra</text></g>
       </g>
-      <g className={cls('pc-record', show(step >= 3))}>
+      <g className={cls('pc-record', show(step >= 4))}>
         <rect x="560" y="244" width="190" height="96" rx="10"/>
-        <text x="572" y="262" className="pc-record-key">Boswellia sacra</text>
-        {[t('family: Burseraceae', 'الفصيلة: Burseraceae'), t('uses: resin, incense…', 'الاستخدامات: راتنج، بخور…'), t('season: — (not in sources)', 'الموسم: — (غير موجود)'), t('source: Source A, p. __', 'المصدر: المصدر A، ص __')].map((line, index) =>
-          <Txt key={line.en} x={isArabic ? 738 : 572} y={280 + index * 15} anchor={isArabic ? 'end' : 'start'} className={cls('pc-record-line', index === 3 && 'cite')}>{say(line)}</Txt>)}
+        <Txt x={isArabic ? 738 : 572} y={262} anchor={anchor} className="pc-record-key">{say(t('top passages', 'أفضل المقاطع'))}</Txt>
+        {[t('resin tapped, burned as incense', 'راتنج يُستخرج ويُحرق بخورًا'), t('Source C, p. __ · 0.79', 'المصدر C، ص __ · 0.79'),
+          t('bark cut, dried resin collected', 'يُجرح اللحاء ويُجمع الراتنج'), t('Field notes 3 · 0.71', 'ملاحظات ميدانية 3 · 0.71')].map((line, index) =>
+          <Txt key={line.en} x={isArabic ? 738 : 572} y={280 + index * 15} anchor={anchor} className={cls('pc-record-line', index % 2 === 1 && 'cite')}>{say(line)}</Txt>)}
       </g>
 
       {/* prompt builder and question */}
-      <path className={cls('rg-path', show(step >= 4), step === 4 && 'on')} d={P_RECORD}/>
-      <path className={cls('rg-path', show(step >= 4), step === 4 && 'on')} d={P_QUESTION}/>
-      {step === 4 && <>
+      <path className={cls('rg-path', show(step >= 5), step === 5 && 'on')} d={P_RECORD}/>
+      <path className={cls('rg-path', show(step >= 5), step === 5 && 'on')} d={P_QUESTION}/>
+      {step === 5 && <>
         <rect className="ft-doc" x="-5" y="-6" width="10" height="12" rx="2" style={packet(P_RECORD, 0, { animationDuration: '1.4s' })}/>
         <circle className="ft-packet" r="5" style={packet(P_QUESTION, 0, { animationDuration: '1.8s' })}/>
       </>}
-      <g className={cls('pc-box prompt', show(step >= 4), step === 4 && 'active')}>
+      <g className={cls('pc-box prompt', show(step >= 5), step === 5 && 'active')}>
         <rect x="330" y="236" width="190" height="96" rx="12"/>
         <Txt x={425} y={256} className="pc-box-text">{say(t('prompt', 'التلقين'))}</Txt>
-        {[t('+ the species record', '+ سجل النوع'), t('+ the question', '+ السؤال'), t('+ rules: only the record,', '+ القواعد: من السجل فقط،'), t('say “not in the sources”', 'وقل “غير موجود في المصادر”')].map((line, index) =>
+        {[t('+ 2 passages with sources', '+ مقطعان مع مصادرهما'), t('+ the question', '+ السؤال'), t('+ rules: only the passages,', '+ القواعد: من المقاطع فقط،'), t('say “not in the sources”', 'وقل “غير موجود في المصادر”')].map((line, index) =>
           <Txt key={line.en} x={425} y={276 + index * 14} className="ft-tiny">{say(line)}</Txt>)}
       </g>
 
-      {/* the fine-tuned model */}
-      <path className={cls('rg-path', show(step >= 5), step === 5 && 'on')} d={P_MODEL}/>
-      {step === 5 && <rect className="ft-doc" x="-5" y="-6" width="10" height="12" rx="2" style={packet(P_MODEL, 0, { animationDuration: '1s' })}/>}
-      <g className={cls('rg-robot', show(step >= 5), step >= 5 && 'active', step === 6 && 'speaking')}>
+      {/* brain: the fine-tuned model */}
+      <path className={cls('rg-path', show(step >= 6), step === 6 && 'on')} d={P_MODEL}/>
+      {step === 6 && <rect className="ft-doc" x="-5" y="-6" width="10" height="12" rx="2" style={packet(P_MODEL, 0, { animationDuration: '1s' })}/>}
+      <g className={cls('rg-robot', show(step >= 6), step >= 6 && 'active', step === 7 && 'speaking')}>
         <rect className="body" x="176" y="244" width="86" height="72" rx="16"/>
         <rect className="screen" x="188" y="256" width="62" height="34" rx="9"/>
         <path className="eye" d="M200 274 q 5 -6 10 0 M226 274 q 5 -6 10 0 M210 282 q 9 6 18 0"/>
         <Lock x={250} y={308} size={0.8}/>
         <rect className="adapter" x="266" y="256" width="12" height="44" rx="4"/>
       </g>
-      <g className={show(step >= 5)}><Txt x={226} y={336} className="ft-tiny strong">{say(t('Qwen 4-bit + LoRA', 'Qwen بدقة 4 بت + LoRA'))}</Txt></g>
+      <g className={show(step >= 6)}>
+        <Txt x={226} y={336} className="ft-tiny strong">{say(t('brain: Qwen 4-bit + LoRA', 'الدماغ: Qwen بدقة 4 بت + LoRA'))}</Txt>
+        <Txt x={226} y={350} className="ft-tiny">{say(t('style learned from fine-tuning', 'أسلوب تعلّمه من الضبط الدقيق'))}</Txt>
+      </g>
 
       {/* the answer */}
-      <path className={cls('rg-path answer', show(step === 6), step === 6 && 'on')} d={P_ANSWER}/>
-      <g className={show(step === 6)}>
+      <path className={cls('rg-path answer', show(step === 7), step === 7 && 'on')} d={P_ANSWER}/>
+      <g className={show(step === 7)}>
         <rect className="rg-answer" x="160" y="118" width="400" height="86" rx="12"/>
-        <Txt x={isArabic ? 548 : 172} y={138} anchor={isArabic ? 'end' : 'start'} className="rg-answer-text">{say(t('This is the frankincense tree (Boswellia sacra).', 'هذه شجرة اللبان (Boswellia sacra).'))}</Txt>
-        <Txt x={isArabic ? 548 : 172} y={154} anchor={isArabic ? 'end' : 'start'} className="rg-answer-text muted">{say(t('Its resin is burned as incense and used in', 'يُحرق راتنجها بخورًا ويُستخدم في'))}</Txt>
-        <Txt x={isArabic ? 548 : 172} y={168} anchor={isArabic ? 'end' : 'start'} className="rg-answer-text muted">{say(t('traditional practices.', 'الممارسات التقليدية.'))}</Txt>
-        <Txt x={isArabic ? 548 : 172} y={184} anchor={isArabic ? 'end' : 'start'} className="rg-answer-cite">{say(t('(Source A, p. __) · for education only, not medical advice', '(المصدر A، ص __) · للتعليم فقط، وليست نصيحة طبية'))}</Txt>
+        <Txt x={left} y={138} anchor={anchor} className="rg-answer-text">{say(t('Frankincense tree (Boswellia sacra).', 'شجرة اللبان (Boswellia sacra).'))}</Txt>
+        <Txt x={left} y={154} anchor={anchor} className="rg-answer-text muted">{say(t('Its resin is tapped from the bark and burned as', 'يُستخرج راتنجها من اللحاء ويُحرق بخورًا،'))}</Txt>
+        <Txt x={left} y={168} anchor={anchor} className="rg-answer-text muted">{say(t('incense; it is also used in traditional practices.', 'ويُستخدم كذلك في الممارسات التقليدية.'))}</Txt>
+        <Txt x={left} y={186} anchor={anchor} className="rg-answer-cite">{say(t('(Source C, p. __; Field notes 3) · for education only', '(المصدر C، ص __؛ ملاحظات ميدانية 3) · للتعليم فقط'))}</Txt>
       </g>
       <Hotspots/>
     </svg>
   </Scene>;
+}
+
+// ------------------------------------------- the system: eyes, memory and brain
+
+const PART_ICON: Record<PartKey, IconName> = { eyes: 'grid', memory: 'library', brain: 'chip' };
+const PIPELINE = [t('scan / PDF', 'مسح / PDF'), t('OCR (ar + en)', 'OCR (عربي + إنجليزي)'), t('clean', 'تنظيف'), t('cut into passages', 'تقطيع إلى مقاطع'),
+  t('tag: species, place, topic, source, page', 'وسم: النوع والمكان والموضوع والمصدر والصفحة'), t('embed (multilingual)', 'متجهات (متعددة اللغات)'), t('index', 'فهرسة')];
+const YOLO_CODE = `# classify: one folder per species
+dhofar/train/boswellia_sacra/0001.jpg
+yolo classify train data=dhofar model=yolo11n-cls.pt imgsz=224 epochs=50
+
+# detect: one label line per plant (class x y w h, 0-1)
+0 0.51 0.47 0.62 0.80
+yolo detect train data=dhofar.yaml model=yolo11n.pt imgsz=640 epochs=100`;
+
+/** What the assistant replies when some of its three parts are switched off. */
+function systemReply(on: Record<PartKey, boolean>) {
+  if (!on.eyes) return { text: t('Which plant is it? Please type its name and I will look it up.', 'ما هذا النبات؟ اكتب اسمه من فضلك وسأبحث عنه.'), plant: false, sourced: false, style: on.brain };
+  if (!on.memory) return on.brain
+    ? { text: t('Frankincense tree (Boswellia sacra). Its resin is burned as incense and used in medicine and perfume, and camels graze its leaves.', 'شجرة اللبان (Boswellia sacra). يُحرق راتنجها بخورًا ويُستخدم في الطب والعطور، وترعى الإبل أوراقها.'), plant: true, sourced: false, style: true }
+    : { text: t('Boswellia is a genus of trees found in many dry countries. Its resin has many uses in different cultures.', 'البوسويليا جنس من الأشجار يوجد في بلدان جافة كثيرة. ولراتنجه استخدامات عديدة في ثقافات مختلفة.'), plant: true, sourced: false, style: false };
+  return on.brain
+    ? { text: t('Frankincense tree (Boswellia sacra). Its resin is tapped from the bark and burned as incense; it is also used in traditional practices. (Source C, p. __; Field notes 3) For education only.', 'شجرة اللبان (Boswellia sacra). يُستخرج راتنجها من اللحاء ويُحرق بخورًا، ويُستخدم كذلك في الممارسات التقليدية. (المصدر C، ص __؛ ملاحظات ميدانية 3) للتعليم فقط.'), plant: true, sourced: true, style: true }
+    : { text: t('The resin is tapped from the bark and burned as incense. Harvesters cut the bark and collect the dried resin some weeks later. It is also used in traditional practices.', 'The resin is tapped from the bark and burned as incense. Harvesters cut the bark and collect the dried resin some weeks later. (رد بالإنجليزية رغم أن السؤال بالعربية)'), plant: true, sourced: false, style: false };
+}
+
+/** The three parts side by side: open one to see how it is built, switch one off to see what breaks. */
+export function SystemDesign() {
+  const say = useTx();
+  const [open, setOpen] = useState<PartKey>('memory');
+  const [on, setOn] = useState<Record<PartKey, boolean>>({ eyes: true, memory: true, brain: true });
+  const chosen = BRAINS.find(item => item.key === open)!;
+  const reply = systemReply(on);
+  const checks: [Text, boolean][] = [[t('right plant', 'النبات الصحيح'), reply.plant], [t('every fact sourced', 'كل حقيقة موثقة'), reply.sourced], [t('house style', 'الأسلوب المعتمد'), reply.style]];
+  return <div className="pc-system">
+    <Heading icon="layers">{say(t('Three parts, one assistant', 'ثلاثة أجزاء ومساعد واحد'))}</Heading>
+    <p className="pc-lead">{say(t('Each part does one job and learns from different data. Vision recognises, the archive remembers, the fine-tuned model knows how to answer.',
+      'لكل جزء مهمة واحدة ويتعلم من بيانات مختلفة. الرؤية تتعرف، والأرشيف يتذكر، والنموذج المضبوط يعرف كيف يجيب.'))}</p>
+    <div className="pc-parts">
+      {BRAINS.map((part, index) => <div key={part.key} className={cls('pc-part', part.key, open === part.key && 'on', !on[part.key] && 'off')}>
+        {index > 0 && <span className="pc-arrow" aria-hidden="true">{say(t('→', '←'))}</span>}
+        <button type="button" onClick={() => setOpen(part.key)} aria-pressed={open === part.key}>
+          <Icon name={PART_ICON[part.key]} size={18}/><b>{say(part.name)}</b><code data-keep="">{part.tool}</code><span>{say(part.job)}</span>
+        </button>
+        <label className="pc-check"><input type="checkbox" checked={on[part.key]} onChange={event => setOn(current => ({ ...current, [part.key]: event.target.checked }))}/>{say(t('switched on', 'مُشغَّل'))}</label>
+      </div>)}
+    </div>
+    <div className="pc-part-detail" data-testid="part-detail">
+      <strong>{say(chosen.name)}</strong>
+      <p><b>{say(t('Built from', 'يُبنى من'))}</b> {say(chosen.learns)}</p>
+      <p><b>{say(t('In → out', 'يدخل ← يخرج'))}</b> {say(chosen.input)} {say(t('→', '←'))} {say(chosen.output)}</p>
+      <p><b>{say(t('How to test it', 'كيف تختبره'))}</b> {say(chosen.test)}</p>
+      {open === 'eyes' && <>
+        <p>{say(t('Classify when each photo shows one plant; detect when photos show several plants or a busy background (the box can be cropped and passed on). Both start from pretrained weights.',
+          'صنّف حين تُظهر كل صورة نباتًا واحدًا، واكشف حين تُظهر الصور عدة نباتات أو خلفية مزدحمة (ويمكن قص المربع وتمريره). وكلاهما يبدأ من أوزان مدرَّبة مسبقًا.'))}</p>
+        <pre className="pc-code" dir="ltr" data-keep="">{YOLO_CODE}</pre>
+        <PartLink part={12}/>
+      </>}
+      {open === 'memory' && <>
+        <div className="pc-pipeline">{PIPELINE.map(item => <span key={item.en}>{say(item)}</span>)}</div>
+        <p>{say(t('Use an embedding model that understands Arabic and English (for example BGE-M3) and a vector index such as FAISS or Chroma. Search in two steps: filter by the species name from YOLO, then rank by meaning.',
+          'استخدم نموذج متجهات يفهم العربية والإنجليزية (مثل BGE-M3) وفهرس متجهات مثل FAISS أو Chroma. وابحث على خطوتين: صفِّ باسم النوع القادم من YOLO، ثم رتّب بالمعنى.'))}</p>
+        <PartLink part={10}/>
+      </>}
+      {open === 'brain' && <>
+        <p>{say(t('The shape it learns to write, every time:', 'الشكل الذي يتعلم أن يكتبه في كل مرة:'))}</p>
+        <ol className="pc-style">{ANSWER_STYLE.map(item => <li key={item.en}>{say(item)}</li>)}</ol>
+        <PartLink part={7}/>
+      </>}
+    </div>
+    <div className="pc-reply">
+      <b>{say(t('The hiker asks, in Arabic: “What is this plant used for?”', 'يسأل المتنزه بالعربية: “فيمَ يُستخدم هذا النبات؟”'))}</b>
+      <p data-testid="system-answer">{say(reply.text)}</p>
+      <div className="pc-checks" data-testid="system-checks">{checks.map(([name, good]) => <span key={name.en} className={good ? 'good' : 'bad'}>{good ? '✓' : '✕'} {say(name)}</span>)}</div>
+      {(['eyes', 'memory', 'brain'] as PartKey[]).filter(key => !on[key]).map(key => <small key={key}><b>{say(t('Without', 'دون'))} {say(BRAINS.find(item => item.key === key)!.name)}:</b> {say(BRAINS.find(item => item.key === key)!.without)}</small>)}
+    </div>
+  </div>;
+}
+
+/** How to share the references between fine-tuning (style) and the RAG archive (facts). */
+export function ReferenceSplit() {
+  const say = useTx();
+  const [share, setShare] = useState(20);
+  const [keepAll, setKeepAll] = useState(true);
+  const total = REFERENCES.length;
+  const tuned = Math.round(total * share / 100);
+  const archived = keepAll ? total : total - tuned;
+  const onlyInWeights = keepAll ? 0 : tuned;
+  return <div className="pc-refsplit">
+    <Heading icon="sliders">{say(t('Share the references: style vs facts', 'وزّع المراجع: الأسلوب مقابل الحقائق'))}</Heading>
+    <label className="pc-slider">{say(t('References used to write fine-tuning examples', 'المراجع المستخدمة لكتابة أمثلة الضبط الدقيق'))} <b>{share}%</b>
+      <input type="range" min="10" max="50" step="5" value={share} onChange={event => setShare(Number(event.target.value))}/></label>
+    <label className="pc-check"><input type="checkbox" checked={keepAll} onChange={event => setKeepAll(event.target.checked)}/>{say(t('Keep every reference in the RAG archive too (recommended)', 'احفظ كل المراجع في أرشيف RAG أيضًا (موصى به)'))}</label>
+    <div className="pc-shelf">
+      {REFERENCES.map((kind, index) => {
+        const isTuned = index < tuned;
+        const inArchive = keepAll || !isTuned;
+        return <span key={index} className={cls('pc-ref', kind, isTuned && 'tuned', inArchive && 'archived')}
+          title={say(REFERENCE_KINDS.find(item => item.key === kind)!.name)}>
+          {isTuned && <i className="tag tune">FT</i>}{inArchive && <i className="tag rag">RAG</i>}
+        </span>;
+      })}
+    </div>
+    <div className="pc-legend">{REFERENCE_KINDS.map(kind => <span key={kind.key} className={kind.key}><i/>{say(kind.name)}</span>)}</div>
+    <div className="pc-split-stats" data-testid="split-stats">
+      <span><b>{tuned} / {total}</b>{say(t('teach the style (fine-tuning)', 'تعلّم الأسلوب (ضبط دقيق)'))}</span>
+      <span><b>{archived} / {total}</b>{say(t('give the facts (RAG archive)', 'تعطي الحقائق (أرشيف RAG)'))}</span>
+      <span className={onlyInWeights ? 'bad' : 'good'}><b>{onlyInWeights}</b>{say(t('facts only in the weights: no source, cannot be updated', 'حقائق في الأوزان فقط: دون مصدر ولا يمكن تحديثها'))}</span>
+    </div>
+    <p className={cls('pc-kind', (share > 30 || !keepAll) && 'missing')}>{say(!keepAll
+      ? t('Facts taken out of the archive now live only in the model’s weights. It may half-remember them, it cannot cite them, and correcting one means fine-tuning again.',
+        'الحقائق التي أُخرجت من الأرشيف تعيش الآن في أوزان النموذج فقط. قد يتذكرها نصف تذكر، ولا يستطيع الاستشهاد بها، وتصحيح إحداها يعني ضبطًا دقيقًا من جديد.')
+      : share > 30
+        ? t('More references do not teach more style. Past about a third, the model starts memorising facts instead, and the GPU time grows. Spend the effort on reviewing examples.',
+          'المزيد من المراجع لا يعلّم أسلوبًا أكثر. وبعد نحو الثلث يبدأ النموذج حفظ الحقائق بدلًا من ذلك، ويطول وقت GPU. فاصرف الجهد على مراجعة الأمثلة.')
+        : t('A good balance: a varied slice (books, papers, field notes, herbarium sheets) teaches the answer style; the archive holds everything, so every fact has a source.',
+          'توازن جيد: شريحة متنوعة (كتب وأبحاث وملاحظات ميدانية وعيّنات معشبة) تعلّم أسلوب الإجابة، والأرشيف يحفظ كل شيء، فلكل حقيقة مصدر.'))}</p>
+    <p className="pc-note"><Icon name="bulb" size={13}/>{say(t('Write some test questions from references that were not used for fine-tuning. If the system answers those well too, the facts are really coming from RAG, not from memory.',
+      'اكتب بعض أسئلة الاختبار من مراجع لم تُستخدم في الضبط الدقيق. فإن أجاب النظام عنها جيدًا أيضًا، فالحقائق تأتي حقًا من RAG لا من الذاكرة.'))}</p>
+  </div>;
+}
+
+/** Search the digital archive with the name from YOLO, with and without the name filter. */
+export function ArchiveSearch() {
+  const say = useTx();
+  const [species, setSpecies] = useState('boswellia');
+  const [topic, setTopic] = useState<Topic>('uses');
+  const [filter, setFilter] = useState(true);
+  const hits = useMemo(() => searchArchive(species, topic, filter), [species, topic, filter]);
+  const plant = bySpecies[species];
+  const wrong = hits.some(hit => hit.species !== species);
+  const first = hits[0];
+  return <div className="pc-archive-tool">
+    <Heading icon="search">{say(t('Search the digital archive', 'ابحث في الأرشيف الرقمي'))}</Heading>
+    <div className="pc-archive-controls">
+      <div className="ft-tabs" role="group" aria-label={say(t('Name from YOLO', 'الاسم من YOLO'))}>
+        <span className="pc-label">{say(t('Name from YOLO', 'الاسم من YOLO'))}</span>
+        {['boswellia', 'commiphora', 'adenium'].map(key => <button key={key} type="button" className={species === key ? 'current' : ''} aria-pressed={species === key}
+          onClick={() => setSpecies(key)}>{say(bySpecies[key].name)}</button>)}
+      </div>
+      <div className="ft-tabs" role="group" aria-label={say(t('Question', 'السؤال'))}>
+        <span className="pc-label">{say(t('Question', 'السؤال'))}</span>
+        {TOPICS.map(item => <button key={item.key} type="button" className={topic === item.key ? 'current' : ''} aria-pressed={topic === item.key}
+          onClick={() => setTopic(item.key)}>{say(item.question)}</button>)}
+      </div>
+      <label className="pc-check"><input type="checkbox" checked={filter} onChange={event => setFilter(event.target.checked)}/>{say(t('Filter by the species name first', 'صفِّ باسم النوع أولًا'))}</label>
+    </div>
+    <ol className="pc-hits">
+      {hits.map(hit => <li key={hit.id} className={hit.species !== species ? 'wrong' : ''}>
+        <span className="score" dir="ltr">{hit.similarity.toFixed(2)}</span>
+        <p>{say(hit.text)}</p>
+        <small><i>{bySpecies[hit.species].latin}</i> · {hit.source}</small>
+      </li>)}
+      {hits.length === 0 && <li className="empty">{say(t('No passage in the archive answers this for this plant.', 'لا يوجد مقطع في الأرشيف يجيب عن هذا لهذا النبات.'))}</li>}
+    </ol>
+    <p className={cls('pc-kind', (wrong || !hits.length) && 'missing')} data-testid="archive-verdict">{say(!hits.length
+      ? t('Nothing found, so the honest answer is “my sources do not say”. The fine-tuning examples taught the model to say exactly that.', 'لم يُعثر على شيء، فالإجابة الأمينة “مصادري لا تذكر ذلك”. وقد علّمت أمثلة الضبط الدقيق النموذجَ أن يقول ذلك بالضبط.')
+      : wrong
+        ? t('A passage about another plant made the top 3: it is close in meaning, but it is the wrong plant. Without the name filter the answer could mix two species.', 'دخل مقطع عن نبات آخر ضمن أفضل 3: قريب في المعنى لكنه نبات خاطئ. ودون تصفية الاسم قد تخلط الإجابة بين نوعين.')
+        : t(`Every passage is about the ${plant.name.en.toLowerCase()}. The model answers from these and cites them.`, `كل المقاطع عن ${plant.name.ar}. فيجيب النموذج منها ويستشهد بها.`))}</p>
+    {first && <div className="pc-meta"><b>{say(t('What one archived passage looks like', 'كيف يبدو مقطع واحد في الأرشيف'))}</b>
+      <JsonCode text={JSON.stringify({ id: first.id, species: bySpecies[first.species].latin, topic: first.topic, source: first.source, text: first.text.en })}/></div>}
+    <p className="pc-note"><Icon name="bulb" size={13}/>{say(t('The passages and similarity numbers are illustrations. In the real archive, the species tag comes from the same scientific name used as the YOLO class name.',
+      'المقاطع وأرقام التشابه للتوضيح. وفي الأرشيف الحقيقي يأتي وسم النوع من الاسم العلمي نفسه المستخدم اسمًا لفئة YOLO.'))}</p>
+  </div>;
 }
 
 const GAP_DIMENSIONS = [t('Images', 'الصور'), t('Chatbot', 'محادثة'), t('Fine-tuning', 'ضبط دقيق'), t('Local flora', 'نباتات محلية'), t('Arabic', 'العربية'), t('Knowledge base', 'قاعدة معرفة')];

@@ -17,8 +17,8 @@ import {
 } from './FineTuneLessons';
 import { TurathCase } from './TurathCase';
 import {
-  ArchitectureLayers, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
-  ProjectGuide, RecordToJsonl, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
+  ArchitectureLayers, ArchiveSearch, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
+  ProjectGuide, RecordToJsonl, ReferenceSplit, SystemDesign, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
 } from './PlantCase';
 import { QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
 import {
@@ -84,7 +84,7 @@ const STAGES: { key: string; icon: IconName; tone: string; label: Text; question
     question: { en: 'How is a vision model fine-tuned?', ar: 'كيف يُضبط نموذج رؤية ضبطًا دقيقًا؟' } },
   { key: 'utas', icon: 'sparkle', tone: '#86efac',
     label: { en: 'Real project: UTAS-70', ar: 'مشروع حقيقي: UTAS-70' },
-    question: { en: 'Photo → plant → answer: how do the parts join?', ar: 'صورة ← نبات ← إجابة: كيف تترابط الأجزاء؟' } },
+    question: { en: 'YOLO + RAG + fine-tuning: how do eyes, memory and brain join?', ar: 'YOLO + RAG + ضبط دقيق: كيف تترابط العينان والذاكرة والدماغ؟' } },
 ];
 
 const tone = (color: string) => ({ '--tone': color }) as CSSProperties;
@@ -665,16 +665,16 @@ export function FineTuneLab() {
         tryIt: tx('Play the scene and watch where the gradient stops in stages 1 and 2. Then find the share of numbers trained with MobileNetV2 and 6 species, switch the split to “by tree”, and raise the threshold until the unknown plant is refused.',
           'شغّل المشهد وراقب أين يتوقف التدرّج في المرحلتين 1 و 2. ثم اعرف نسبة الأرقام المدرَّبة مع MobileNetV2 و 6 أنواع، وبدّل التقسيم إلى “حسب الشجرة”، وارفع العتبة حتى يُرفض النبات المجهول.'),
       }}><TwoFineTunings/><BackboneCalculator/><PhotoPrep/><GroupSplit/><ConfusionMatrix/><ThresholdTool/></Stage>,
-    13: <Stage index={13} summary={tx('CNN + knowledge base + QLoRA', 'CNN + قاعدة معرفة + QLoRA')} scene={<PhotoToAnswerScene/>}
+    13: <Stage index={13} summary={tx('YOLO + RAG archive + QLoRA', 'YOLO + أرشيف RAG + QLoRA')} scene={<PhotoToAnswerScene/>}
       flow={tx('review everything on one sheet', 'راجع كل شيء في صفحة واحدة')}
       notes={{
-        what: tx('UTAS-70 is a final-year student project: a bilingual assistant for the native plants of Dhofar. A fine-tuned CNN names the plant in a photo, the name finds its source-linked record in a knowledge base, and a Qwen model fine-tuned with QLoRA answers questions from that record.',
-          'UTAS-70 مشروع تخرج طلابي: مساعد ثنائي اللغة لنباتات ظفار المحلية. تسمّي شبكة CNN مضبوطة النبات في الصورة، ويجد الاسم سجله المرتبط بالمصادر في قاعدة معرفة، ويجيب نموذج Qwen مضبوط بـ QLoRA عن الأسئلة من ذلك السجل.'),
+        what: tx('UTAS-70 is a final-year student project: a bilingual assistant for the native plants of Dhofar, built from three parts. The eyes: a fine-tuned YOLO model names the plant in a photo. The memory: a RAG digital archive holds all the references, and the name finds the right passages. The brain: Qwen3.8-27B, fine-tuned with QLoRA on examples from about 20% of the references, writes the answer in a botanist’s style.',
+          'UTAS-70 مشروع تخرج طلابي: مساعد ثنائي اللغة لنباتات ظفار المحلية، مبني من ثلاثة أجزاء. العينان: نموذج YOLO مضبوط يسمّي النبات في الصورة. والذاكرة: أرشيف رقمي RAG يحفظ كل المراجع، ويجد الاسمُ المقاطعَ الصحيحة. والدماغ: Qwen3.8-27B المضبوط بـ QLoRA على أمثلة من نحو 20٪ من المراجع، يكتب الإجابة بأسلوب عالم نبات.'),
         why: tx('It joins almost everything in this lab: data from books (part 3), QLoRA and Unsloth (parts 7–8), evaluation (part 10), retrieval (part 11) and vision fine-tuning (part 13). Use it as a template for planning your own project.',
           'إنه يجمع تقريبًا كل ما في هذا المختبر: بيانات من الكتب (الجزء 3)، و QLoRA و Unsloth (الجزآن 7–8)، والتقييم (الجزء 10)، والاسترجاع (الجزء 11)، وضبط نماذج الرؤية (الجزء 13). فاستخدمه قالبًا لتخطيط مشروعك أنت.'),
-        tryIt: tx('Follow the photo through the scene. Then open step 9 in the tracks, turn on the critical path, write a JSONL line for the empty “season” field, and tick the guide items your own plan already has.',
-          'تتبّع الصورة عبر المشهد. ثم افتح الخطوة 9 في المسارات، وشغّل المسار الحرج، واكتب سطر JSONL لحقل “الموسم” الفارغ، وضع علامة على بنود الدليل التي تتضمنها خطتك.'),
-      }}><ProjectBrief/><ProcedureTracks/><ArchitectureLayers/><RecordToJsonl/><ThreeConfigs/><ProjectGuide/></Stage>,
+        tryIt: tx('Follow the photo through the scene. Then switch off each of the three parts to see what breaks, untick “keep every reference in the archive”, and search the archive for the flowering season without the name filter.',
+          'تتبّع الصورة عبر المشهد. ثم أطفئ كل جزء من الأجزاء الثلاثة لترى ما الذي يتعطل، وألغِ “احفظ كل المراجع في الأرشيف”، وابحث في الأرشيف عن موسم الإزهار دون تصفية الاسم.'),
+      }}><ProjectBrief/><SystemDesign/><ReferenceSplit/><ArchiveSearch/><ProcedureTracks/><ArchitectureLayers/><RecordToJsonl/><ThreeConfigs/><ProjectGuide/></Stage>,
   };
 
   const nav = { tab, setTab, go: (index: number) => goTo(index), parts: STAGES };
