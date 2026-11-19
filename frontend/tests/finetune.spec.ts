@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 /** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
-const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'rag', 'turath', 'vision', 'utas'];
+const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'rag', 'recipe', 'turath', 'vision', 'utas'];
 const TABS = { watch: /^(Watch|شاهد)/, try: /^(Try|جرّب)/, remember: /^(Remember|تذكّر)/ };
 async function part(page: Page, key: string, tab: keyof typeof TABS = 'try', scene = 0) {
   const number = PARTS.indexOf(key) + 1;
@@ -19,7 +19,7 @@ test('trains a LoRA adapter beside frozen weights and shows rank matters', async
   // One part at a time: six chapters on the pipeline map, 14 parts and 2 review pages in the rail.
   await expect(page.locator('.llm-stage')).toHaveCount(1);
   await expect(page.locator('.ft-map-step')).toHaveCount(6);
-  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(17);
+  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(18);
   await part(page, 'lora');
 
   const lora = page.locator('#ft-lora .llm-stage-body');
@@ -234,7 +234,7 @@ test('teaches the key words: the loop scene, and the glossary in the reference s
   // The reference sheet: every part's summary card and the glossary on one page.
   await page.locator('.ft-rail').getByRole('button', { name: /Reference sheet/ }).click();
   const sheet = page.locator('.ft-reference');
-  await expect(sheet.locator('.ft-card')).toHaveCount(15);
+  await expect(sheet.locator('.ft-card')).toHaveCount(16);
   await sheet.getByRole('searchbox', { name: 'Search the glossary' }).fill('accumulation');
   await expect(sheet.locator('.ft-glossary > div')).toHaveCount(1);
   await sheet.getByTestId('card-step').getByRole('button', { name: 'Open the part' }).click();
@@ -753,4 +753,42 @@ test('teaches RAG in depth: indexing and answering scenes, chunking, vectors, se
   const doctor = page.locator('.rd-doctor');
   await doctor.getByRole('button', { name: /half right/ }).click();
   await expect(doctor.getByTestId('diagnosis')).toContainText('overlap');
+});
+
+test('shows the two projects as one recipe: lanes, model size, roadmap and jobs', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.removeItem('neuron-lab-project-roadmap'));
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+
+  await part(page, 'recipe', 'watch');
+  const scene = page.locator('#ft-scene-recipe');
+  await expect(scene.locator('.po-lane')).toHaveCount(2);
+  await scene.locator('.rd-dots button').nth(4).click();
+  await expect(scene.locator('.po-lane.turath .po-cell.vision')).toContainText('not needed');
+  await scene.locator('.rd-dots button').nth(6).click();
+  await expect(scene.locator('.po-lane.utas.run .po-packet')).toHaveCount(1);
+  await expect(scene.locator('.po-lane.turath.quiet')).toHaveCount(1);
+
+  await part(page, 'recipe', 'try');
+  await expect(page.locator('.po-card')).toHaveCount(2);
+  const model = page.locator('.po-model');
+  await expect(model.getByTestId('gpu-fits').locator('.fits')).toHaveCount(4);
+  await model.getByRole('button', { name: 'Qwen3.8 27B' }).click();
+  await expect(model.getByTestId('gpu-fits').locator('.no')).toHaveCount(1);
+
+  const roadmap = page.locator('.po-roadmap');
+  await expect(roadmap.locator('.po-steps li')).toHaveCount(8);
+  await roadmap.getByRole('checkbox').first().check();
+  await expect(roadmap.getByTestId('roadmap-count')).toHaveText('1 / 8');
+  await roadmap.getByRole('button', { name: 'TurathAI' }).click();
+  await expect(roadmap.locator('.po-steps li')).toHaveCount(7);
+
+  const who = page.locator('.po-who');
+  const first = who.locator('.po-items li').first();
+  await first.getByRole('button', { name: /YOLO/ }).click();
+  await expect(first).toHaveClass(/right/);
+  const second = who.locator('.po-items li').nth(1);
+  await second.getByRole('button', { name: /Fine-tuned/ }).click();
+  await expect(second).toHaveClass(/wrong/);
+  await expect(who.getByTestId('who-score')).toHaveText('1 / 8');
 });

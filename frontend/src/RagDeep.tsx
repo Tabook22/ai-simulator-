@@ -88,9 +88,9 @@ function TokenChips({ text, limit = 99 }: { text: string; limit?: number }) {
 
 // ------------------------------------------------------ the flow scene shell
 
-interface FlowStep { station: number; title: Text; text: Text; note?: Text }
+export interface FlowStep { station: number; title: Text; text: Text; note?: Text }
 
-function FlowScene({ id, title, tone, stations, steps, children }: {
+export function FlowScene({ id, title, tone, stations, steps, children }: {
   id: string; title: Text; tone: string; stations: { icon: IconName; name: Text }[]; steps: FlowStep[]; children: (step: number) => ReactNode;
 }) {
   const say = useTx();
@@ -720,7 +720,7 @@ export function RagInProjects() {
         'يتيح prev / next للتطبيق إضافة المشهد المجاور حين تستمر القصة، ويتيح story_id جلب القصة كاملة أصلًا، وتسمح المنطقة والمكان والسنة بالتصفية؛ ويبقى اسم الراوي في الأرشيف لا في الفهرس.')
       : t('species is the key shared with YOLO and is used as a filter; names lets an Arabic or English question find the same plant; topic, section and page make the citation; parent returns the whole species entry when needed.',
         'species هو المفتاح المشترك مع YOLO ويُستخدم للتصفية، وتتيح names لسؤال عربي أو إنجليزي أن يجد النبات نفسه، وتصنع topic و section و page الاستشهاد، ويعيد parent مدخل النوع كاملًا عند الحاجة.'))}</p>
-    <div className="pc-links"><span>{say(t('See the projects:', 'انظر المشروعين:'))}</span><PartLink part={12}/><PartLink part={14}/></div>
+    <div className="pc-links"><span>{say(t('See the projects:', 'انظر المشروعين:'))}</span><PartLink part={12}/><PartLink part={13}/><PartLink part={15}/></div>
   </div>;
 }
 

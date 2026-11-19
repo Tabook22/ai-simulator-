@@ -710,7 +710,7 @@ export function SystemDesign() {
         <p>{say(t('Classify when each photo shows one plant; detect when photos show several plants or a busy background (the box can be cropped and passed on). Both start from pretrained weights.',
           'صنّف حين تُظهر كل صورة نباتًا واحدًا، واكشف حين تُظهر الصور عدة نباتات أو خلفية مزدحمة (ويمكن قص المربع وتمريره). وكلاهما يبدأ من أوزان مدرَّبة مسبقًا.'))}</p>
         <pre className="pc-code" dir="ltr" data-keep="">{YOLO_CODE}</pre>
-        <PartLink part={13}/>
+        <PartLink part={14}/>
       </>}
       {open === 'memory' && <>
         <div className="pc-pipeline">{PIPELINE.map(item => <span key={item.en}>{say(item)}</span>)}</div>

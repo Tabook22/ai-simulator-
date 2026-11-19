@@ -9,7 +9,7 @@ import type { Text } from './finetuneContent';
 const t = (en: string, ar: string): Text => ({ en, ar });
 
 /** Lab parts, numbered as the student sees them (Part 1 is "Why fine-tune"). */
-export const PART = { why: 1, words: 2, data: 3, freeze: 4, lora: 5, quant: 6, qlora: 7, unsloth: 8, step: 9, workflow: 10, hybrid: 11, rag: 12, turath: 13, vision: 14, utas: 15 };
+export const PART = { why: 1, words: 2, data: 3, freeze: 4, lora: 5, quant: 6, qlora: 7, unsloth: 8, step: 9, workflow: 10, hybrid: 11, rag: 12, recipe: 13, turath: 14, vision: 15, utas: 16 };
 
 // ------------------------------------------------------------------ key words
 
