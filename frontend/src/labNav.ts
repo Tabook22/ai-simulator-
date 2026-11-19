@@ -192,6 +192,7 @@ export const TOOLS: SearchItem[] = [
   { kind: 'tool', part: 12, tab: 'try', selector: '.pc-split', name: t('Split by tree, not by photo (leakage)', 'التقسيم حسب الشجرة لا الصورة (التسرّب)') },
   { kind: 'tool', part: 12, tab: 'try', selector: '.pc-confusion', name: t('Confusion matrix, precision, recall, F1', 'مصفوفة الالتباس والضبط والاستدعاء و F1') },
   { kind: 'tool', part: 12, tab: 'try', selector: '.pc-threshold', name: t('Confidence threshold and unknown plants', 'عتبة الثقة والنباتات المجهولة') },
+  { kind: 'scene', part: 13, tab: 'watch', selector: '#ft-scene-relay', name: t('The relay: what YOLO is, why it matters, how RAG and the fine-tuned model finish the answer', 'التتابع: ما YOLO، ولماذا هو مهم، وكيف يكمل RAG والنموذج المضبوط الإجابة') },
   { kind: 'scene', part: 13, tab: 'watch', selector: '#ft-scene-utas', name: t('UTAS-70: YOLO → RAG archive → fine-tuned Qwen', 'UTAS-70: YOLO ← أرشيف RAG ← Qwen المضبوط') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-system', name: t('Eyes, memory, brain: switch a part off', 'العينان والذاكرة والدماغ: أطفئ جزءًا') },
   { kind: 'tool', part: 13, tab: 'try', selector: '.pc-system', name: t('YOLO classify vs detect, training commands', 'تصنيف YOLO مقابل الكشف، وأوامر التدريب') },

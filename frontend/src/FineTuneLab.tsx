@@ -16,6 +16,7 @@ import {
   QloraOrder, SettingsTable, TokenView, WorkflowList,
 } from './FineTuneLessons';
 import { TurathCase } from './TurathCase';
+import { RelayScene } from './RelayScene';
 import {
   ArchitectureLayers, ArchiveSearch, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
   ProjectGuide, RecordToJsonl, ReferenceSplit, SystemDesign, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
@@ -665,7 +666,8 @@ export function FineTuneLab() {
         tryIt: tx('Play the scene and watch where the gradient stops in stages 1 and 2. Then find the share of numbers trained with MobileNetV2 and 6 species, switch the split to “by tree”, and raise the threshold until the unknown plant is refused.',
           'شغّل المشهد وراقب أين يتوقف التدرّج في المرحلتين 1 و 2. ثم اعرف نسبة الأرقام المدرَّبة مع MobileNetV2 و 6 أنواع، وبدّل التقسيم إلى “حسب الشجرة”، وارفع العتبة حتى يُرفض النبات المجهول.'),
       }}><TwoFineTunings/><BackboneCalculator/><PhotoPrep/><GroupSplit/><ConfusionMatrix/><ThresholdTool/></Stage>,
-    13: <Stage index={13} summary={tx('YOLO + RAG archive + QLoRA', 'YOLO + أرشيف RAG + QLoRA')} scene={<PhotoToAnswerScene/>}
+    13: <Stage index={13} summary={tx('YOLO + RAG archive + QLoRA', 'YOLO + أرشيف RAG + QLoRA')} scene={[<RelayScene key="relay"/>, <PhotoToAnswerScene key="system"/>]}
+      sceneNames={[tx('The relay: YOLO → RAG → fine-tuned model', 'التتابع: YOLO ← RAG ← النموذج المضبوط'), tx('The whole system', 'النظام كاملًا')]}
       flow={tx('review everything on one sheet', 'راجع كل شيء في صفحة واحدة')}
       notes={{
         what: tx('UTAS-70 is a final-year student project: a bilingual assistant for the native plants of Dhofar, built from three parts. The eyes: a fine-tuned YOLO model names the plant in a photo. The memory: a RAG digital archive holds all the references, and the name finds the right passages. The brain: Qwen3.8-27B, fine-tuned with QLoRA on examples from about 20% of the references, writes the answer in a botanist’s style.',

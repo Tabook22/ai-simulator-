@@ -591,6 +591,22 @@ test('walks through the UTAS-70 project: YOLO, RAG archive, fine-tuning, tracks 
 
   // The flow from a photo to a sourced answer.
   await part(page, 'utas', 'watch');
+  // The relay: YOLO sees, RAG remembers, the fine-tuned model speaks.
+  const relay = page.locator('#ft-scene-relay');
+  await expect(relay.getByTestId('relay-definition')).toContainText('You Only Look Once');
+  await relay.locator('.pr-dots button').nth(3).click();
+  await expect(relay.locator('.pr-cand.final')).toHaveCount(1);
+  await expect(relay.locator('.pr-meter strong')).toHaveText('89%');
+  await relay.getByRole('button', { name: /RAG archive/ }).click();
+  await expect(relay.getByTestId('relay-definition')).toContainText('Retrieval-Augmented Generation');
+  await relay.locator('.pr-dots button').nth(7).click();
+  await expect(relay.locator('.pr-passage.out')).toHaveCount(5);
+  await expect(relay.locator('.pr-passage.top')).toHaveCount(2);
+  await relay.locator('.pr-dots button').nth(11).click();
+  await expect(relay.getByTestId('relay-answer')).toContainText('Field notes 3');
+  await expect(relay.locator('.pr-node.lit')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'The whole system' }).click();
   const flow = page.locator('#ft-scene-utas');
   await flow.locator('.ft-scene-dots button').nth(3).click();
   await expect(flow.locator('.pc-archive .tile.dim')).toHaveCount(3);
