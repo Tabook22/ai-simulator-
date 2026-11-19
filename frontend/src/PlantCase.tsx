@@ -710,13 +710,13 @@ export function SystemDesign() {
         <p>{say(t('Classify when each photo shows one plant; detect when photos show several plants or a busy background (the box can be cropped and passed on). Both start from pretrained weights.',
           'صنّف حين تُظهر كل صورة نباتًا واحدًا، واكشف حين تُظهر الصور عدة نباتات أو خلفية مزدحمة (ويمكن قص المربع وتمريره). وكلاهما يبدأ من أوزان مدرَّبة مسبقًا.'))}</p>
         <pre className="pc-code" dir="ltr" data-keep="">{YOLO_CODE}</pre>
-        <PartLink part={12}/>
+        <PartLink part={13}/>
       </>}
       {open === 'memory' && <>
         <div className="pc-pipeline">{PIPELINE.map(item => <span key={item.en}>{say(item)}</span>)}</div>
         <p>{say(t('Use an embedding model that understands Arabic and English (for example BGE-M3) and a vector index such as FAISS or Chroma. Search in two steps: filter by the species name from YOLO, then rank by meaning.',
           'استخدم نموذج متجهات يفهم العربية والإنجليزية (مثل BGE-M3) وفهرس متجهات مثل FAISS أو Chroma. وابحث على خطوتين: صفِّ باسم النوع القادم من YOLO، ثم رتّب بالمعنى.'))}</p>
-        <PartLink part={10}/>
+        <PartLink part={11}/>
       </>}
       {open === 'brain' && <>
         <p>{say(t('The shape it learns to write, every time:', 'الشكل الذي يتعلم أن يكتبه في كل مرة:'))}</p>

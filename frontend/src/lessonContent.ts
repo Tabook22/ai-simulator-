@@ -9,7 +9,7 @@ import type { Text } from './finetuneContent';
 const t = (en: string, ar: string): Text => ({ en, ar });
 
 /** Lab parts, numbered as the student sees them (Part 1 is "Why fine-tune"). */
-export const PART = { why: 1, words: 2, data: 3, freeze: 4, lora: 5, quant: 6, qlora: 7, unsloth: 8, step: 9, workflow: 10, hybrid: 11, turath: 12, vision: 13, utas: 14 };
+export const PART = { why: 1, words: 2, data: 3, freeze: 4, lora: 5, quant: 6, qlora: 7, unsloth: 8, step: 9, workflow: 10, hybrid: 11, rag: 12, turath: 13, vision: 14, utas: 15 };
 
 // ------------------------------------------------------------------ key words
 
@@ -107,6 +107,21 @@ export const GLOSSARY: Term[] = [
   { name: t('RAG', 'RAG'), part: PART.hybrid,
     plain: t('Retrieval-augmented generation: find relevant source passages at answer time and give them to the model as context. It changes no weights.',
       'التوليد المعزَّز بالاسترجاع: إيجاد مقاطع المصادر المناسبة وقت الإجابة وإعطاؤها للنموذج سياقًا. ولا يغيّر أي وزن.'), example: t('Used in TurathAI to cite the archive.', 'يُستخدم في تراث AI للاستشهاد بالأرشيف.') },
+  { name: t('Chunk and overlap', 'المقطع والتداخل'), part: PART.rag,
+    plain: t('A piece of a document, a few hundred tokens long, that is embedded and retrieved as one unit. Overlap repeats a little text between neighbours so an idea is not cut in half.',
+      'جزء من وثيقة طوله بضع مئات من الرموز، يُضمَّن ويُسترجع وحدةً واحدة. والتداخل يكرر قليلًا من النص بين الجيران حتى لا تُشطر فكرة.'), example: t('300 tokens per chunk, 45 tokens of overlap.', '300 رمز لكل مقطع، و 45 رمز تداخل.') },
+  { name: t('Embedding vector', 'متجه التضمين'), part: PART.rag,
+    plain: t('A list of hundreds of numbers that an embedding model computes for a text. Texts with similar meaning get vectors that point in similar directions.',
+      'قائمة من مئات الأرقام يحسبها نموذج تضمين لنص ما. والنصوص المتشابهة في المعنى تحصل على متجهات تشير في اتجاهات متقاربة.'), example: t('BGE-M3: 1,024 numbers per chunk.', 'BGE-M3: ‏1,024 رقمًا لكل مقطع.') },
+  { name: t('Vector database', 'قاعدة بيانات المتجهات'), part: PART.rag,
+    plain: t('Stores each chunk’s vector, text and metadata, with an index (such as HNSW) that finds the nearest vectors quickly.',
+      'تخزّن متجه كل مقطع ونصه وبياناته الوصفية، مع فهرس (مثل HNSW) يجد أقرب المتجهات بسرعة.'), example: t('Chroma, Qdrant, FAISS, pgvector.', 'Chroma و Qdrant و FAISS و pgvector.') },
+  { name: t('Cosine similarity', 'تشابه جيب التمام'), part: PART.rag,
+    plain: t('How closely two vectors point in the same direction, from −1 to 1. Used to rank chunks against the question.',
+      'مدى اتجاه متجهين في الاتجاه نفسه، من −1 إلى 1. ويُستخدم لترتيب المقاطع مقابل السؤال.'), example: t('“resin” vs “dried sap”: high; vs “camel”: low.', '“راتنج” مقابل “عصارة جافة”: مرتفع؛ ومقابل “جمل”: منخفض.') },
+  { name: t('Hybrid search and reranking', 'البحث الهجين وإعادة الترتيب'), part: PART.rag,
+    plain: t('Combining vector search (meaning) with keyword search such as BM25 (exact words), then letting a reranker read the question with each chunk to choose the best few.',
+      'الجمع بين البحث المتجهي (المعنى) والبحث بالكلمات مثل BM25 (الكلمات الدقيقة)، ثم ترك مُعيد الترتيب يقرأ السؤال مع كل مقطع ليختار الأفضل.'), example: t('“Al-Bar’ah” is found by keywords, not by meaning.', '“البرعة” يُعثر عليها بالكلمات لا بالمعنى.') },
   { name: t('Adapter', 'المهايئ'), part: PART.lora,
     plain: t('A small trainable part added to an existing model to adapt it. It cannot answer on its own: it needs its matching base model.',
       'جزء صغير قابل للتدريب يُضاف إلى نموذج موجود لتكييفه. ولا يجيب وحده: يحتاج إلى نموذجه الأساسي المطابق.'), example: t('A file of a few tens of MB.', 'ملف ببضع عشرات من الميغابايت.') },
@@ -453,4 +468,10 @@ export const EXTRA_QUIZ = [
   { ask: t('Photos of the same tree end up in both training and test. What happens?', 'انتهت صور الشجرة نفسها في التدريب والاختبار معًا. ماذا يحدث؟'),
     options: [t('The test score is too optimistic', 'تصبح درجة الاختبار متفائلة أكثر من اللازم'), t('Training becomes slower', 'يصبح التدريب أبطأ'), t('Nothing, more data is better', 'لا شيء، فالبيانات الأكثر أفضل')],
     right: 0, why: t('This is leakage: the test measures memory of near-identical photos. Split by tree or observation.', 'هذا تسرّب: يقيس الاختبار حفظ صور شبه متطابقة. فقسّم حسب الشجرة أو المشاهدة.') },
+  { ask: t('In RAG, what is actually compared when the system searches for passages?', 'في RAG، ما الذي يُقارن فعلًا حين يبحث النظام عن المقاطع؟'),
+    options: [t('The token IDs of the question and the chunks', 'أرقام رموز السؤال والمقاطع'), t('The embedding vectors of the question and the chunks', 'متجهات تضمين السؤال والمقاطع'), t('The file names of the documents', 'أسماء ملفات الوثائق')],
+    right: 1, why: t('Token IDs are only dictionary positions. The embedding model turns both into vectors, and similar meanings give close vectors.', 'أرقام الرموز مواقع في القاموس فقط. ويحوّل نموذج التضمين الاثنين إلى متجهات، والمعاني المتشابهة تعطي متجهات متقاربة.') },
+  { ask: t('The answer to a test question is split across two chunks. What is the best first fix?', 'إجابة سؤال اختبار مقسومة بين مقطعين. ما أفضل علاج أول؟'),
+    options: [t('Fine-tune the model again', 'أعد الضبط الدقيق للنموذج'), t('Chunk by section and add some overlap', 'قطّع حسب الأقسام وأضف تداخلًا'), t('Make every chunk one word', 'اجعل كل مقطع كلمة واحدة')],
+    right: 1, why: t('Respecting headings and repeating a little text keeps each idea in one chunk; retraining does not change how documents are sliced.', 'احترام العناوين وتكرار قليل من النص يُبقيان كل فكرة في مقطع واحد؛ وإعادة التدريب لا تغيّر طريقة تقطيع الوثائق.') },
 ];

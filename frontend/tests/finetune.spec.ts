@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 /** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
-const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'turath', 'vision', 'utas'];
+const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'rag', 'turath', 'vision', 'utas'];
 const TABS = { watch: /^(Watch|شاهد)/, try: /^(Try|جرّب)/, remember: /^(Remember|تذكّر)/ };
 async function part(page: Page, key: string, tab: keyof typeof TABS = 'try', scene = 0) {
   const number = PARTS.indexOf(key) + 1;
@@ -19,7 +19,7 @@ test('trains a LoRA adapter beside frozen weights and shows rank matters', async
   // One part at a time: six chapters on the pipeline map, 14 parts and 2 review pages in the rail.
   await expect(page.locator('.llm-stage')).toHaveCount(1);
   await expect(page.locator('.ft-map-step')).toHaveCount(6);
-  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(16);
+  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(17);
   await part(page, 'lora');
 
   const lora = page.locator('#ft-lora .llm-stage-body');
@@ -74,7 +74,7 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
   await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
   const quiz = page.locator('.ft-quiz');
   await quiz.getByRole('button', { name: 'They are frozen; only the small adapters change.' }).click();
-  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 12');
+  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 14');
 });
 
 test('shows the fine-tuning lab in Arabic', async ({ page }) => {
@@ -234,7 +234,7 @@ test('teaches the key words: the loop scene, and the glossary in the reference s
   // The reference sheet: every part's summary card and the glossary on one page.
   await page.locator('.ft-rail').getByRole('button', { name: /Reference sheet/ }).click();
   const sheet = page.locator('.ft-reference');
-  await expect(sheet.locator('.ft-card')).toHaveCount(14);
+  await expect(sheet.locator('.ft-card')).toHaveCount(15);
   await sheet.getByRole('searchbox', { name: 'Search the glossary' }).fill('accumulation');
   await expect(sheet.locator('.ft-glossary > div')).toHaveCount(1);
   await sheet.getByTestId('card-step').getByRole('button', { name: 'Open the part' }).click();
@@ -529,7 +529,7 @@ test('navigates the lab: tabs, remember cards, next part, search and remembered 
 
   // Search jumps straight to a tool inside a part.
   await page.keyboard.press('Control+k');
-  await page.getByRole('dialog').getByRole('textbox', { name: 'Search' }).fill('vector search');
+  await page.getByRole('dialog').getByRole('textbox', { name: 'Search' }).fill('meaning map');
   await page.keyboard.press('Enter');
   await expect(page.locator('#ft-hybrid-title')).toBeVisible();
   await expect(page.locator('.rg-search')).toBeVisible();
@@ -677,4 +677,80 @@ test('walks through the UTAS-70 project: YOLO, RAG archive, fine-tuning, tracks 
   // Arabic.
   await page.getByRole('button', { name: 'العربية' }).first().click();
   await expect(page.locator('#ft-utas-title')).toHaveText('مشروع حقيقي: UTAS-70');
+});
+
+test('teaches RAG in depth: indexing and answering scenes, chunking, vectors, search, citations', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+
+  // Indexing: eight stations from upload to a ready archive.
+  await part(page, 'rag', 'watch');
+  const index = page.locator('#ft-scene-index');
+  await expect(index.locator('.rd-stations li')).toHaveCount(8);
+  await index.locator('.rd-dots button').nth(3).click();
+  await expect(index.locator('.rd-chunkcard')).toHaveCount(4);
+  await index.locator('.rd-dots button').nth(4).click();
+  await expect(index.locator('.rd-token').first()).toBeVisible();
+  await index.locator('.rd-dots button').nth(6).click();
+  await expect(index.locator('.rd-hnsw')).toBeVisible();
+
+  // Answering: the filter removes other items, the reranker reorders, the answer cites.
+  await page.getByRole('button', { name: /2 · Answering/ }).click();
+  const query = page.locator('#ft-scene-query');
+  await query.locator('.rd-dots button').nth(3).click();
+  await expect(query.locator('.rd-pt.out')).toHaveCount(7);
+  await query.locator('.rd-dots button').nth(5).click();
+  await expect(query.locator('.rd-rung.cut')).toHaveCount(1);
+  await query.locator('.rd-dots button').nth(7).click();
+  await expect(query.locator('.rd-final')).toContainText('Source A');
+
+  await part(page, 'rag', 'try');
+  const intro = page.locator('.rd-intro');
+  await expect(intro.getByTestId('rag-exam')).toContainText('cited');
+  await intro.getByRole('button', { name: /Closed-book/ }).click();
+  await expect(intro.getByTestId('rag-exam')).toContainText('no source');
+
+  // Chunking: small fixed chunks split the answer; by section with a larger size keeps it whole.
+  const chunk = page.locator('.rd-chunk');
+  await expect(chunk.getByTestId('chunk-verdict')).toContainText('split across');
+  await chunk.getByRole('button', { name: /By section/ }).click();
+  await chunk.locator('input[type="range"]').first().fill('40');
+  await expect(chunk.getByTestId('chunk-size')).toHaveText('40');
+  await expect(chunk.getByTestId('chunk-verdict')).toContainText('holds the whole answer');
+  await expect(chunk.locator('.rd-ctx')).toBeVisible();
+
+  // Similar meanings, different words: the resin sentences are close, the camel is far.
+  const vectors = page.locator('.rd-vectors');
+  const sims = vectors.getByTestId('similarities').locator('.rd-sim b');
+  const second = Number(await sims.nth(1).textContent());
+  const camel = Number(await sims.nth(4).textContent());
+  expect(second).toBeGreaterThan(0.8);
+  expect(camel).toBeLessThan(0.5);
+
+  // Search: a rare name needs keyword search; an unknown topic returns nothing.
+  const search = page.locator('.rd-search');
+  await search.getByRole('button', { name: 'What is Al-Bar’ah?' }).click();
+  await expect(search.getByTestId('search-results').locator('li').first()).toContainText('coffee');
+  await search.getByRole('checkbox').check();
+  await expect(search.getByTestId('search-results').locator('li').first()).toContainText('Al-Bar’ah');
+  await search.getByRole('button', { name: 'How tall does a date palm grow?' }).click();
+  await search.locator('input[type="range"]').nth(1).fill('0.75');
+  await search.getByRole('checkbox').uncheck();
+  await expect(search.getByTestId('search-empty')).toBeVisible();
+
+  // Citations follow back to their chunk; an empty search gives an honest answer.
+  const cite = page.locator('.rd-cite');
+  await cite.locator('.rd-cite-chip').first().click();
+  await expect(cite.locator('.src.focus')).toContainText('Field notes 3');
+  await cite.getByRole('button', { name: 'When does it flower?' }).click();
+  await expect(cite.getByTestId('cited-answer')).toContainText('My sources do not say');
+
+  // Both projects, their metadata, and the doctor.
+  const projects = page.locator('.rd-projects');
+  await expect(projects.getByTestId('project-metadata')).toContainText('Boswellia sacra');
+  await projects.getByRole('button', { name: 'TurathAI', exact: true }).click();
+  await expect(projects.getByTestId('project-metadata')).toContainText('DHF-2018-014');
+  const doctor = page.locator('.rd-doctor');
+  await doctor.getByRole('button', { name: /half right/ }).click();
+  await expect(doctor.getByTestId('diagnosis')).toContainText('overlap');
 });

@@ -17,6 +17,7 @@ import {
 } from './FineTuneLessons';
 import { TurathCase } from './TurathCase';
 import { RelayScene } from './RelayScene';
+import { ChunkingLab, CitedAnswer, IndexScene, QueryScene, RagDoctor, RagInProjects, RagIntro, SearchLab, TokensToVectors } from './RagDeep';
 import {
   ArchitectureLayers, ArchiveSearch, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
   ProjectGuide, RecordToJsonl, ReferenceSplit, SystemDesign, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
@@ -77,6 +78,9 @@ const STAGES: { key: string; icon: IconName; tone: string; label: Text; question
   { key: 'hybrid', icon: 'search', tone: '#c084fc',
     label: { en: 'Fine-tuning, RAG, or both?', ar: 'ضبط دقيق أم RAG أم الاثنان؟' },
     question: { en: 'What goes in the library, and what in the lessons?', ar: 'ماذا يذهب إلى المكتبة، وماذا إلى الدروس؟' } },
+  { key: 'rag', icon: 'network', tone: '#60a5fa',
+    label: { en: 'RAG in depth', ar: 'RAG بالتفصيل' },
+    question: { en: 'How are documents stored, sliced and searched?', ar: 'كيف تُخزَّن الوثائق وتُقطَّع ويُبحث فيها؟' } },
   { key: 'turath', icon: 'book', tone: '#2dd4bf',
     label: { en: 'Real project: TurathAI', ar: 'مشروع حقيقي: تراث AI' },
     question: { en: 'How is a whole project planned?', ar: 'كيف يُخطَّط لمشروع كامل؟' } },
@@ -643,7 +647,7 @@ export function FineTuneLab() {
 
         <Stage index={10} summary={tx('library + storyteller', 'مكتبة + راوٍ')} scene={[<StorytellerScene key="story"/>, <RagAppScene key="app"/>]}
           sceneNames={[tx('The storyteller and the library', 'الراوي والمكتبة'), tx('The whole RAG application', 'تطبيق RAG كاملًا')]}
-          flow={tx('now a real student project', 'والآن مشروع طلابي حقيقي')}
+          flow={tx('now open the library: RAG in depth', 'والآن افتح المكتبة: RAG بالتفصيل')}
           notes={{
             what: tx('Fine-tuning and RAG do different jobs. RAG is the library: all the real stories, searched at answer time, with their sources. Fine-tuning is the lessons: a smaller set of examples that teach the model how to tell those stories, use the retrieved context, cite it, and admit when a story is missing.',
               'الضبط الدقيق و RAG يؤديان مهمتين مختلفتين. RAG هو المكتبة: كل القصص الحقيقية، يُبحث فيها وقت الإجابة، مع مصادرها. والضبط الدقيق هو الدروس: مجموعة أصغر من الأمثلة تعلّم النموذج كيف يروي تلك القصص، ويستخدم السياق المسترجَع، ويستشهد به، ويعترف حين تغيب قصة.'),
@@ -652,11 +656,24 @@ export function FineTuneLab() {
             tryIt: tx('Play the first scene and compare steps 7, 8 and 9; then play the second to follow a question through the whole application. Write your own example in the JSONL builder, and ask the flying-camel question on the meaning map.',
               'شغّل المشهد الأول وقارن الخطوات 7 و 8 و 9، ثم شغّل الثاني لتتبع سؤالًا عبر التطبيق كله. واكتب مثالك الخاص في منشئ JSONL، واسأل عن الجمل الطائر في خريطة المعاني.'),
           }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><SameStoryTwoUses/><JsonlBuilder/><TrainJsonlFlow/><VectorSearchMap/><BuildOrderPanel/></Stage>,
+
+        <Stage index={11} summary={tx('documents → chunks → vectors → answers', 'وثائق ← مقاطع ← متجهات ← إجابات')}
+          scene={[<IndexScene key="index"/>, <QueryScene key="query"/>]}
+          sceneNames={[tx('1 · Indexing: documents into the archive', '1 · الفهرسة: الوثائق إلى الأرشيف'), tx('2 · Answering: a question finds its sources', '2 · الإجابة: سؤال يجد مصادره')]}
+          flow={tx('now a real student project: TurathAI', 'والآن مشروع طلابي حقيقي: تراث AI')}
+          notes={{
+            what: tx('RAG (Retrieval-Augmented Generation) gives a language model an open book. Once, offline, every trusted document is extracted, cleaned, cut into chunks, turned into tokens and then into an embedding vector, and stored with its text and metadata in a vector database. Then, for every question, the question is embedded the same way, the nearest chunks are found, filtered, reranked and placed in the prompt with their sources, and the model answers from them and cites them.',
+              'يعطي RAG (التوليد المعزَّز بالاسترجاع) النموذجَ اللغوي كتابًا مفتوحًا. فمرة واحدة، دون اتصال، تُستخرج كل وثيقة موثوقة وتُنظَّف وتُقطَّع إلى مقاطع، وتتحول إلى رموز ثم إلى متجه تضمين، وتُخزَّن مع نصها وبياناتها الوصفية في قاعدة بيانات متجهات. ثم مع كل سؤال، يُضمَّن السؤال بالطريقة نفسها، ويُعثر على أقرب المقاطع وتُصفّى ويُعاد ترتيبها وتوضع في التلقين مع مصادرها، فيجيب النموذج منها ويستشهد بها.'),
+            why: tx('A model only knows its training data, can invent fluent answers, cannot show where a fact came from, and must be retrained to learn anything new. RAG fixes all four: your own documents, grounded answers, a source for every claim, and updates by re-indexing a document. Both student projects depend on it.',
+              'النموذج لا يعرف إلا بيانات تدريبه، وقد يختلق إجابات سلسة، ولا يستطيع أن يبيّن مصدر المعلومة، ويجب أن يُعاد تدريبه ليتعلم أي جديد. ويعالج RAG الأربعة: وثائقك أنت، وإجابات مؤسَّسة، ومصدر لكل معلومة، وتحديث بإعادة فهرسة وثيقة. وكلا المشروعين الطلابيين يعتمدان عليه.'),
+            tryIt: tx('Play both scenes. Then, in the chunking lab, find a size and strategy that keeps the test answer in one chunk; compare the similarity of the resin sentences; search “What is Al-Bar’ah?” with and without hybrid search; and click a citation to see its source.',
+              'شغّل المشهدين. ثم ابحث في مختبر التقطيع عن حجم وطريقة يُبقيان إجابة الاختبار في مقطع واحد، وقارن تشابه جمل الراتنج، وابحث عن “ما هي البرعة؟” مع البحث الهجين ودونه، وانقر استشهادًا لترى مصدره.'),
+          }}><RagIntro/><ChunkingLab/><TokensToVectors/><SearchLab/><CitedAnswer/><RagInProjects/><RagDoctor/></Stage>,
   ];
 
-  /** Parts 13 and 14, after the TurathAI case: built from the UTAS-70 student project. */
+  /** Parts 14 and 15, after the TurathAI case: built from the UTAS-70 student project. */
   const projects: Record<number, ReactNode> = {
-    12: <Stage index={12} summary={tx('frozen body + new head', 'جسم مجمَّد + رأس جديد')} scene={<TransferScene/>}
+    13: <Stage index={13} summary={tx('frozen body + new head', 'جسم مجمَّد + رأس جديد')} scene={<TransferScene/>}
       flow={tx('now join it to a language model: UTAS-70', 'والآن اربطه بنموذج لغوي: UTAS-70')}
       notes={{
         what: tx('Fine-tuning is not only for language models. A CNN trained on ImageNet already knows edges, textures and shapes. Freeze that body, replace its 1,000-class head with one output per species, train the head, then gently unfreeze the top blocks. This is called transfer learning.',
@@ -666,7 +683,7 @@ export function FineTuneLab() {
         tryIt: tx('Play the scene and watch where the gradient stops in stages 1 and 2. Then find the share of numbers trained with MobileNetV2 and 6 species, switch the split to “by tree”, and raise the threshold until the unknown plant is refused.',
           'شغّل المشهد وراقب أين يتوقف التدرّج في المرحلتين 1 و 2. ثم اعرف نسبة الأرقام المدرَّبة مع MobileNetV2 و 6 أنواع، وبدّل التقسيم إلى “حسب الشجرة”، وارفع العتبة حتى يُرفض النبات المجهول.'),
       }}><TwoFineTunings/><BackboneCalculator/><PhotoPrep/><GroupSplit/><ConfusionMatrix/><ThresholdTool/></Stage>,
-    13: <Stage index={13} summary={tx('YOLO + RAG archive + QLoRA', 'YOLO + أرشيف RAG + QLoRA')} scene={[<RelayScene key="relay"/>, <PhotoToAnswerScene key="system"/>]}
+    14: <Stage index={14} summary={tx('YOLO + RAG archive + QLoRA', 'YOLO + أرشيف RAG + QLoRA')} scene={[<RelayScene key="relay"/>, <PhotoToAnswerScene key="system"/>]}
       sceneNames={[tx('The relay: YOLO → RAG → fine-tuned model', 'التتابع: YOLO ← RAG ← النموذج المضبوط'), tx('The whole system', 'النظام كاملًا')]}
       flow={tx('review everything on one sheet', 'راجع كل شيء في صفحة واحدة')}
       notes={{
@@ -686,8 +703,8 @@ export function FineTuneLab() {
         <div className="ft-lab-title">
           <div className="eyebrow">{tx('Fine-tuning lab', 'مختبر الضبط الدقيق')}</div>
           <h2>{tx('Teach a ready-made model your own subject', 'علّم نموذجًا جاهزًا مادتك أنت')}</h2>
-          <p>{tx('Fourteen short parts in six chapters, in the order a real project follows: from the base model and its data, through LoRA, quantization, QLoRA and Unsloth, to training, evaluation and RAG, and then two real student projects, one of them with computer vision. Each part has an animation to watch, tools to try and a card to remember.',
-            'أربعة عشر جزءًا قصيرًا في ستة فصول، بالترتيب الذي يتبعه مشروع حقيقي: من النموذج الأساسي وبياناته، مرورًا بـ LoRA والتكميم و QLoRA و Unsloth، إلى التدريب والتقييم و RAG، ثم مشروعان طلابيان حقيقيان، أحدهما بالرؤية الحاسوبية. ولكل جزء مشهد للمشاهدة وأدوات للتجربة وبطاقة للتذكّر.')}</p>
+          <p>{tx('Fifteen short parts in six chapters, in the order a real project follows: from the base model and its data, through LoRA, quantization, QLoRA and Unsloth, to training, evaluation and RAG in depth, and then two real student projects, one of them with computer vision. Each part has an animation to watch, tools to try and a card to remember.',
+            'خمسة عشر جزءًا قصيرًا في ستة فصول، بالترتيب الذي يتبعه مشروع حقيقي: من النموذج الأساسي وبياناته، مرورًا بـ LoRA والتكميم و QLoRA و Unsloth، إلى التدريب والتقييم و RAG بالتفصيل، ثم مشروعان طلابيان حقيقيان، أحدهما بالرؤية الحاسوبية. ولكل جزء مشهد للمشاهدة وأدوات للتجربة وبطاقة للتذكّر.')}</p>
         </div>
         <LabHeaderActions onSearch={openSearch} onReference={() => goTo(REFERENCE)}/>
         <PipelineMap active={active} visited={progress.visited} onPick={index => goTo(index)}/>
@@ -697,7 +714,7 @@ export function FineTuneLab() {
         <ChapterRail parts={STAGES} active={active} visited={progress.visited} onPick={index => goTo(index)}/>
         <div className="llm-stages ft-stages" key={`${active}`}>
           {active < content.length && content[active]}
-          {active === 11 && <><TurathCase index={11} total={STAGES.length}/><PartFooter index={11} flow={tx('a second project: fine-tuning for images', 'مشروع ثانٍ: الضبط الدقيق للصور')}/></>}
+          {active === 12 && <><TurathCase index={12} total={STAGES.length}/><PartFooter index={12} flow={tx('a second project: fine-tuning for images', 'مشروع ثانٍ: الضبط الدقيق للصور')}/></>}
           {projects[active]}
           {active === REFERENCE && <ReferenceSheet/>}
           {active === QUIZ_VIEW && <Quiz/>}
