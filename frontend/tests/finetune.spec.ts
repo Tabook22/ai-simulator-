@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 /** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
-const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'turath'];
+const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'turath', 'vision', 'utas'];
 const TABS = { watch: /^(Watch|شاهد)/, try: /^(Try|جرّب)/, remember: /^(Remember|تذكّر)/ };
 async function part(page: Page, key: string, tab: keyof typeof TABS = 'try', scene = 0) {
   const number = PARTS.indexOf(key) + 1;
@@ -16,10 +16,10 @@ test('trains a LoRA adapter beside frozen weights and shows rank matters', async
   await page.goto('/');
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
   await expect(page.getByRole('heading', { name: 'Teach a ready-made model your own subject' })).toBeVisible();
-  // One part at a time: five chapters on the pipeline map, 12 parts and 2 review pages in the rail.
+  // One part at a time: six chapters on the pipeline map, 14 parts and 2 review pages in the rail.
   await expect(page.locator('.llm-stage')).toHaveCount(1);
-  await expect(page.locator('.ft-map-step')).toHaveCount(5);
-  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(14);
+  await expect(page.locator('.ft-map-step')).toHaveCount(6);
+  await expect(page.locator('.ft-rail .llm-rail-dot')).toHaveCount(16);
   await part(page, 'lora');
 
   const lora = page.locator('#ft-lora .llm-stage-body');
@@ -74,7 +74,7 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
   await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
   const quiz = page.locator('.ft-quiz');
   await quiz.getByRole('button', { name: 'They are frozen; only the small adapters change.' }).click();
-  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 10');
+  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 12');
 });
 
 test('shows the fine-tuning lab in Arabic', async ({ page }) => {
@@ -234,7 +234,7 @@ test('teaches the key words: the loop scene, and the glossary in the reference s
   // The reference sheet: every part's summary card and the glossary on one page.
   await page.locator('.ft-rail').getByRole('button', { name: /Reference sheet/ }).click();
   const sheet = page.locator('.ft-reference');
-  await expect(sheet.locator('.ft-card')).toHaveCount(12);
+  await expect(sheet.locator('.ft-card')).toHaveCount(14);
   await sheet.getByRole('searchbox', { name: 'Search the glossary' }).fill('accumulation');
   await expect(sheet.locator('.ft-glossary > div')).toHaveCount(1);
   await sheet.getByTestId('card-step').getByRole('button', { name: 'Open the part' }).click();
@@ -539,4 +539,98 @@ test('navigates the lab: tabs, remember cards, next part, search and remembered 
   await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
   await expect(page.locator('#ft-hybrid-title')).toBeVisible();
   await expect(page.locator('.ft-rail button.seen')).toHaveCount(4);
+});
+
+test('fine-tunes a CNN: transfer learning scene, trained share, split, matrix and threshold', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+
+  // The scene: the body is frozen, then only the head learns, then the top blocks join.
+  await part(page, 'vision', 'watch');
+  const scene = page.locator('#ft-scene-transfer');
+  await scene.locator('.ft-scene-dots button').nth(4).click();
+  await expect(scene.locator('.pc-block.frozen')).toHaveCount(5);
+  await expect(scene.locator('.pc-row')).toHaveCount(6);
+  await scene.locator('.ft-scene-dots button').nth(5).click();
+  await expect(scene.locator('.pc-block.frozen')).toHaveCount(3);
+  await expect(scene.locator('.pc-block.training')).toHaveCount(2);
+
+  await part(page, 'vision', 'try');
+  // MobileNetV2 with 6 species trains only its new head: 1,280 × 6 + 6 numbers.
+  const backbone = page.locator('.pc-backbone');
+  await expect(backbone.getByTestId('backbone-share')).toHaveText('7,686 (0.34%)');
+  await backbone.getByRole('button', { name: 'ResNet50' }).click();
+  await expect(backbone.getByTestId('backbone-share')).toHaveText('12,294 (0.05%)');
+
+  // A random split puts the same trees in training and test; a split by tree does not.
+  const split = page.locator('.pc-split');
+  await expect(split.locator('.pc-tree.leak')).toHaveCount(4);
+  await split.getByRole('button', { name: /By tree/ }).click();
+  await expect(split.locator('.pc-tree.leak')).toHaveCount(0);
+  await expect(split.getByTestId('split-verdict')).toContainText('No tree is in both');
+
+  // Precision and recall of one species, read from the confusion matrix.
+  const matrix = page.locator('.pc-confusion');
+  await expect(matrix.getByTestId('matrix-scores')).toContainText('81.5%');
+  await expect(matrix.getByTestId('matrix-scores')).toContainText('73.3%');
+  await matrix.locator('.pc-matrix .label').filter({ hasText: 'Baobab' }).first().click();
+  await expect(matrix.getByTestId('matrix-scores')).toContainText('96.6%');
+
+  // A higher threshold refuses the confident unknown plant, but also good photos.
+  const threshold = page.locator('.pc-threshold');
+  await expect(threshold.getByTestId('threshold-counts')).toContainText('2/3');
+  await threshold.locator('input[type="range"]').fill('0.85');
+  await expect(threshold.getByTestId('threshold-value')).toHaveText('85%');
+  await expect(threshold.getByTestId('threshold-counts')).toContainText('3/3');
+  await expect(threshold.locator('.pc-pred.bad')).toHaveCount(0);
+});
+
+test('walks through the UTAS-70 project: flow, tracks, JSONL lines and the guide', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+
+  // The flow from a photo to a sourced answer.
+  await part(page, 'utas', 'watch');
+  const flow = page.locator('#ft-scene-utas');
+  await flow.locator('.ft-scene-dots button').nth(6).click();
+  await expect(flow.locator('.rg-answer-cite')).toContainText('Source A');
+  await flow.getByRole('button', { name: 'Knowledge base' }).first().click();
+  await expect(flow).toContainText('retrieval by name');
+
+  await part(page, 'utas', 'try');
+  const brief = page.locator('.pc-brief');
+  await brief.getByRole('tab', { name: 'RQ2' }).click();
+  await expect(brief.getByTestId('rq-detail')).toContainText('transfer learning');
+
+  // The tracks: steps open with their output and links to the parts that teach them.
+  const tracks = page.locator('.pc-tracks');
+  await tracks.getByRole('button', { name: /Train and compare CNNs/ }).click();
+  await expect(tracks.getByTestId('step-detail')).toContainText('confidence threshold');
+  await tracks.getByRole('checkbox').check();
+  await expect(tracks.locator('.pc-step.is-critical')).toHaveCount(6);
+
+  // A record field becomes a JSONL line; the empty field teaches “not in the sources”.
+  const jsonl = page.locator('.pc-jsonl');
+  await expect(jsonl.locator('.lx-json')).toContainText('"context"');
+  await jsonl.getByRole('button', { name: /Season/ }).click();
+  await expect(jsonl.locator('.lx-json')).toContainText('do not give the flowering season');
+  await jsonl.getByRole('button', { name: /add to train.jsonl/ }).click();
+  await jsonl.getByRole('button', { name: 'العربية' }).click();
+  await expect(jsonl.locator('.lx-json')).toContainText('لا تذكر مصادري');
+  await jsonl.getByRole('button', { name: /add to train.jsonl/ }).click();
+  await expect(jsonl.getByTestId('utas-train').locator('li')).toHaveCount(2);
+
+  // Three systems on the same question, then the guide and its GPU check.
+  const configs = page.locator('.pc-configs');
+  await expect(configs.locator('.pc-config')).toHaveCount(2);
+  await configs.getByRole('button', { name: 'Ask the next system' }).click();
+  await expect(configs.locator('.pc-config')).toHaveCount(3);
+  const guide = page.locator('.pc-guide');
+  await guide.getByRole('checkbox').first().check();
+  await expect(guide.getByTestId('guide-count')).toHaveText('1 / 12');
+  await expect(guide.getByTestId('gpu-fit')).toContainText('16 GB ✕');
+
+  // Arabic.
+  await page.getByRole('button', { name: 'العربية' }).first().click();
+  await expect(page.locator('#ft-utas-title')).toHaveText('مشروع حقيقي: UTAS-70');
 });

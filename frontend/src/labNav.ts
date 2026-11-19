@@ -1,5 +1,5 @@
 /**
- * How the fine-tuning lab is organised: five chapters that follow the real fine-tuning
+ * How the fine-tuning lab is organised: six chapters that follow the real fine-tuning
  * pipeline, a one-screen summary card for every part (the reference sheet), and the
  * search index of tools and scenes.
  */
@@ -15,7 +15,8 @@ export const CHAPTERS: { key: string; icon: IconName; name: Text; stage: Text; p
   { key: 'data', icon: 'file', name: t('Data', 'البيانات'), stage: t('the examples', 'الأمثلة'), parts: [2] },
   { key: 'methods', icon: 'layers', name: t('Methods', 'الطرق'), stage: t('LoRA · 4-bit · QLoRA', 'LoRA · 4 بت · QLoRA'), parts: [3, 4, 5, 6] },
   { key: 'training', icon: 'refresh', name: t('Training', 'التدريب'), stage: t('Unsloth · the loop', 'Unsloth · الحلقة'), parts: [7, 8] },
-  { key: 'deploy', icon: 'target', name: t('Evaluate and deploy', 'التقييم والنشر'), stage: t('test · RAG · a real project', 'اختبار · RAG · مشروع حقيقي'), parts: [9, 10, 11] },
+  { key: 'deploy', icon: 'target', name: t('Evaluate and deploy', 'التقييم والنشر'), stage: t('test · RAG', 'اختبار · RAG'), parts: [9, 10] },
+  { key: 'projects', icon: 'sparkle', name: t('Real projects', 'مشاريع حقيقية'), stage: t('TurathAI · vision · UTAS-70', 'تراث AI · الرؤية · UTAS-70'), parts: [11, 12, 13] },
 ];
 
 export const chapterOf = (part: number) => CHAPTERS.findIndex(chapter => chapter.parts.includes(part));
@@ -120,6 +121,22 @@ export const CARDS: Card[] = [
     ],
     mistake: t('“The model should memorize every story.”', '“يجب أن يحفظ النموذج كل قصة.”'),
     fix: t('The archive stays in RAG; the model learns to tell and cite.', 'يبقى الأرشيف في RAG، ويتعلم النموذج الرواية والاستشهاد.') },
+  { headline: t('frozen CNN body + new head (1 output per species)', 'جسم CNN مجمَّد + رأس جديد (مخرج لكل نوع)'),
+    facts: [
+      t('Transfer learning: start from ImageNet weights, replace the head, train it; then unfreeze the top blocks at about 1/100 of the learning rate.', 'التعلم بالنقل: ابدأ من أوزان ImageNet، واستبدل الرأس ودرّبه، ثم فكّ تجميد الكتل العليا بنحو 1/100 من معدل التعلم.'),
+      t('224 × 224, ImageNet normalization; augment the training set only, after a split by tree or observation.', '224 × 224 مع توحيد ImageNet؛ ولا تُزاد إلا مجموعة التدريب، بعد تقسيم حسب الشجرة أو المشاهدة.'),
+      t('Report precision, recall, macro F1 and the confusion matrix; set the threshold on validation data.', 'أبلغ عن الضبط والاستدعاء و F1 الكلي ومصفوفة الالتباس، واختر العتبة على بيانات التحقق.'),
+    ],
+    mistake: t('“A confident prediction means a known plant.”', '“التنبؤ الواثق يعني نباتًا معروفًا.”'),
+    fix: t('Softmax always picks a known class; test with out-of-scope photos.', 'softmax تختار دائمًا فئة معروفة؛ فاختبر بصور خارج النطاق.') },
+  { headline: t('photo → CNN → record → QLoRA model → sourced answer', 'صورة ← CNN ← سجل ← نموذج QLoRA ← إجابة بمصدرها'),
+    facts: [
+      t('Two tracks in parallel (text → LLM, images → CNN) that join at integration.', 'مساران بالتوازي (النص ← النموذج اللغوي، والصور ← CNN) يلتقيان عند الربط.'),
+      t('One key, the scientific name, joins the photo folder, the class label and the knowledge-base record.', 'مفتاح واحد، الاسم العلمي، يربط مجلد الصور وتسمية الفئة وسجل قاعدة المعرفة.'),
+      t('Compare base, fine-tuned, and fine-tuned + record on the same unseen questions.', 'قارن الأساسي والمضبوط والمضبوط + السجل على الأسئلة الجديدة نفسها.'),
+    ],
+    mistake: t('“Training on question → answer is enough.”', '“التدريب على سؤال ← إجابة يكفي.”'),
+    fix: t('Train in the shape you use: question + record → answer.', 'درّب بالشكل الذي تستخدمه: سؤال + سجل ← إجابة.') },
 ];
 
 export interface SearchItem { name: Text; part: number; tab: PartTab; selector?: string; kind: 'tool' | 'scene' }
@@ -168,4 +185,18 @@ export const TOOLS: SearchItem[] = [
   { kind: 'tool', part: 10, tab: 'try', selector: '.rg-builder', name: t('Write a fine-tuning example as JSONL', 'اكتب مثالًا للضبط الدقيق بصيغة JSONL') },
   { kind: 'tool', part: 10, tab: 'try', selector: '.rg-search', name: t('Vector search: the meaning map', 'البحث المتجهي: خريطة المعاني') },
   { kind: 'tool', part: 11, tab: 'try', selector: '#ft-turath', name: t('TurathAI: the whole student project', 'تراث AI: مشروع الطلاب كاملًا') },
+  { kind: 'scene', part: 12, tab: 'watch', selector: '#ft-scene-transfer', name: t('Transfer learning: fine-tuning a CNN', 'التعلم بالنقل: ضبط شبكة CNN') },
+  { kind: 'tool', part: 12, tab: 'try', selector: '.pc-two', name: t('CNN fine-tuning vs LLM fine-tuning', 'ضبط CNN مقابل ضبط النموذج اللغوي') },
+  { kind: 'tool', part: 12, tab: 'try', selector: '.pc-backbone', name: t('MobileNetV2, EfficientNet-B0, ResNet50: what is trained', 'MobileNetV2 و EfficientNet-B0 و ResNet50: ما يُدرَّب') },
+  { kind: 'tool', part: 12, tab: 'try', selector: '.pc-prep', name: t('Resize, normalize and augment a photo', 'تغيير حجم الصورة وتوحيدها وزيادتها') },
+  { kind: 'tool', part: 12, tab: 'try', selector: '.pc-split', name: t('Split by tree, not by photo (leakage)', 'التقسيم حسب الشجرة لا الصورة (التسرّب)') },
+  { kind: 'tool', part: 12, tab: 'try', selector: '.pc-confusion', name: t('Confusion matrix, precision, recall, F1', 'مصفوفة الالتباس والضبط والاستدعاء و F1') },
+  { kind: 'tool', part: 12, tab: 'try', selector: '.pc-threshold', name: t('Confidence threshold and unknown plants', 'عتبة الثقة والنباتات المجهولة') },
+  { kind: 'scene', part: 13, tab: 'watch', selector: '#ft-scene-utas', name: t('UTAS-70: from a plant photo to a sourced answer', 'UTAS-70: من صورة نبات إلى إجابة موثقة') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-brief', name: t('UTAS-70: problem, research questions, gap', 'UTAS-70: المشكلة وأسئلة البحث والفجوة') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-tracks', name: t('The twelve steps in two tracks', 'الخطوات الاثنتا عشرة في مسارين') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-layers', name: t('The four-layer architecture', 'البنية ذات الطبقات الأربع') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-jsonl', name: t('Species record → JSONL lines', 'سجل النوع ← أسطر JSONL') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-configs', name: t('Base vs fine-tuned vs fine-tuned + record', 'الأساسي مقابل المضبوط مقابل المضبوط + السجل') },
+  { kind: 'tool', part: 13, tab: 'try', selector: '.pc-guide', name: t('A guide for your own project', 'دليل لمشروعك أنت') },
 ];

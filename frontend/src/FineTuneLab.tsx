@@ -16,6 +16,10 @@ import {
   QloraOrder, SettingsTable, TokenView, WorkflowList,
 } from './FineTuneLessons';
 import { TurathCase } from './TurathCase';
+import {
+  ArchitectureLayers, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
+  ProjectGuide, RecordToJsonl, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
+} from './PlantCase';
 import { QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
 import {
   ChapterRail, LabHeaderActions, PartFooter, PartNavContext, PartTabs, PipelineMap, QUIZ as QUIZ_VIEW, REFERENCE, ReferenceSheet,
@@ -75,6 +79,12 @@ const STAGES: { key: string; icon: IconName; tone: string; label: Text; question
   { key: 'turath', icon: 'book', tone: '#2dd4bf',
     label: { en: 'Real project: TurathAI', ar: 'مشروع حقيقي: تراث AI' },
     question: { en: 'How is a whole project planned?', ar: 'كيف يُخطَّط لمشروع كامل؟' } },
+  { key: 'vision', icon: 'grid', tone: '#5ef2a0',
+    label: { en: 'Fine-tuning for images', ar: 'الضبط الدقيق للصور' },
+    question: { en: 'How is a vision model fine-tuned?', ar: 'كيف يُضبط نموذج رؤية ضبطًا دقيقًا؟' } },
+  { key: 'utas', icon: 'sparkle', tone: '#86efac',
+    label: { en: 'Real project: UTAS-70', ar: 'مشروع حقيقي: UTAS-70' },
+    question: { en: 'Photo → plant → answer: how do the parts join?', ar: 'صورة ← نبات ← إجابة: كيف تترابط الأجزاء؟' } },
 ];
 
 const tone = (color: string) => ({ '--tone': color }) as CSSProperties;
@@ -643,6 +653,30 @@ export function FineTuneLab() {
           }}><DecisionHelper/><StrengthChart/><DataSorter/><SplitPicture/><SameStoryTwoUses/><JsonlBuilder/><TrainJsonlFlow/><VectorSearchMap/><BuildOrderPanel/></Stage>,
   ];
 
+  /** Parts 13 and 14, after the TurathAI case: built from the UTAS-70 student project. */
+  const projects: Record<number, ReactNode> = {
+    12: <Stage index={12} summary={tx('frozen body + new head', 'جسم مجمَّد + رأس جديد')} scene={<TransferScene/>}
+      flow={tx('now join it to a language model: UTAS-70', 'والآن اربطه بنموذج لغوي: UTAS-70')}
+      notes={{
+        what: tx('Fine-tuning is not only for language models. A CNN trained on ImageNet already knows edges, textures and shapes. Freeze that body, replace its 1,000-class head with one output per species, train the head, then gently unfreeze the top blocks. This is called transfer learning.',
+          'الضبط الدقيق ليس للنماذج اللغوية وحدها. فشبكة CNN المدرَّبة على ImageNet تعرف مسبقًا الحواف والملمس والأشكال. جمّد ذلك الجسم، واستبدل رأسه ذا الألف فئة بمخرج لكل نوع، ودرّب الرأس، ثم فكّ تجميد الكتل العليا بلطف. ويسمى هذا التعلم بالنقل.'),
+        why: tx('A few hundred photos per species are far too few to train millions of numbers from zero, but enough to train a small head on top of features that already work. It is the same reason LoRA works: keep the general knowledge, train a small new part.',
+          'بضع مئات من الصور لكل نوع أقل بكثير من أن تدرّب ملايين الأرقام من الصفر، لكنها تكفي لتدريب رأس صغير فوق سمات تعمل مسبقًا. وهو السبب نفسه لنجاح LoRA: احتفظ بالمعرفة العامة، ودرّب جزءًا جديدًا صغيرًا.'),
+        tryIt: tx('Play the scene and watch where the gradient stops in stages 1 and 2. Then find the share of numbers trained with MobileNetV2 and 6 species, switch the split to “by tree”, and raise the threshold until the unknown plant is refused.',
+          'شغّل المشهد وراقب أين يتوقف التدرّج في المرحلتين 1 و 2. ثم اعرف نسبة الأرقام المدرَّبة مع MobileNetV2 و 6 أنواع، وبدّل التقسيم إلى “حسب الشجرة”، وارفع العتبة حتى يُرفض النبات المجهول.'),
+      }}><TwoFineTunings/><BackboneCalculator/><PhotoPrep/><GroupSplit/><ConfusionMatrix/><ThresholdTool/></Stage>,
+    13: <Stage index={13} summary={tx('CNN + knowledge base + QLoRA', 'CNN + قاعدة معرفة + QLoRA')} scene={<PhotoToAnswerScene/>}
+      flow={tx('review everything on one sheet', 'راجع كل شيء في صفحة واحدة')}
+      notes={{
+        what: tx('UTAS-70 is a final-year student project: a bilingual assistant for the native plants of Dhofar. A fine-tuned CNN names the plant in a photo, the name finds its source-linked record in a knowledge base, and a Qwen model fine-tuned with QLoRA answers questions from that record.',
+          'UTAS-70 مشروع تخرج طلابي: مساعد ثنائي اللغة لنباتات ظفار المحلية. تسمّي شبكة CNN مضبوطة النبات في الصورة، ويجد الاسم سجله المرتبط بالمصادر في قاعدة معرفة، ويجيب نموذج Qwen مضبوط بـ QLoRA عن الأسئلة من ذلك السجل.'),
+        why: tx('It joins almost everything in this lab: data from books (part 3), QLoRA and Unsloth (parts 7–8), evaluation (part 10), retrieval (part 11) and vision fine-tuning (part 13). Use it as a template for planning your own project.',
+          'إنه يجمع تقريبًا كل ما في هذا المختبر: بيانات من الكتب (الجزء 3)، و QLoRA و Unsloth (الجزآن 7–8)، والتقييم (الجزء 10)، والاسترجاع (الجزء 11)، وضبط نماذج الرؤية (الجزء 13). فاستخدمه قالبًا لتخطيط مشروعك أنت.'),
+        tryIt: tx('Follow the photo through the scene. Then open step 9 in the tracks, turn on the critical path, write a JSONL line for the empty “season” field, and tick the guide items your own plan already has.',
+          'تتبّع الصورة عبر المشهد. ثم افتح الخطوة 9 في المسارات، وشغّل المسار الحرج، واكتب سطر JSONL لحقل “الموسم” الفارغ، وضع علامة على بنود الدليل التي تتضمنها خطتك.'),
+      }}><ProjectBrief/><ProcedureTracks/><ArchitectureLayers/><RecordToJsonl/><ThreeConfigs/><ProjectGuide/></Stage>,
+  };
+
   const nav = { tab, setTab, go: (index: number) => goTo(index), parts: STAGES };
   return <PartNavContext.Provider value={nav}>
     <div className="llm-lab ft-lab">
@@ -650,8 +684,8 @@ export function FineTuneLab() {
         <div className="ft-lab-title">
           <div className="eyebrow">{tx('Fine-tuning lab', 'مختبر الضبط الدقيق')}</div>
           <h2>{tx('Teach a ready-made model your own subject', 'علّم نموذجًا جاهزًا مادتك أنت')}</h2>
-          <p>{tx('Twelve short parts in five chapters, in the order a real project follows: from the base model and its data, through LoRA, quantization, QLoRA and Unsloth, to training, evaluation and RAG. Each part has an animation to watch, tools to try and a card to remember.',
-            'اثنا عشر جزءًا قصيرًا في خمسة فصول، بالترتيب الذي يتبعه مشروع حقيقي: من النموذج الأساسي وبياناته، مرورًا بـ LoRA والتكميم و QLoRA و Unsloth، إلى التدريب والتقييم و RAG. ولكل جزء مشهد للمشاهدة وأدوات للتجربة وبطاقة للتذكّر.')}</p>
+          <p>{tx('Fourteen short parts in six chapters, in the order a real project follows: from the base model and its data, through LoRA, quantization, QLoRA and Unsloth, to training, evaluation and RAG, and then two real student projects, one of them with computer vision. Each part has an animation to watch, tools to try and a card to remember.',
+            'أربعة عشر جزءًا قصيرًا في ستة فصول، بالترتيب الذي يتبعه مشروع حقيقي: من النموذج الأساسي وبياناته، مرورًا بـ LoRA والتكميم و QLoRA و Unsloth، إلى التدريب والتقييم و RAG، ثم مشروعان طلابيان حقيقيان، أحدهما بالرؤية الحاسوبية. ولكل جزء مشهد للمشاهدة وأدوات للتجربة وبطاقة للتذكّر.')}</p>
         </div>
         <LabHeaderActions onSearch={openSearch} onReference={() => goTo(REFERENCE)}/>
         <PipelineMap active={active} visited={progress.visited} onPick={index => goTo(index)}/>
@@ -661,7 +695,8 @@ export function FineTuneLab() {
         <ChapterRail parts={STAGES} active={active} visited={progress.visited} onPick={index => goTo(index)}/>
         <div className="llm-stages ft-stages" key={`${active}`}>
           {active < content.length && content[active]}
-          {active === 11 && <><TurathCase index={11} total={STAGES.length}/><PartFooter index={11}/></>}
+          {active === 11 && <><TurathCase index={11} total={STAGES.length}/><PartFooter index={11} flow={tx('a second project: fine-tuning for images', 'مشروع ثانٍ: الضبط الدقيق للصور')}/></>}
+          {projects[active]}
           {active === REFERENCE && <ReferenceSheet/>}
           {active === QUIZ_VIEW && <Quiz/>}
         </div>

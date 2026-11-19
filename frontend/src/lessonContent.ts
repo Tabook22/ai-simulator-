@@ -9,7 +9,7 @@ import type { Text } from './finetuneContent';
 const t = (en: string, ar: string): Text => ({ en, ar });
 
 /** Lab parts, numbered as the student sees them (Part 1 is "Why fine-tune"). */
-export const PART = { why: 1, words: 2, data: 3, freeze: 4, lora: 5, quant: 6, qlora: 7, unsloth: 8, step: 9, workflow: 10, hybrid: 11, turath: 12 };
+export const PART = { why: 1, words: 2, data: 3, freeze: 4, lora: 5, quant: 6, qlora: 7, unsloth: 8, step: 9, workflow: 10, hybrid: 11, turath: 12, vision: 13, utas: 14 };
 
 // ------------------------------------------------------------------ key words
 
@@ -56,6 +56,30 @@ export const LOOP_TERMS: Term[] = [
 /** The glossary from the notes, each linked to the part of the lab where it is shown. */
 export const GLOSSARY: Term[] = [
   ...LOOP_TERMS,
+  { name: t('Transfer learning', 'التعلم بالنقل'), part: PART.vision,
+    plain: t('Starting from a model trained on a large general task and fine-tuning it for yours, instead of training from zero.',
+      'البدء من نموذج مدرَّب على مهمة عامة كبيرة وضبطه لمهمتك، بدلًا من التدريب من الصفر.'), example: t('A CNN trained on ImageNet, fine-tuned for six Dhofar plants.', 'شبكة CNN مدرَّبة على ImageNet، مضبوطة لستة نباتات من ظفار.') },
+  { name: t('CNN (convolutional neural network)', 'CNN (شبكة عصبية التفافية)'), part: PART.vision,
+    plain: t('A network for images. Small filters slide over the picture; early layers find edges, later layers whole shapes.',
+      'شبكة للصور. مرشحات صغيرة تنزلق على الصورة؛ فتجد الطبقات الأولى الحواف، والأخيرة الأشكال الكاملة.'), example: t('MobileNetV2, EfficientNet-B0, ResNet50.', 'MobileNetV2 و EfficientNet-B0 و ResNet50.') },
+  { name: t('Backbone and head', 'العمود الفقري والرأس'), part: PART.vision,
+    plain: t('The backbone turns a photo into features; the head is the last layer that turns features into one score per class.',
+      'العمود الفقري يحوّل الصورة إلى سمات، والرأس هو الطبقة الأخيرة التي تحوّل السمات إلى درجة لكل فئة.'), example: t('MobileNetV2 head for 6 species: 1,280 × 6 + 6 = 7,686 numbers.', 'رأس MobileNetV2 لستة أنواع: 1,280 × 6 + 6 = 7,686 رقمًا.') },
+  { name: t('Data augmentation', 'زيادة البيانات'), part: PART.vision,
+    plain: t('Making changed copies of training photos (turned, flipped, zoomed, brighter) so the model learns the plant, not one picture.',
+      'صنع نسخ معدّلة من صور التدريب (مدوّرة ومقلوبة ومكبّرة وأكثر إضاءة) حتى يتعلم النموذج النبات لا صورة واحدة.'), example: t('Training set only, never validation or test.', 'لمجموعة التدريب فقط، لا للتحقق ولا للاختبار.') },
+  { name: t('Precision, recall and F1', 'الضبط والاستدعاء و F1'), part: PART.vision,
+    plain: t('Precision: of what it called X, how much was X. Recall: of all real X, how much it found. F1 balances the two; macro F1 averages it over classes.',
+      'الضبط: مما سمّاه X، كم كان X فعلًا. الاستدعاء: من كل X الحقيقية، كم وجد. و F1 يوازن بينهما، و F1 الكلي متوسطه على الفئات.'), example: t('Myrrh: precision 81%, recall 73%.', 'المُرّ: ضبط 81٪ واستدعاء 73٪.') },
+  { name: t('Confusion matrix', 'مصفوفة الالتباس'), part: PART.vision,
+    plain: t('A table of real class (rows) against predicted class (columns). The diagonal is right; the other cells show which mistakes happen.',
+      'جدول الفئة الحقيقية (الصفوف) مقابل الفئة المتوقعة (الأعمدة). القطر صحيح، والخلايا الأخرى تُظهر الأخطاء التي تحدث.'), example: t('5 myrrh photos called frankincense.', '5 صور للمُرّ سُمّيت لبانًا.') },
+  { name: t('Confidence threshold', 'عتبة الثقة'), part: PART.vision,
+    plain: t('The lowest probability at which the system accepts a prediction; below it, it asks for a better photo.',
+      'أدنى احتمال يقبل عنده النظام التنبؤ؛ وتحته يطلب صورة أفضل.'), example: t('70%, chosen on validation data.', '70٪، تُختار على بيانات التحقق.') },
+  { name: t('Knowledge base', 'قاعدة المعرفة'), part: PART.utas,
+    plain: t('Structured records (here one JSON record per species), every fact with its source and page.',
+      'سجلات منظمة (هنا سجل JSON لكل نوع)، وكل حقيقة مع مصدرها وصفحتها.'), example: t('Boswellia sacra → family, names, habitat, uses, source.', 'Boswellia sacra ← الفصيلة والأسماء والموطن والاستخدامات والمصدر.') },
   { name: t('Open weight', 'مفتوح الأوزان'), part: PART.why,
     plain: t('The weights can be downloaded under a licence. It does not mean frozen, and not always free to use for anything: check the licence.',
       'يمكن تنزيل الأوزان بموجب ترخيص. ولا يعني ذلك أنها مجمَّدة، ولا أنها حرة لأي استخدام دائمًا: راجع الترخيص.'), example: t('Qwen, Llama, Gemma.', 'Qwen و Llama و Gemma.') },
@@ -417,4 +441,10 @@ export const EXTRA_QUIZ = [
   { ask: t('Which is true about frozen weights?', 'أي العبارات صحيحة عن الأوزان المجمَّدة؟'),
     options: [t('They are skipped in the forward pass.', 'تُتخطّى في التمرير الأمامي.'), t('They still calculate, but are not updated.', 'ما زالت تحسب لكنها لا تُحدَّث.'), t('They are deleted to save memory.', 'تُحذف لتوفير الذاكرة.')],
     right: 1, why: t('Frozen means not updated. It does not mean inactive.', 'المجمَّد يعني أنه لا يُحدَّث، ولا يعني أنه لا يعمل.') },
+  { ask: t('In transfer learning for a plant classifier, what is trained first?', 'في التعلم بالنقل لمصنِّف نباتات، ما الذي يُدرَّب أولًا؟'),
+    options: [t('The whole CNN from random weights', 'شبكة CNN كاملة من أوزان عشوائية'), t('A new head, with the body frozen', 'رأس جديد، مع تجميد الجسم'), t('Only the first convolution layer', 'أول طبقة التفافية فقط')],
+    right: 1, why: t('The ImageNet body already finds useful features; the new head learns to map them to the species. Top blocks are unfrozen later, slowly.', 'جسم ImageNet يجد مسبقًا سمات مفيدة، والرأس الجديد يتعلم ربطها بالأنواع. وتُفك الكتل العليا لاحقًا ببطء.') },
+  { ask: t('Photos of the same tree end up in both training and test. What happens?', 'انتهت صور الشجرة نفسها في التدريب والاختبار معًا. ماذا يحدث؟'),
+    options: [t('The test score is too optimistic', 'تصبح درجة الاختبار متفائلة أكثر من اللازم'), t('Training becomes slower', 'يصبح التدريب أبطأ'), t('Nothing, more data is better', 'لا شيء، فالبيانات الأكثر أفضل')],
+    right: 0, why: t('This is leakage: the test measures memory of near-identical photos. Split by tree or observation.', 'هذا تسرّب: يقيس الاختبار حفظ صور شبه متطابقة. فقسّم حسب الشجرة أو المشاهدة.') },
 ];
