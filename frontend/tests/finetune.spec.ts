@@ -74,7 +74,7 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
   await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
   const quiz = page.locator('.ft-quiz');
   await quiz.getByRole('button', { name: 'They are frozen; only the small adapters change.' }).click();
-  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 14');
+  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 16');
 });
 
 test('shows the fine-tuning lab in Arabic', async ({ page }) => {
@@ -791,4 +791,45 @@ test('shows the two projects as one recipe: lanes, model size, roadmap and jobs'
   await second.getByRole('button', { name: /Fine-tuned/ }).click();
   await expect(second).toHaveClass(/wrong/);
   await expect(who.getByTestId('who-score')).toHaveText('1 / 8');
+});
+
+test('shows RAG and fine-tuning together: open book + coach, one answer three ways, is one enough, two checks', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'hybrid', 'watch', 2);
+  const scene = page.locator('#ft-scene-together');
+  await scene.getByRole('button', { name: /The sources do not agree/ }).click();
+  await expect(scene.locator('.rt-differ')).toBeVisible();
+  await scene.getByRole('button', { name: /The answer: evidence \+ style/ }).click();
+  await expect(scene.getByTestId('together-answer').locator('li')).toHaveCount(2);
+  await scene.getByRole('button', { name: /Asked again, the new source appears/ }).click();
+  await expect(scene.getByTestId('together-answer').locator('li')).toHaveCount(3);
+  await expect(scene.locator('.rt-lock')).toContainText('no retraining');
+
+  await part(page, 'hybrid');
+  const body = page.locator('#ft-hybrid .llm-stage-body');
+  const ways = body.locator('.rt-ways');
+  await ways.getByRole('button', { name: 'Without RAG' }).click();
+  await ways.locator('.rt-piece.invented').first().click();
+  await expect(ways.getByTestId('ways-why')).toContainText('Invented');
+  await ways.getByRole('button', { name: 'Without fine-tuning' }).click();
+  await expect(ways.getByTestId('ways-verdict')).toContainText('paraphrased');
+
+  const enough = body.locator('.rt-enough');
+  await expect(enough.getByTestId('enough-pick')).toContainText('RAG + fine-tuning');
+  await enough.getByRole('button', { name: 'A museum help desk' }).click();
+  await expect(enough.getByTestId('enough-pick')).toContainText('RAG alone');
+  await enough.getByRole('button', { name: 'A passage simplifier' }).click();
+  await expect(enough.getByTestId('enough-pick')).toContainText('Fine-tuning alone');
+
+  const checks = body.locator('.rt-checks');
+  const marks = [[true, true], [false, true], [true, false], [true, false], [false, false]];
+  for (const [index, [found, explained]] of marks.entries()) {
+    const item = checks.locator('.rt-cases > li').nth(index);
+    await item.locator('.rt-mark').nth(0).getByRole('button', { name: found ? '✓' : '✗' }).click();
+    await item.locator('.rt-mark').nth(1).getByRole('button', { name: explained ? '✓' : '✗' }).click();
+  }
+  await expect(checks.getByTestId('checks-tally')).toContainText('10 of 10 marks agree');
+  await expect(checks.getByTestId('checks-tally')).toContainText('Search or collection problems: 2');
+  await expect(checks.getByTestId('checks-tally')).toContainText('weak explanation: 2');
 });

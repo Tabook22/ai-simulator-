@@ -314,7 +314,7 @@ export function BuildOrderPanel() {
       <span className="lx-order-no">{index + 1}</span><div><strong>{say(item.title)}</strong><p>{say(item.text)}</p></div></li>)}</ol>
     <p className="lx-muted">{say(t('Then evaluate faithfulness to the sources, the storytelling tone, and how often it honestly says “I don’t have this story” (see part 10 for the full evaluation).',
       'ثم قيّم الأمانة للمصادر ونبرة السرد وعدد المرات التي يقول فيها بأمانة “ليست لدي هذه القصة” (انظر الجزء 10 للتقييم الكامل).'))}</p>
-    <p className="lx-key"><Icon name="book" size={14}/><span><strong>{say(t('For TurathAI (Part 12): ', 'لمشروع تراث AI (الجزء 12): '))}</strong>
+    <p className="lx-key"><Icon name="book" size={14}/><span><strong>{say(t('For TurathAI (Part 14): ', 'لمشروع تراث AI (الجزء 14): '))}</strong>
       {say(t('combining fine-tuning and RAG is a solid, defensible choice. Keep the full archive in RAG, and let the fine-tuning set teach the storyteller’s voice, citing and honest “not found” answers, rather than asking the model to memorize every story.',
         'الجمع بين الضبط الدقيق و RAG خيار متين يمكن الدفاع عنه. احفظ الأرشيف كاملًا في RAG، ودع مجموعة الضبط تعلّم صوت الراوي والاستشهاد والإجابة الأمينة بـ“غير موجود”، بدلًا من مطالبة النموذج بحفظ كل قصة.'))}</span></p>
   </div>;
