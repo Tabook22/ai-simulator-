@@ -134,6 +134,7 @@
   .rt-questions li { grid-template-columns: minmax(0, 1fr); }
   .rt-cases dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
   #ft-scene-together .rd-stations b { display: none; }
+  #ft-scene-together .rd-stage, #ft-scene-together .pr-stage { min-height: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   [class^="rt-"], [class^="rt-"] *, .rt-beam { animation: none !important; transition: none !important; }
