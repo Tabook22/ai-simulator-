@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import './python-guide.css';
 import { Icon } from './ui';
+import { FromScratch } from './FromScratch';
 import type { Network, TrainingSettings } from './model';
 import { buildGuide } from './guideGenerator';
 import type { GuideConfig, GuideExample, GuideSource, GuideStep } from './guideGenerator';
@@ -221,6 +222,8 @@ export function PythonGuide({ network, training, onOpenExplore, onUseHouseSetup 
         <p><strong>Generated code runs in your environment.</strong> This page does not execute Python. Run the terminal setup in Step 1, then run the steps in order.</p>
       </div>
     </header>
+
+    <FromScratch/>
 
     <section className="panel py-config" aria-labelledby="py-config-title">
       <div className="py-section-head">

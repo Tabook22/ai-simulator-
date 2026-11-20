@@ -136,6 +136,8 @@ C:\Users\nmtab\Desktop\NeuronLab-Study-Cases\Exam-Score-Case
 
 ![The advisor's hardware recommendation, optional computer fields, detected CPU count, and assumptions](docs/screenshots/advisor-recommendation.png)
 
+**Build it from scratch, part by part.** The Python guide opens with an animated series that pairs a picture of the neuron with the plain Python that computes it and the terminal output that code prints, line by line. Part 1, the neuron: should I ride my bike today? Inputs, weights and a bias are multiplied and added (0.75, ride), then it rains (−0.75, stay home). Part 2, activation functions: step, sigmoid and ReLU, each drawn as a curve with a dot at z. Sliders change the day, and the code and output follow; the floats are computed in Python's order, so they match a real run digit for digit. Copy the code or download it as a .py file.
+
 **Generate the Python training guide.** The **Python guide** tab turns the current architecture, seed, and split into a complete 15-step PyTorch workflow. Every step shows its purpose, input, code, output, and a check before continuing. The guide copies per-step code, copies the complete script, and downloads a runnable `.py`, an explanatory `.ipynb`, and a `requirements.txt`. The default dataset is a clearly labeled synthetic classroom demonstration; complete rows from Teach the network can be used instead. The script starts from a fresh seeded initialization of the selected architecture rather than copying the browser's trained weights. The generated script is tested end to end — data, training, validation, test, prediction, and save/reload:
 
 ![The Python training guide matched to a 2 → 3 → 1 house-price network](docs/screenshots/python-guide.png)

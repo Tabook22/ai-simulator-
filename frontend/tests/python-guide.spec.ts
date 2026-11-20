@@ -122,3 +122,32 @@ test('opens the Python guide, matches the house architecture, and downloads file
 function safeFilename(filename: string) {
   return filename.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
+
+test('builds a neuron from scratch: the picture, the code and the terminal move in step', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Python guide' }).click();
+  const scratch = page.locator('.fs');
+  await expect(scratch.getByRole('heading', { name: /Part 1: The neuron/ })).toBeVisible();
+
+  // Part 1: the loop prints 0.75; np.dot shows the floating-point tail; rain flips it.
+  await scratch.getByRole('button', { name: 'Print it: 0.75 → ride' }).click();
+  await expect(scratch.getByTestId('fs-terminal')).toContainText('0.75');
+  await expect(scratch.locator('.fs-pill')).toContainText('RIDE');
+  await scratch.getByRole('button', { name: '−0.75 → stay home' }).click();
+  await expect(scratch.getByTestId('fs-terminal')).toContainText('0.7499999999999999');
+  await expect(scratch.getByTestId('fs-terminal')).toContainText('-0.7500000000000001');
+  await expect(scratch.locator('.fs-pill')).toContainText('STAY HOME');
+  await expect(scratch.getByTestId('fs-code').locator('li')).toHaveCount(12);
+
+  // Changing the day rewrites the code and the output.
+  await scratch.getByRole('slider', { name: 'sunny' }).fill('0');
+  await expect(scratch.getByTestId('fs-code')).toContainText('inputs  = [0.0, 0.7, 0.0]');
+
+  // Part 2: the three activations, before and after the rain.
+  await scratch.getByRole('button', { name: 'Reset' }).click();
+  await scratch.getByRole('tab', { name: /Activation functions/ }).click();
+  await scratch.getByRole('button', { name: /0.0 · 0.32 · 0.0/ }).click();
+  await expect(scratch.getByTestId('fs-terminal')).toContainText('0.7499999999999999 1.0 0.679178699175393 0.7499999999999999');
+  await expect(scratch.getByTestId('fs-terminal')).toContainText('-0.7500000000000001 0.0 0.320821300824607 0.0');
+  await expect(scratch.locator('.fs-act.on')).toHaveCount(3);
+});
