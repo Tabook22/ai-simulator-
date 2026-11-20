@@ -108,7 +108,7 @@ export function ChapterRail({ parts, active, visited, onPick }: { parts: PartInf
         <li style={tone('#facc15')}><button type="button" className={active === QUIZ ? 'current' : ''} onClick={() => onPick(QUIZ)}
           aria-current={active === QUIZ ? 'step' : undefined}>
           <span className="llm-rail-dot"><Icon name="trophy" size={13}/></span>
-          <span className="llm-rail-text"><strong>{say(t('Check yourself', 'اختبر نفسك'))}</strong><small>{say(t('10 questions', '10 أسئلة'))}</small></span></button></li>
+          <span className="llm-rail-text"><strong>{say(t('Check yourself', 'اختبر نفسك'))}</strong><small>{say(t('225-question bank', 'بنك من 225 سؤالًا'))}</small></span></button></li>
       </ol>
     </div>
   </nav>;

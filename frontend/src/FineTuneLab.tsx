@@ -8,6 +8,7 @@ import { useI18n } from './i18n';
 import { AdapterScene, QuantScene, UnslothScene } from './FineTuneScenes';
 import { DocsScene, KitchenScene, TermsScene, TrainingStepScene } from './LessonScenes';
 import { FactsNotFiles, NeuronParameters, ParameterLadder } from './ParameterLesson';
+import { QuizBank } from './quiz/QuizBank';
 import { FairTest, FixLadder, HeritageClaim, WhoWritesAnswer } from './RagEvidence';
 import { IsOneEnough, OneAnswerThreeWays, TogetherScene, TwoChecks } from './RagPlusTune';
 import { AnalogyTrio, BuildOrderPanel, DataSorter, DecisionHelper, PhotoQuantize, SplitPicture, StickyNotes, StorytellerScene, StrengthChart } from './HybridLesson';
@@ -492,37 +493,6 @@ function UnslothStage() {
   </>;
 }
 
-// ------------------------------------------------------------------- quiz
-
-const ALL_QUIZ = [...QUIZ, ...EXTRA_QUIZ];
-
-function Quiz() {
-  const tx = useTx();
-  const [answers, setAnswers] = useState<(number | null)[]>(() => ALL_QUIZ.map(() => null));
-  const score = answers.filter((answer, index) => answer === ALL_QUIZ[index].right).length;
-  const done = answers.every(answer => answer !== null);
-  return <section className="ft-quiz" aria-labelledby="ft-quiz-title">
-    <header>
-      <h3 id="ft-quiz-title">{tx('Check yourself', 'اختبر نفسك')}</h3>
-      <span className="llm-stage-out" data-testid="quiz-score">{score} / {ALL_QUIZ.length}</span>
-    </header>
-    {ALL_QUIZ.map((item, index) => {
-      const picked = answers[index];
-      return <fieldset key={item.ask.en}>
-        <legend>{index + 1}. {say(tx, item.ask)}</legend>
-        {item.options.map((option, choice) => <button key={option.en} type="button" disabled={picked !== null}
-          className={picked === null ? '' : choice === item.right ? 'right' : choice === picked ? 'wrong' : ''}
-          onClick={() => setAnswers(current => current.map((old, position) => position === index ? choice : old))}>
-          {say(tx, option)}</button>)}
-        {picked !== null && <p className={picked === item.right ? 'right' : 'wrong'}>
-          <strong>{picked === item.right ? tx('Correct.', 'صحيح.') : tx('Not quite.', 'ليس تمامًا.')}</strong> {say(tx, item.why)}</p>}
-      </fieldset>;
-    })}
-    {done && <button type="button" className="button" onClick={() => setAnswers(ALL_QUIZ.map(() => null))}>
-      <Icon name="reset" size={14}/>{tx('Try again', 'حاول مرة أخرى')}</button>}
-  </section>;
-}
-
 // -------------------------------------------------------------------- lab
 
 export function FineTuneLab() {
@@ -734,7 +704,7 @@ export function FineTuneLab() {
           {active === 13 && <><TurathCase index={13} total={STAGES.length}/><PartFooter index={13} flow={tx('a second project: fine-tuning for images', 'مشروع ثانٍ: الضبط الدقيق للصور')}/></>}
           {projects[active]}
           {active === REFERENCE && <ReferenceSheet/>}
-          {active === QUIZ_VIEW && <Quiz/>}
+          {active === QUIZ_VIEW && <QuizBank/>}
         </div>
       </div>
       <SearchPalette open={searching} onClose={() => setSearching(false)} onPick={pick}/>

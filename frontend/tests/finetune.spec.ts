@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { BANK, BANK_SIZE } from '../src/quiz/bank';
 
 /** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
 const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'rag', 'recipe', 'turath', 'vision', 'utas'];
@@ -73,8 +74,8 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
 
   await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
   const quiz = page.locator('.ft-quiz');
-  await quiz.getByRole('button', { name: 'They are frozen; only the small adapters change.' }).click();
-  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 17');
+  await expect(quiz.locator('.qz-q')).toHaveCount(20);
+  await expect(quiz.getByTestId('quiz-score')).toHaveText('0 / 20');
 });
 
 test('shows the fine-tuning lab in Arabic', async ({ page }) => {
@@ -861,4 +862,82 @@ test('gives evidence for RAG + fine-tuning: who writes, what to fix first, a fai
   await expect(fair.getByTestId('fair-verdict')).toContainText('Qwen + RAG is enough');
 
   await expect(body.locator('.re-claim .re-chain > div')).toHaveCount(3);
+});
+
+test('the question bank has 225 well-formed questions in five kinds', () => {
+  expect(BANK_SIZE).toBe(225);
+  expect(BANK.mcq).toHaveLength(100);
+  expect(BANK.fill).toHaveLength(50);
+  expect(BANK.explain).toHaveLength(25);
+  expect(BANK.match).toHaveLength(25);
+  expect(BANK.image).toHaveLength(25);
+  const all = Object.values(BANK).flat();
+  expect(new Set(all.map(question => question.id)).size).toBe(225);
+  for (const question of all) {
+    expect(question.part).toBeGreaterThanOrEqual(0);
+    expect(question.part).toBeLessThanOrEqual(15);
+    expect(question.ask.en.length).toBeGreaterThan(5);
+    expect(question.ask.ar.length).toBeGreaterThan(5);
+    if (question.kind === 'mcq' || question.kind === 'fill' || question.kind === 'image') {
+      expect(question.options).toHaveLength(4);
+      expect(question.right).toBeLessThan(4);
+      expect(new Set(question.options.map(option => option.en)).size).toBe(4);
+    }
+    if (question.kind === 'fill') {
+      expect(question.ask.en.split('____')).toHaveLength(2);
+      expect(question.ask.ar.split('____')).toHaveLength(2);
+    }
+    if (question.kind === 'match') expect(question.pairs).toHaveLength(4);
+    if (question.kind === 'explain') expect(question.points.length).toBeGreaterThanOrEqual(3);
+  }
+});
+
+test('check yourself: five question kinds, fresh sets, scoring', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
+  const quiz = page.locator('.ft-quiz');
+  await expect(quiz).toContainText('A bank of 225 questions');
+
+  // Multiple choice: answer one, the score and feedback appear.
+  await quiz.getByRole('tab', { name: /Multiple choice/ }).click();
+  await expect(quiz.locator('.qz-q')).toHaveCount(10);
+  const first = await quiz.locator('.qz-q').evaluateAll(items => items.map(item => item.getAttribute('data-qid')));
+  await quiz.locator('.qz-q').first().locator('.qz-options button').first().click();
+  await expect(quiz.locator('.qz-q').first().getByTestId('qz-feedback')).toBeVisible();
+  await expect(quiz.locator('.qz-progress')).toContainText('1 of 10 answered');
+
+  // A new set brings different questions (unseen ones first).
+  await quiz.getByRole('button', { name: 'New questions' }).click();
+  const second = await quiz.locator('.qz-q').evaluateAll(items => items.map(item => item.getAttribute('data-qid')));
+  expect(second.filter(id => first.includes(id))).toHaveLength(0);
+
+  // Fill the blank.
+  await quiz.getByRole('tab', { name: /Fill the blank/ }).click();
+  const blank = quiz.locator('.qz-q').first();
+  await blank.locator('.qz-options button').first().click();
+  await expect(blank.locator('.qz-blank')).not.toHaveText(/^\s*$/);
+
+  // Explain in your words: key points and a model answer.
+  await quiz.getByRole('tab', { name: /Explain in your words/ }).click();
+  const open = quiz.locator('.qz-q').first();
+  await open.locator('textarea').fill('The model is trained on examples; the loss and gradients update the weights; RAG retrieves sources.');
+  await open.getByRole('button', { name: 'Check my answer' }).click();
+  await expect(open.getByTestId('qz-explain-result')).toContainText('key points');
+  await expect(open.locator('.qz-model')).toBeVisible();
+
+  // Match and link: tap each card, then a slot.
+  await quiz.getByRole('tab', { name: /Match and link/ }).click();
+  const link = quiz.locator('.qz-q').first();
+  for (let slot = 0; slot < 4; slot += 1) {
+    await link.locator('.qz-card').first().click();
+    await link.locator('.qz-slot').nth(slot).click();
+  }
+  await link.getByRole('button', { name: 'Check the links' }).click();
+  await expect(link.getByTestId('qz-feedback')).toContainText('of 4 linked correctly');
+
+  // Look at the picture: every question has a drawn figure.
+  await quiz.getByRole('tab', { name: /Look at the picture/ }).click();
+  await expect(quiz.locator('.qz-q')).toHaveCount(5);
+  await expect(quiz.locator('.qz-q svg.qz-fig')).toHaveCount(5);
 });
