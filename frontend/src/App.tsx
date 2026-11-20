@@ -14,7 +14,7 @@ import { BackpropExamples } from './BackpropExamples';
 import { HouseCaseStudy } from './HouseCaseStudy';
 import { ExamCaseStudy } from './ExamCaseStudy';
 import { Advisor } from './Advisor';
-import { PythonGuide } from './PythonGuide';
+import { PythonGuide } from './PythonWorkspaces';
 import { Playground } from './Playground';
 import { ResourceLibrary } from './ResourceLibrary';
 import { VideoLibrary } from './VideoLibrary';

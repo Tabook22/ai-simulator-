@@ -94,8 +94,9 @@ test('opens the Python guide, matches the house architecture, and downloads file
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/');
   await page.getByRole('button', { name: 'Python guide' }).click();
-  await expect(page.locator('.py-hero h1')).toContainText('trains your network');
-  await page.getByRole('button', { name: 'Use the house-price setup' }).first().click();
+  await page.getByRole('tab', { name: /House prices in PyTorch/ }).click();
+  await page.getByRole('button', { name: 'Use the house-price setup' }).click();
+  await expect(page.locator('.py-hero h1')).toContainText('house-price model');
   await expect(page.locator('.py-arch-badge')).toContainText('2 → 3 → 1');
   const summary = page.locator('.py-summary');
   await expect(summary).toContainText('13');
@@ -150,4 +151,34 @@ test('builds a neuron from scratch: the picture, the code and the terminal move 
   await expect(scratch.getByTestId('fs-terminal')).toContainText('0.7499999999999999 1.0 0.679178699175393 0.7499999999999999');
   await expect(scratch.getByTestId('fs-terminal')).toContainText('-0.7500000000000001 0.0 0.320821300824607 0.0');
   await expect(scratch.locator('.fs-act.on')).toHaveCount(3);
+});
+
+test('keeps every Python example in its own workspace', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Python guide' }).click();
+  const workspace = page.locator('#pw-workspace');
+
+  // Example 1 alone: the from-scratch neuron, with nothing from the PyTorch guides.
+  await expect(page.getByRole('tab', { name: /Build a neuron from scratch/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(workspace.locator('.fs')).toHaveCount(1);
+  await expect(page.locator('.py-config, .py-steps, .py-hero')).toHaveCount(0);
+
+  // Example 2 alone: your network in PyTorch, with no house data on offer.
+  await page.getByRole('tab', { name: /Train your network in PyTorch/ }).click();
+  await expect(workspace).toHaveAttribute('data-example', 'network');
+  await expect(page.locator('.fs')).toHaveCount(0);
+  await expect(workspace.locator('.py-hero h1')).toContainText('trains your network');
+  await expect(workspace.locator('.py-config select').first().locator('option[value="synthetic-house"]')).toHaveCount(0);
+
+  // Example 3 alone: house prices, which loads its own network first.
+  await page.getByRole('tab', { name: /House prices in PyTorch/ }).click();
+  await expect(page.locator('.fs')).toHaveCount(0);
+  await workspace.getByRole('button', { name: 'Use the house-price setup' }).click();
+  await expect(workspace.locator('.py-config select').first().locator('option')).toHaveCount(1);
+  await expect(workspace.locator('.py-config select').first()).toHaveValue('synthetic-house');
+
+  // The choice is remembered.
+  await page.reload();
+  await page.getByRole('button', { name: 'Python guide' }).click();
+  await expect(page.getByRole('tab', { name: /House prices in PyTorch/ })).toHaveAttribute('aria-selected', 'true');
 });

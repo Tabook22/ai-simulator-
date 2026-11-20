@@ -1,0 +1,42 @@
+/* Python tab: one example, one workspace (PythonWorkspaces.tsx). */
+.pw-head { display: grid; gap: 14px; padding: 20px 22px; border-radius: 20px; border: 1px solid #ffffff1a;
+  background: radial-gradient(circle at 90% 0%, #5ee7ff12, transparent 40%), linear-gradient(135deg, #11142a, #090d18 70%); }
+.pw-head h1 { margin: 3px 0 4px; font-size: clamp(1.4rem, 2.6vw, 2rem); letter-spacing: -.03em; color: #f5f1ff; }
+.pw-head p { color: #b8b4cf; font-size: .9em; line-height: 1.55; max-width: 720px; }
+.pw-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.pw-picker button { --tone: #a78bfa; position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 10px; align-content: start; padding: 12px 14px;
+  border-radius: 16px; border: 1px solid #ffffff1c; background: #070a16; color: #c4cee9; font: inherit; text-align: start; cursor: pointer;
+  transition: border-color .25s ease, background .25s ease, transform .25s ease, box-shadow .25s ease; }
+.pw-picker button:hover { border-color: color-mix(in srgb, var(--tone) 60%, transparent); }
+.pw-picker svg { grid-row: span 2; align-self: center; color: var(--tone); }
+.pw-picker b { color: #fff; font-size: .95em; padding-inline-end: 22px; }
+.pw-picker small { grid-column: 2; font-size: .78em; line-height: 1.45; }
+.pw-picker em { grid-column: 2; justify-self: start; margin-top: 4px; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone); font-size: .7em; font-style: normal; font-weight: 800; }
+.pw-num { position: absolute; top: 10px; inset-inline-end: 12px; color: #6b7699; font: 800 .74em var(--mono); }
+.pw-picker button.on { border-color: var(--tone); background: color-mix(in srgb, var(--tone) 12%, #070a16); transform: translateY(-2px);
+  box-shadow: 0 0 0 1px var(--tone), 0 12px 30px -18px var(--tone); }
+.pw-picker button.on .pw-num { color: var(--tone); }
+
+/* the workspace: a clearly bounded area that holds one example only */
+.pw-workspace { --tone: #a78bfa; display: grid; gap: 0; border-radius: 22px; border: 2px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  background: color-mix(in srgb, var(--tone) 4%, transparent); overflow: hidden; }
+.pw-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 16px;
+  background: color-mix(in srgb, var(--tone) 14%, #070a16); border-bottom: 1px solid color-mix(in srgb, var(--tone) 40%, transparent); }
+.pw-badge { display: inline-flex; align-items: center; gap: 7px; color: #fff; font-weight: 800; font-size: .9em; }
+.pw-badge svg { color: var(--tone); }
+.pw-stack { color: var(--tone); font: 700 .76em var(--mono); }
+.pw-body { display: grid; gap: 14px; padding: 14px; animation: pw-in .35s ease both; min-width: 0; }
+.py-workspace-body { display: grid; gap: 14px; min-width: 0; }
+@keyframes pw-in { from { opacity: 0; transform: translateY(8px); } }
+.py-load-house { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; }
+.py-load-house > svg { color: #5ee7ff; }
+.py-load-house h2 { margin: 0 0 4px; font-size: 1.1em; color: #fff; }
+.py-load-house p { color: #b8b4cf; font-size: .88em; line-height: 1.55; }
+
+@media (max-width: 700px) {
+  .pw-head { padding: 16px; }
+  .pw-body { padding: 8px; }
+  .py-load-house { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .pw-body { animation: none; } }

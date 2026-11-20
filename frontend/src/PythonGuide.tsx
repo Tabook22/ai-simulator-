@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import './python-guide.css';
 import { Icon } from './ui';
-import { FromScratch } from './FromScratch';
+import { t, useTx } from './FineTuneScenes';
 import type { Network, TrainingSettings } from './model';
 import { buildGuide } from './guideGenerator';
 import type { GuideConfig, GuideExample, GuideSource, GuideStep } from './guideGenerator';
 import {
   HOUSE_BATCH_SIZE, HOUSE_DEFAULT_EPOCHS, HOUSE_FEATURE_NAMES,
   HOUSE_LEARNING_RATE, HOUSE_NEW_EXAMPLE, HOUSE_TARGET_NAMES,
-  HOUSE_TEST_ROWS, HOUSE_TRAIN_ROWS, HOUSE_VALIDATION_ROWS, isHouseShape,
+  HOUSE_NETWORK_SHAPE, HOUSE_TEST_ROWS, HOUSE_TRAIN_ROWS, HOUSE_VALIDATION_ROWS, isHouseShape,
 } from './houseConfig';
 
 function completeExamples(training: TrainingSettings | null, features: number, outputs: number): GuideExample[] {
@@ -37,9 +37,11 @@ function splitPreview(n: number) {
   return { train, validation, test };
 }
 
-function defaultConfig(network: Network, training: TrainingSettings | null): GuideConfig {
+export type TorchMode = 'network' | 'house';
+
+function defaultConfig(network: Network, training: TrainingSettings | null, mode: TorchMode): GuideConfig {
   const outputs = network.layers.at(-1)?.weights.length ?? 0;
-  const houseLike = isHouseShape(network.inputs.length, outputs);
+  const houseLike = mode === 'house' && isHouseShape(network.inputs.length, outputs);
   const featureNames = houseLike ? [...HOUSE_FEATURE_NAMES] : defaultFeatureNames(network.inputs.length);
   const targetNames = houseLike ? [...HOUSE_TARGET_NAMES] : defaultTargetNames(outputs);
   const learningRate = Number(training?.learning_rate);
@@ -124,13 +126,16 @@ function StepCard({ step, index }: { step: GuideStep; index: number }) {
   </details>;
 }
 
-export function PythonGuide({ network, training, onOpenExplore, onUseHouseSetup }: {
+/** The PyTorch training guide, as one workspace: either the network built in Explore, or the house-price example. */
+export function TorchWorkspace({ mode, network, training, onOpenExplore, onUseHouseSetup }: {
+  mode: TorchMode;
   network: Network;
   training: TrainingSettings | null;
   onOpenExplore: () => void;
   onUseHouseSetup: () => void;
 }) {
-  const [config, setConfig] = useState<GuideConfig>(() => defaultConfig(network, training));
+  const say = useTx();
+  const [config, setConfig] = useState<GuideConfig>(() => defaultConfig(network, training, mode));
   const [copiedAll, setCopiedAll] = useState(false);
   const outputs = network.layers.at(-1)?.weights.length ?? 0;
   const availableExamples = completeExamples(training, network.inputs.length, outputs);
@@ -138,6 +143,10 @@ export function PythonGuide({ network, training, onOpenExplore, onUseHouseSetup 
   const { summary } = guide;
   const currentExamplesCount = training?.examples.length ?? 0;
   const totalRows = config.trainRows + config.validationRows + config.testRows;
+  // The house workspace needs the full house network, 2 → 3 → 1, not just two inputs and one output.
+  const houseReady = isHouseShape(network.inputs.length, outputs)
+    && network.layers.length === HOUSE_NETWORK_SHAPE.hidden.length + 1
+    && HOUSE_NETWORK_SHAPE.hidden.every((size, index) => network.layers[index].weights.length === size);
 
   function update<K extends keyof GuideConfig>(key: K, value: GuideConfig[K]) {
     setConfig(current => ({ ...current, [key]: value }));
@@ -206,15 +215,30 @@ export function PythonGuide({ network, training, onOpenExplore, onUseHouseSetup 
     URL.revokeObjectURL(url);
   }
 
-  return <div className="python-guide">
+  if (mode === 'house' && !houseReady) return <div className="py-workspace-body">
+    <section className="panel py-load-house">
+      <Icon name="home" size={22}/>
+      <div>
+        <h2>{say(t('This example uses its own house-price network', 'هذا المثال يستخدم شبكة أسعار المنازل الخاصة به'))}</h2>
+        <p>{say(t(`The house-price example needs the 2 → 3 → 1 network (area and bedrooms in, price out). The network in Explore is now ${network.inputs.length} → … → ${outputs}. Loading the house setup replaces the network in Explore as well.`,
+          `يحتاج مثال أسعار المنازل إلى الشبكة 2 → 3 → 1 (المساحة وعدد الغرف مدخلات، والسعر مخرج). والشبكة في الاستكشاف الآن ${network.inputs.length} → … → ${outputs}. وتحميل إعداد المنازل يستبدل الشبكة في الاستكشاف أيضًا.`))}</p>
+      </div>
+      <button type="button" className="button small primary" onClick={useHouseSetup}><Icon name="home" size={14}/>Use the house-price setup</button>
+    </section>
+  </div>;
+
+  return <div className="py-workspace-body">
     <header className="py-hero">
       <div>
-        <div className="eyebrow">Python training guide</div>
-        <h1>Generate the Python that trains your network</h1>
-        <p>Complete, runnable PyTorch code for the architecture you built. Every numbered step shows what runs next and why it is needed.</p>
+        <div className="eyebrow">{say(mode === 'house' ? t('PyTorch · house prices', 'PyTorch · أسعار المنازل') : t('PyTorch · your network', 'PyTorch · شبكتك'))}</div>
+        <h1>{say(mode === 'house' ? t('Train the house-price model in PyTorch', 'درّب نموذج أسعار المنازل بـ PyTorch') : t('Generate the Python that trains your network', 'أنشئ شيفرة بايثون التي تدرّب شبكتك'))}</h1>
+        <p>{say(mode === 'house'
+          ? t('A complete, runnable PyTorch workflow for the 2 → 3 → 1 house-price network, on a clearly labeled synthetic dataset. Every numbered step shows what runs next and why it is needed.',
+            'سير عمل PyTorch كامل وقابل للتشغيل لشبكة أسعار المنازل 2 → 3 → 1، على بيانات اصطناعية موسومة بوضوح. وكل خطوة مرقمة تبيّن ما يُنفَّذ بعدها ولماذا.')
+          : t('Complete, runnable PyTorch code for the architecture you built in Explore. Every numbered step shows what runs next and why it is needed.',
+            'شيفرة PyTorch كاملة وقابلة للتشغيل للبنية التي بنيتها في الاستكشاف. وكل خطوة مرقمة تبيّن ما يُنفَّذ بعدها ولماذا.'))}</p>
         <div className="py-hero-actions">
           <button type="button" className="button small" onClick={onOpenExplore}><Icon name="sliders" size={14}/>Edit the network</button>
-          <button type="button" className="button small primary" onClick={useHouseSetup}><Icon name="home" size={14}/>Use the house-price setup</button>
         </div>
       </div>
       <div className="py-hero-note">
@@ -223,7 +247,6 @@ export function PythonGuide({ network, training, onOpenExplore, onUseHouseSetup 
       </div>
     </header>
 
-    <FromScratch/>
 
     <section className="panel py-config" aria-labelledby="py-config-title">
       <div className="py-section-head">
@@ -244,11 +267,12 @@ export function PythonGuide({ network, training, onOpenExplore, onUseHouseSetup 
       <div className="py-config-grid">
         <label className="py-field"><span>Dataset source</span>
           <select value={config.source} onChange={event => changeSource(event.target.value as GuideSource)}>
-            {network.inputs.length === 2 && outputs === 1 && <option value="synthetic-house">Synthetic house-price demo (not real)</option>}
-            <option value="synthetic-generic">Synthetic generic demo (not real)</option>
-            <option value="current-examples" disabled={availableExamples.length < 3}>
-              Current Teach-the-network rows {availableExamples.length > 0 ? `(${availableExamples.length} complete)` : '(none complete)'}
-            </option>
+            {mode === 'house' ? <option value="synthetic-house">Synthetic house-price demo (not real)</option> : <>
+              <option value="synthetic-generic">Synthetic generic demo (not real)</option>
+              <option value="current-examples" disabled={availableExamples.length < 3}>
+                Current Teach-the-network rows {availableExamples.length > 0 ? `(${availableExamples.length} complete)` : '(none complete)'}
+              </option>
+            </>}
           </select>
           <small>{config.source === 'current-examples' ? 'Uses only complete numeric rows from the Training tab.' : 'Clearly labeled synthetic data; replace the loading block with a CSV later.'}</small>
         </label>
