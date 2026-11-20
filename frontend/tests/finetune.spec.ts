@@ -74,7 +74,7 @@ test('quantizes weights, sizes a QLoRA run, and walks the Unsloth steps', async 
   await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
   const quiz = page.locator('.ft-quiz');
   await quiz.getByRole('button', { name: 'They are frozen; only the small adapters change.' }).click();
-  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 16');
+  await expect(quiz.getByTestId('quiz-score')).toHaveText('1 / 17');
 });
 
 test('shows the fine-tuning lab in Arabic', async ({ page }) => {
@@ -832,4 +832,33 @@ test('shows RAG and fine-tuning together: open book + coach, one answer three wa
   await expect(checks.getByTestId('checks-tally')).toContainText('10 of 10 marks agree');
   await expect(checks.getByTestId('checks-tally')).toContainText('Search or collection problems: 2');
   await expect(checks.getByTestId('checks-tally')).toContainText('weak explanation: 2');
+});
+
+test('gives evidence for RAG + fine-tuning: who writes, what to fix first, a fair test, the claim', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await part(page, 'rag');
+  const body = page.locator('#ft-rag .llm-stage-body');
+
+  const writers = body.locator('.re-writers');
+  await expect(writers.getByTestId('writer-answer')).toContainText('In Dhofar, coffee is served to guests first');
+  await writers.getByRole('button', { name: 'Qwen + clearer instructions' }).click();
+  await expect(writers.locator('.re-checks .bad')).toContainText('as a drink');
+  await writers.getByRole('button', { name: 'Fine-tuned Qwen' }).click();
+  await expect(writers.getByTestId('writer-answer')).toContainText('dates, fruit and sweets offered to guests');
+  await expect(writers.locator('.re-checks .bad')).toHaveCount(0);
+
+  const ladder = body.locator('.re-ladder');
+  await ladder.getByRole('button', { name: /retrieves an unrelated interview/ }).click();
+  await expect(ladder.getByTestId('ladder-first')).toContainText('Improve the archive search');
+  await ladder.getByRole('button', { name: /all families in Dhofar/ }).click();
+  await expect(ladder.getByTestId('ladder-first')).toContainText('Clearer instructions');
+  await expect(ladder.locator('.re-rung.then')).toContainText('Fine-tune Qwen');
+
+  const fair = body.locator('.re-fair');
+  await expect(fair.getByTestId('fair-verdict')).toContainText('fine-tuning adds accuracy');
+  await fair.getByRole('button', { name: 'Example result B' }).click();
+  await expect(fair.getByTestId('fair-verdict')).toContainText('Qwen + RAG is enough');
+
+  await expect(body.locator('.re-claim .re-chain > div')).toHaveCount(3);
 });

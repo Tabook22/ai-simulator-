@@ -130,6 +130,10 @@ export const GLOSSARY: Term[] = [
     plain: t('Test RAG first, and judge each answer twice. Did it find the right passage? If not, improve the search or the collection. Did it explain it well? If it repeatedly does not, fine-tuning can help.',
       'اختبر RAG أولًا، واحكم على كل إجابة مرتين. هل وجد المقطع الصحيح؟ إن لم يجده فحسّن البحث أو المجموعة. وهل شرحه جيدًا؟ إن تكرر الإخفاق فالضبط الدقيق قد يساعد.'),
     example: t('Right interview, wrong meaning of ⁨«الهبطة»⁩: a fine-tuning case.', 'المقابلة الصحيحة والمعنى الخطأ لـ⁨«الهبطة»⁩: حالة ضبط دقيق.') },
+  { name: t('Fair comparison (base vs fine-tuned)', 'المقارنة العادلة (أساسي مقابل مضبوط)'), part: PART.rag,
+    plain: t('Give regular Qwen and fine-tuned Qwen the same held-out questions and the same retrieved passages, then check facts, cited sources, and whether each says when the evidence is insufficient. Only a consistent gain shows that fine-tuning adds accuracy.',
+      'أعطِ Qwen العادي و Qwen المضبوط الأسئلة المحجوبة نفسها والمقاطع المسترجَعة نفسها، ثم افحص الحقائق والمصادر المستشهد بها، وهل يقول كل منهما حين تكون الأدلة غير كافية. ولا يثبت أن الضبط الدقيق يضيف دقة إلا تحسّنٌ ثابت.'),
+    example: t('37 vs 31 facts right out of 40: fine-tuning helps; 37 vs 36: Qwen + RAG is enough.', '37 مقابل 31 حقيقة صحيحة من 40: الضبط يساعد؛ 37 مقابل 36: يكفي Qwen + RAG.') },
   { name: t('Adapter', 'المهايئ'), part: PART.lora,
     plain: t('A small trainable part added to an existing model to adapt it. It cannot answer on its own: it needs its matching base model.',
       'جزء صغير قابل للتدريب يُضاف إلى نموذج موجود لتكييفه. ولا يجيب وحده: يحتاج إلى نموذجه الأساسي المطابق.'), example: t('A file of a few tens of MB.', 'ملف ببضع عشرات من الميغابايت.') },
@@ -488,4 +492,7 @@ export const EXTRA_QUIZ = [
   { ask: t('A new interview is added to TurathAI. What must happen before answers can use it?', 'أُضيفت مقابلة جديدة إلى تراث AI. ماذا يجب أن يحدث قبل أن تستعملها الإجابات؟'),
     options: [t('Retrain the fine-tuned model', 'أعد تدريب النموذج المضبوط'), t('Index it in the RAG collection', 'فهرسها في مجموعة RAG'), t('Nothing: the model already knows it', 'لا شيء: النموذج يعرفها أصلًا')],
     right: 1, why: t('Chunk, embed and store it, and RAG can retrieve it at once. The adapter does not change.', 'قطّعها وضمّنها وخزّنها، فيسترجعها RAG فورًا. ولا يتغير المهايئ.') },
+  { ask: t('In a RAG application, who writes and formats the final answer?', 'في تطبيق RAG، من يكتب الإجابة النهائية وينسّقها؟'),
+    options: [t('The search step', 'خطوة البحث'), t('The language model, such as Qwen', 'النموذج اللغوي مثل Qwen'), t('The vector database', 'قاعدة البيانات المتجهية')],
+    right: 1, why: t('Search brings excerpts and references; the model reads them and writes. That is why how well the model reads heritage material matters.', 'البحث يُحضر المقتطفات والمراجع، والنموذج يقرؤها ويكتب. ولهذا تهم جودة قراءة النموذج للمادة التراثية.') },
 ];
