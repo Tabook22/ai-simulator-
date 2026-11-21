@@ -151,6 +151,34 @@ html[dir="rtl"] .tk-switch input:checked + .tk-switch-ui::after { transform: tra
 .tk-tip-row b { font-family: var(--mono); font-size: 1.15em; color: #9fe9ff; }
 .tk-tip-row code { font-family: var(--mono); color: #ffe7a8; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
 
+/* ---------- every token as a card, its ID underneath ---------- */
+.tk-cards-wrap { display: grid; gap: 10px; }
+.tk-cards-wrap h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin: 4px 0 0; font-size: 1.05em; color: #eef2ff; }
+.tk-cards-wrap h3 svg { align-self: center; color: var(--accent); }
+.tk-cards-wrap h3 small { color: var(--muted); font-weight: 400; font-size: .82em; }
+.tk-cards { display: grid; gap: 10px; padding: 16px; border-radius: 20px; border: 1px solid #ffffff1a; background: #060a1a; max-height: 520px; overflow: auto; }
+.tk-cards-line { display: flex; flex-wrap: wrap; gap: 8px; }
+.tk-card {
+  --tone: var(--c0);
+  display: grid; justify-items: center; align-content: start; gap: 5px; min-width: 46px; padding: 8px 10px 7px; border-radius: 14px; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--tone) 60%, transparent); background: color-mix(in srgb, var(--tone) 15%, #0b1024);
+  transition: transform .18s cubic-bezier(.2, 1.4, .4, 1), box-shadow .18s, background .18s;
+  animation: tk-pop .5s cubic-bezier(.2, 1.3, .4, 1) both;
+}
+.tk-card.c0 { --tone: var(--c0); } .tk-card.c1 { --tone: var(--c1); } .tk-card.c2 { --tone: var(--c2); } .tk-card.c3 { --tone: var(--c3); }
+.tk-card.c4 { --tone: var(--c4); } .tk-card.c5 { --tone: var(--c5); } .tk-card.c6 { --tone: var(--c6); } .tk-card.c7 { --tone: var(--c7); }
+.tk-card.multi { border-style: dashed; }
+.tk-card:hover, .tk-card.on { transform: translateY(-4px); background: color-mix(in srgb, var(--tone) 32%, #0b1024); box-shadow: 0 14px 30px -14px var(--tone), 0 0 0 1px var(--tone); }
+.tk-card-text { font-size: 1.25em; line-height: 1.3; color: #f8faff; white-space: pre; }
+.tk-card-mark { color: color-mix(in srgb, var(--tone) 75%, white); opacity: .75; }
+.tk-card-ids { display: flex; gap: 4px; }
+.tk-card-ids b {
+  font-family: var(--mono); font-size: .78em; font-weight: 600; color: color-mix(in srgb, var(--tone) 85%, white);
+  padding: 1px 7px; border-radius: 999px; background: #00000059; border-top: 1px solid color-mix(in srgb, var(--tone) 45%, transparent);
+}
+.tk-many { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 14px 16px; border-radius: 18px; border: 1px dashed #5ee7ff66; background: #5ee7ff0d; color: #d9f6ff; line-height: 1.6; }
+.tk-many svg { flex: none; margin-top: 3px; color: var(--accent); }
+
 .tk-fact { display: flex; gap: 8px; align-items: flex-start; margin: 0; color: #c7d2f0; font-size: .9em; line-height: 1.6; }
 .tk-fact svg { flex: none; margin-top: 4px; color: var(--amber); }
 .tk-fact code { font-family: var(--mono); color: #ffe7a8; background: #ffffff0f; padding: 1px 6px; border-radius: 6px; }
@@ -197,5 +225,5 @@ html[dir="rtl"] .tk-switch input:checked + .tk-switch-ui::after { transform: tra
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tk-hero::before, .tk-chip, .tk-seg, .tk-stat, .tk-tip, .tk-scan, .tk-table-scroll { animation: none !important; }
+  .tk-hero::before, .tk-chip, .tk-seg, .tk-card, .tk-stat, .tk-tip, .tk-scan, .tk-table-scroll { animation: none !important; }
 }

@@ -31,6 +31,12 @@ test('tokenizer: counts, preview, hover details and the token table', async ({ p
   await expect(preview.locator('.tk-seg')).toHaveCount(6);
   await expect(preview).toHaveText('The ship reached the port.');
 
+  // Every token is also a card with its ID underneath.
+  const cards = page.getByTestId('tk-cards').locator('.tk-card');
+  await expect(cards).toHaveCount(6);
+  await expect(cards.nth(1)).toContainText('ship');
+  await expect(cards.nth(1).locator('.tk-card-ids')).toHaveText('12407');
+
   // Hover shows the labelled position and ID; keyboard focus does too.
   await preview.locator('.tk-seg').nth(1).hover();
   await expect(page.getByTestId('tk-tip')).toContainText('Token position');
@@ -81,6 +87,15 @@ test('tokenizer: Arabic, mixed text, emoji, spaces, blank, a full page and the l
   // A full page of text.
   const fullPage = 'The ship reached the port after a long voyage. وصلت السفينة إلى الميناء بعد رحلة طويلة.\n'.repeat(40);
   await analyze(page, fullPage);
+
+  // Long text: no cards, just the total and how to read any token.
+  await expect(page.getByTestId('tk-many')).toContainText('too many to list one by one');
+  await expect(page.getByTestId('tk-cards')).toHaveCount(0);
+
+  // Arabic cards run right to left, English cards left to right.
+  await analyze(page, 'بسم الله الرحمن الرحيم\nThe ship reached the port.');
+  await expect(page.locator('.tk-cards-line').first()).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('.tk-cards-line').nth(1)).toHaveAttribute('dir', 'ltr');
 
   // Over the limit: a clear message, and Analyze is disabled.
   await page.getByTestId('tk-input').fill('a'.repeat(20_001));

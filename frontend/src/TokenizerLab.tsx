@@ -52,6 +52,51 @@ function SegmentText({ text, showSpaces }: { text: string; showSpaces: boolean }
 
 interface Tip { index: number; x: number; y: number; below: boolean }
 
+/** Up to this many tokens, every token is also drawn as a card with its ID underneath. */
+const CARD_LIMIT = 300;
+
+/** A card's text: spaces shown as faint dots and line breaks as ↵, so students see they belong to tokens. */
+function CardText({ text }: { text: string }) {
+  const parts = text.split(/( +|\n|\t)/).filter(Boolean);
+  return <>{parts.map((part, index) => part === '\n' ? <span key={index} className="tk-card-mark">↵</span>
+    : part === '\t' ? <span key={index} className="tk-card-mark">→</span>
+    : part.startsWith(' ') ? <span key={index} className="tk-card-mark">{'·'.repeat(part.length)}</span>
+    : <span key={index} data-keep>{part}</span>)}</>;
+}
+
+/** A line runs right to left when its first strong letter is Arabic (or Hebrew), like dir="auto" would decide. */
+function lineDirection(text: string): 'rtl' | 'ltr' {
+  const first = text.match(/[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]|[֐-ࣿיִ-﷿ﹰ-﻿]/);
+  return first && /[֐-ࣿיִ-﷿ﹰ-﻿]/.test(first[0]) ? 'rtl' : 'ltr';
+}
+
+/** Every token as a card: its piece on top and its ID number underneath, in the same colour as the text. */
+function TokenCards({ result, active, setActive }: { result: TokenizeResult; active: number | null; setActive: (index: number | null) => void }) {
+  const say = useTx();
+  // Start a new row after every line break, so the cards follow the lines of the text.
+  const lines: number[][] = [[]];
+  result.segments.forEach((segment, index) => {
+    lines[lines.length - 1].push(index);
+    if (segment.text.includes('\n')) lines.push([]);
+  });
+  return <div className="tk-cards" data-testid="tk-cards" onMouseLeave={() => setActive(null)}>
+    {lines.filter(line => line.length > 0).map((line, row) => <div key={row} className="tk-cards-line"
+      dir={lineDirection(line.map(index => result.segments[index].text).join(''))}>
+      {line.map(index => {
+        const segment = result.segments[index];
+        const ids = segment.tokens.map(position => result.tokens[position].id);
+        return <div key={index} className={`tk-card c${index % 8}${active === index ? ' on' : ''}${ids.length > 1 ? ' multi' : ''}`}
+          style={index < 120 && !reducedMotion() ? { animationDelay: `${index * 22}ms` } : undefined}
+          onMouseEnter={() => setActive(index)} onClick={() => setActive(index)}
+          title={ids.length > 1 ? say(t(`One character split across ${ids.length} tokens`, `حرف واحد مقسوم على ${ids.length} رموز`)) : undefined}>
+          <span className="tk-card-text" dir="auto"><CardText text={segment.text}/></span>
+          <span className="tk-card-ids" dir="ltr">{ids.map((id, n) => <b key={n} data-keep>{id}</b>)}</span>
+        </div>;
+      })}
+    </div>)}
+  </div>;
+}
+
 function Preview({ result, showSpaces, active, setActive }: {
   result: TokenizeResult; showSpaces: boolean; active: number | null; setActive: (index: number | null) => void;
 }) {
@@ -272,6 +317,15 @@ export function TokenizerLab() {
           <p className="tk-hint">{say(t('Each coloured box is one token, with a line between neighbours. Hover, tap, or press Tab then the arrow keys to read its position and ID.',
             'كل مربع ملوّن رمز واحد، وبين كل رمزين خط فاصل. مرّر المؤشر أو انقر، أو اضغط Tab ثم الأسهم لقراءة موضعه ورقمه.'))}</p>
           <Preview result={result} showSpaces={showSpaces} active={active} setActive={setActive}/>
+          {result.token_count <= CARD_LIMIT
+            ? <section className="tk-cards-wrap" aria-label={say(t('Each token and its ID', 'كل رمز ورقمه'))}>
+              <h3><Icon name="tokens" size={16}/>{say(t('Each token and its ID', 'كل رمز ورقمه'))}
+                <small>{say(t('the piece on top, the number the model reads underneath', 'القطعة في الأعلى، والرقم الذي يقرؤه النموذج تحتها'))}</small></h3>
+              <TokenCards result={result} active={active} setActive={setActive}/>
+            </section>
+            : <p className="tk-many" data-testid="tk-many"><Icon name="tokens" size={16}/><span>{say(t(
+              `This text has ${format(result.token_count)} tokens, too many to list one by one. Hover, tap or use the arrow keys on the text above to see any token's ID, or open the table below.`,
+              `هذا النص فيه ${format(result.token_count)} رمزًا، وهي أكثر من أن تُعرض واحدًا واحدًا. مرّر المؤشر أو انقر أو استخدم الأسهم على النص في الأعلى لترى رقم أي رمز، أو افتح الجدول بالأسفل.`))}</span></p>}
           {longest && longest.size > 1 && <p className="tk-fact"><Icon name="bulb" size={14}/><span>{say(t('Longest token here:', 'أطول رمز هنا:'))} <code data-keep dir="auto">{longest.piece}</code>
             {result.tokens.some(token => token.partial) && <> · {say(t('Some characters are split across several tokens (shown as bytes in the table).', 'بعض الأحرف مقسومة على عدة رموز (تظهر كبايتات في الجدول).'))}</>}</span></p>}
 
