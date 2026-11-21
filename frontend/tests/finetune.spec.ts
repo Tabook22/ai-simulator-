@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { BANK, BANK_SIZE } from '../src/quiz/bank';
 import { RESOURCES, STEPS } from '../src/quiz/learnMore';
+import { topicsFor, webSearches } from '../src/quiz/searchTopics';
 
 /** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
 const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'rag', 'recipe', 'turath', 'vision', 'utas'];
@@ -958,6 +959,65 @@ test('check yourself: five question kinds, fresh sets, scoring', async ({ page }
   await quiz.getByRole('tab', { name: /Look at the picture/ }).click();
   await expect(quiz.locator('.qz-q')).toHaveCount(5);
   await expect(quiz.locator('.qz-q svg.qz-fig')).toHaveCount(5);
+});
+
+test('read more sources: topics, live Wikipedia summaries and web searches', async ({ page }) => {
+  // Mock Wikipedia so the test does not depend on the network; record what was searched.
+  const searched: string[] = [];
+  await page.route(/wikipedia\.org\/w\/api\.php/, async route => {
+    const url = new URL(route.request().url());
+    searched.push(`${url.hostname}|${url.searchParams.get('gsrsearch')}`);
+    const arabic = url.hostname.startsWith('ar.');
+    const query = url.searchParams.get('gsrsearch') ?? '';
+    // The article named exactly as the searched topic, an unrelated page (dropped by the filter), and an Arabic miss.
+    await route.fulfill({ contentType: 'application/json', json: arabic ? { batchcomplete: '' } : { query: { pages: {
+      1: { title: query, index: 1, fullurl: 'https://en.wikipedia.org/wiki/Topic', extract: `${query} is an idea in machine learning.` },
+      2: { title: 'A famous footballer', index: 2, fullurl: 'https://en.wikipedia.org/wiki/Footballer', extract: 'A footballer who played for many clubs.' },
+    } } } });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Fine-tuning lab' }).click();
+  await page.locator('.ft-rail').getByRole('button', { name: /Check yourself/ }).click();
+  const quiz = page.locator('.ft-quiz');
+  await quiz.getByRole('tab', { name: /Multiple choice/ }).click();
+  const q1 = quiz.locator('.qz-q').first();
+  await q1.locator('.qz-options button').first().click();
+  await q1.getByRole('button', { name: 'Check my answer' }).click();
+  await q1.getByRole('button', { name: 'Explain it step by step' }).click();
+  await q1.getByRole('button', { name: 'Read more sources' }).click();
+
+  const panel = q1.getByTestId('qz-sources');
+  await expect(panel.getByTestId('qz-src-hits').locator('li')).toHaveCount(1);
+  await expect(panel.getByTestId('qz-src-hits').getByRole('link')).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Topic');
+  await expect(panel).not.toContainText('footballer');
+  const tabs = panel.getByRole('tab');
+  expect(await tabs.count()).toBeGreaterThanOrEqual(1);
+  await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+  // Four web searches, each opening safely in a new tab with only the topic in the query.
+  const sites = panel.locator('.qz-src-site');
+  await expect(sites).toHaveCount(4);
+  for (const site of await sites.all()) {
+    await expect(site).toHaveAttribute('target', '_blank');
+    await expect(site).toHaveAttribute('rel', /noopener/);
+  }
+  await expect(sites.first()).toHaveAttribute('href', /^https:\/\/www\.google\.com\/search\?q=/);
+  expect(searched[0]).toMatch(/^en\.wikipedia\.org\|/);
+
+  // Arabic: searches Arabic Wikipedia first, then falls back to English and says so.
+  await page.getByRole('button', { name: 'العربية' }).click();
+  await expect(q1.getByRole('button', { name: 'اقرأ مصادر أخرى' })).toBeVisible();
+  await expect(panel.getByTestId('qz-src-hits').locator('li').first()).toContainText('بالإنجليزية');
+  expect(searched.some(entry => entry.startsWith('ar.wikipedia.org|'))).toBe(true);
+});
+
+test('every question gets a search topic', () => {
+  for (const question of Object.values(BANK).flat()) {
+    const clues = question.kind === 'explain' ? [question.ask.en] : question.kind === 'match' ? [question.ask.en] : [question.options[question.right].en];
+    const topics = topicsFor(question.part, clues);
+    expect(topics.length, question.id).toBeGreaterThanOrEqual(1);
+    expect(topics.length, question.id).toBeLessThanOrEqual(3);
+    for (const site of webSearches(topics[0], 'ar')) expect(site.url, question.id).toMatch(/^https:\/\//);
+  }
 });
 
 test('every question has a step-by-step explanation and every part has resources', () => {

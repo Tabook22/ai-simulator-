@@ -14,6 +14,7 @@ import type { Text } from '../FineTuneScenes';
 import { BANK, BANK_SIZE } from './bank';
 import { Figure } from './Figure';
 import { RESOURCES, STEPS } from './learnMore';
+import { MoreSources } from './MoreSources';
 import { GLOSSARY } from '../lessonContent';
 import type { Choice, ExplainQuestion, ImageQuestion, Kind, MatchQuestion, Question } from './types';
 
@@ -75,11 +76,14 @@ type Report = (id: string, score: number) => void;
  * The two help buttons shown after a question is checked:
  * "Explain it step by step" (numbered reasons ending with the answer) and "Learn more" (where to read further).
  */
-function Help({ question, answer }: { question: { id: string; part: number }; answer: string }) {
+function Help({ question, answer, clues }: { question: { id: string; part: number }; answer: string; clues: string[] }) {
   const say = useTx();
   const nav = usePartNav();
   const [open, setOpen] = useState<'steps' | 'more' | null>(null);
+  const [sources, setSources] = useState(false);
   const steps = STEPS[question.id] ?? [];
+  // English answer and question first, then the English steps: what the search topics are matched on.
+  const searchClues = useMemo(() => [...clues, ...steps.map(([en]) => en)], [clues, steps]);
   const words = GLOSSARY.filter(term => term.part === question.part + 1).slice(0, 4);
   const toggle = (panel: 'steps' | 'more') => setOpen(current => current === panel ? null : panel);
   return <div className="qz-help">
@@ -94,6 +98,12 @@ function Help({ question, answer }: { question: { id: string; part: number }; an
       <ol>{steps.map(([en, ar], index) => <li key={index} style={{ animationDelay: `${index * 0.12}s` }}>
         <span className="qz-step-n" dir="ltr">{index + 1}</span><p>{say(t(en, ar))}</p></li>)}</ol>
       <p className="qz-so"><Icon name="check" size={14}/><span><strong>{say(t('So the answer is: ', 'إذن الإجابة هي: '))}</strong>{answer}</span></p>
+      <div className="qz-src-row">
+        <small>{say(t('Still not clear? Read how others explain it.', 'ما زالت غير واضحة؟ اقرأ كيف يشرحها الآخرون.'))}</small>
+        <button type="button" className={cls('qz-help-btn sources', sources && 'on')} aria-expanded={sources} onClick={() => setSources(value => !value)}>
+          <Icon name="search" size={14}/>{say(t('Read more sources', 'اقرأ مصادر أخرى'))}</button>
+      </div>
+      {sources && <MoreSources part={question.part} clues={searchClues}/>}
     </div>}
     {open === 'more' && <div className="qz-more" data-testid="qz-more">
       <div className="qz-more-block">
@@ -143,7 +153,7 @@ function ChoiceCard({ question, onDone }: { question: Choice & { kind: 'mcq' | '
       : <>
         <p className={cls('qz-why', picked === question.right ? 'right' : 'wrong')} data-testid="qz-feedback">
           <strong>{picked === question.right ? say(t('Correct!', 'صحيح!')) : say(t(`Not quite. The right answer is: ${question.options[question.right].en}.`, `ليس تمامًا. الإجابة الصحيحة: ${question.options[question.right].ar}.`))}</strong> {say(question.why)}</p>
-        <Help question={question} answer={answer}/>
+        <Help question={question} answer={answer} clues={[question.options[question.right].en, question.ask.en, question.why.en]}/>
       </>}
   </>;
 }
@@ -180,7 +190,7 @@ function ExplainCard({ question, onDone }: { question: ExplainQuestion; onDone: 
         <small>{say(t('The check looks for key words, so it can miss your wording: tick a point yourself if you covered it.', 'يبحث الفحص عن كلمات مفتاحية فقد يفوته تعبيرك: ضع علامة على النقطة بنفسك إن غطيتها.'))}</small>
         <div className="qz-model"><b>{say(t('A model answer', 'إجابة نموذجية'))}</b><p>{say(question.model)}</p></div>
       </div>}
-    {checked !== null && <Help question={question} answer={say(question.model)}/>}
+    {checked !== null && <Help question={question} answer={say(question.model)} clues={[question.ask.en, question.model.en]}/>}
   </>;
 }
 
@@ -224,7 +234,8 @@ function MatchCard({ question, onDone }: { question: MatchQuestion; onDone: Repo
       ? <button type="button" className="button small primary" disabled={placed.size < question.pairs.length} onClick={check}><Icon name="check" size={13}/>{say(t('Check the links', 'افحص الروابط'))}</button>
       : <p className={cls('qz-why', score === question.pairs.length ? 'right' : 'wrong')} data-testid="qz-feedback">
         <strong>{say(t(`${score} of ${question.pairs.length} linked correctly.`, `${score} من ${question.pairs.length} روابط صحيحة.`))}</strong> {say(question.why)}</p>}
-    {checked && <Help question={question} answer={question.pairs.map(([left, right]) => `${say(left)} → ${say(right)}`).join(' · ')}/>}
+    {checked && <Help question={question} answer={question.pairs.map(([left, right]) => `${say(left)} → ${say(right)}`).join(' · ')}
+      clues={[question.ask.en, ...question.pairs.map(([left, right]) => `${left.en} ${right.en}`), question.why.en]}/>}
   </>;
 }
 
