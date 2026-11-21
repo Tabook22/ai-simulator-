@@ -5,7 +5,7 @@ test('shows token attention flow and writes the next token', async ({ page }) =>
   await page.getByRole('button', { name: 'LLM playground' }).click();
   await expect(page.getByRole('heading', { name: /language model guesses the next token/i })).toBeVisible();
   await expect(page.locator('.llm-predicted-char')).toHaveText('mat');
-  await expect(page.getByRole('button', { name: /^Token/ })).toHaveCount(5);
+  await expect(page.getByRole('button', { name: /^Token \d/ })).toHaveCount(5);
   await expect(page.locator('circle.llm-dot').first()).toBeVisible();
   await expect(page.getByText('In the story', { exact: true })).toBeVisible();
 
@@ -17,7 +17,7 @@ test('shows token attention flow and writes the next token', async ({ page }) =>
   await expect(page.getByRole('button', { name: 'Append top token' })).toBeEnabled();
   await page.getByRole('button', { name: 'Append top token' }).click();
   await expect(page.getByLabel('Prompt')).toHaveValue('the cat ran to the mat');
-  await expect(page.getByRole('button', { name: /^Token/ })).toHaveCount(6);
+  await expect(page.getByRole('button', { name: /^Token \d/ })).toHaveCount(6);
 });
 
 test('flows the error backward and takes a gradient step', async ({ page }) => {

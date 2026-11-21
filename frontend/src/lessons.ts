@@ -1,7 +1,7 @@
 import { readStored, writeStored } from './libraryStorage';
 import type { IconName } from './ui';
 
-export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'llm' | 'finetune';
+export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'tokenizer' | 'llm' | 'finetune';
 
 export interface Lesson {
   tab: WorkshopTab;
@@ -146,6 +146,22 @@ export const LESSONS: Lesson[] = [
       'Read the 15 steps in order; each one shows its purpose, input, code, and output.',
       'Download the .py file and run it on your own computer.',
       'Change the architecture in Explore and watch the generated layers change.',
+    ],
+  },
+  {
+    tab: 'tokenizer', icon: 'tokens', label: 'Tokenizer', fullBleed: true,
+    question: 'How does a language model see my text?',
+    goal: 'Type any text and watch a real tokenizer cut it into tokens, each with its position and ID number.',
+    learn: [
+      'A model reads tokens, not letters or words: a token can be a whole word, part of a word, or punctuation.',
+      'Every token has a fixed ID number; the model only ever sees these numbers.',
+      'Token count and word count differ: Arabic, rare words, and emoji often need more tokens per word.',
+      'Spaces count too: the space before a word usually belongs to that word’s token.',
+    ],
+    tryIt: [
+      'Load “The ship reached the port.” and compare its tokens with its words.',
+      'Load the Arabic example and find a word that is split into more than one token.',
+      'Add a sentence of your own, then an emoji, and watch the count change as you type.',
     ],
   },
   {

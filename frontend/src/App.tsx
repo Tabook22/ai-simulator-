@@ -10,6 +10,7 @@ import { ForwardPlayback, ForwardStep, forwardStages } from './ForwardPlayback';
 import { Hero } from './Hero';
 import { LlmLab } from './LlmLab';
 import { FineTuneLab } from './FineTuneLab';
+import { TokenizerLab } from './TokenizerLab';
 import { BackpropExamples } from './BackpropExamples';
 import { HouseCaseStudy } from './HouseCaseStudy';
 import { ExamCaseStudy } from './ExamCaseStudy';
@@ -736,7 +737,7 @@ export default function App() {
       {!fullBleed && <QuestStrip quest={quest} onReset={() => setQuest(emptyQuest)}/>}
       {error && !modal && <div className="message error" role="alert">{error}</div>}
       {notice && !modal && <div className="message success" role="status">{notice}</div>}
-      {tab === 'llm' ? <LlmLab/> : tab === 'finetune' ? <FineTuneLab/> : tab === 'exam' ? <ExamCaseStudy/> : tab === 'house' ? <HouseCaseStudy/> : tab === 'examples' ? <BackpropExamples/> : tab === 'playground' ? <Playground/> : network ? (tab === 'explore' ? <div className="explore-layout">
+      {tab === 'tokenizer' ? <TokenizerLab/> : tab === 'llm' ? <LlmLab/> : tab === 'finetune' ? <FineTuneLab/> : tab === 'exam' ? <ExamCaseStudy/> : tab === 'house' ? <HouseCaseStudy/> : tab === 'examples' ? <BackpropExamples/> : tab === 'playground' ? <Playground/> : network ? (tab === 'explore' ? <div className="explore-layout">
         <Settings network={network} preset={preset} disabled={busy || Boolean(backprop)} onPreset={loadPreset} onResize={resize}
           onInput={(index, value) => editNetwork({ ...network, inputs: network.inputs.map((old, position) => index === position ? value : old) })}
           onSeed={value => editNetwork({ ...network, seed: value }, false)} onActivation={editActivation}

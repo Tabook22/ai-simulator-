@@ -47,6 +47,7 @@ const paths = {
   code: <><path d="m8 7-5 5 5 5m8-10 5 5-5 5"/></>,
   grid: <><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></>,
   refresh: <><path d="M20 12a8 8 0 1 1-2-5"/><path d="M20 5v7h-7"/></>,
+  tokens: <><rect x="2.5" y="8" width="6" height="8" rx="1.6"/><rect x="10" y="8" width="4.5" height="8" rx="1.6"/><rect x="16" y="8" width="5.5" height="8" rx="1.6"/><path d="M4.5 19.5h2m5-0h1m5 0h1.5"/></>,
   lock: <><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></>,
   flame: <path d="M12 3c1 3 4 5 4 9a4 4 0 0 1-8 0c0-1.5.5-2.5 1.5-3.5C9.5 10 11 9 12 3zm0 18a2.5 2.5 0 0 0 2.5-2.5c0-1.5-1.5-2.5-2.5-4-1 1.5-2.5 2.5-2.5 4A2.5 2.5 0 0 0 12 21z"/>,
   grip: <><circle cx="9" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.2" fill="currentColor" stroke="none"/></>,

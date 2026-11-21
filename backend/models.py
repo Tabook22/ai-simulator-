@@ -156,3 +156,8 @@ class LlmGenerate(LlmPrompt):
     temperature: Annotated[FiniteFloat, Field(ge=0, le=2)] = 0.7
     seed: Annotated[int, Field(ge=0, le=2**32 - 1)] | None = None
 
+
+
+class TokenizeText(Model):
+    # A hard ceiling on the request; the friendly limit (tokenizer.MAX_CHARACTERS) is checked in the route.
+    text: Annotated[str, StringConstraints(max_length=200_000)] = ""

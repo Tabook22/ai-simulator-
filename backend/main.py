@@ -9,10 +9,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import engine, llm
+from . import engine, llm, tokenizer
 from .examples import EXAMPLES
 from .models import (AutoBackprop, Backprop, HouseTrain, Lesson, LlmGenerate, LlmGradients, LlmPrompt, LlmTrace,
-                     LlmTrain, Network, Resize, Train)
+                     LlmTrain, Network, Resize, TokenizeText, Train)
 from .house import house_case
 from .exam import exam_case
 from .presets import PRESETS
@@ -36,6 +36,8 @@ def create_app(database=None):
             db.executescript((ROOT / "schema.sql").read_text(encoding="utf-8"))
         _app.state.llm = llm.pretrained()
         _app.state.llm_lock = threading.Lock()
+        # Load the tokenizer vocabulary in the background (the first load may download it once).
+        threading.Thread(target=tokenizer.warm_up, daemon=True).start()
         yield
 
     app = FastAPI(title="Neuron Lab", lifespan=lifespan)
@@ -161,6 +163,20 @@ def create_app(database=None):
         with request.app.state.llm_lock:
             return request.app.state.llm.generate(body.prompt, body.count, body.temperature, body.seed)
 
+
+    @app.post("/api/tokenize")
+    def tokenize(body: TokenizeText):
+        if len(body.text) > tokenizer.MAX_CHARACTERS:
+            raise HTTPException(
+                413,
+                f"The text has {len(body.text):,} characters. The tokenizer accepts up to "
+                f"{tokenizer.MAX_CHARACTERS:,} characters (about eight pages). Shorten it and try again.",
+            )
+        try:
+            tokenizer.encoding()
+        except Exception as error:  # the vocabulary file could not be loaded (for example, no network on first run)
+            raise HTTPException(503, "The tokenizer could not load its vocabulary. Try again in a minute.") from error
+        return tokenizer.tokenize(body.text)
 
     @app.get("/api/lessons")
     def list_lessons():

@@ -110,7 +110,7 @@ const GROUPS: { title: string; terms: Term[] }[] = [
     terms: [
       { term: 'Large language model (LLM)', also: 'gpt chatbot', lab: 'llm',
         meaning: 'A very large neural network trained to predict the next token of text. Everything it writes is produced one token at a time.' },
-      { term: 'Token', also: 'word piece tokenizer', lab: 'llm',
+      { term: 'Token', also: 'word piece tokenizer', lab: 'tokenizer',
         meaning: 'A piece of text the model works with: a word, part of a word, or punctuation. Each token has a number (its id).' },
       { term: 'Vocabulary', also: 'vocab', lab: 'llm',
         meaning: 'The full list of tokens a model knows. The model’s output is one probability for every entry.' },

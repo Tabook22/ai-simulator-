@@ -13,3 +13,6 @@ frontend/shots/
 frontend/house_price_model.pt
 frontend/trained_network_model.pt
 frontend/learning_curves.png
+
+# tiktoken vocabulary cache
+backend/.tiktoken-cache/
