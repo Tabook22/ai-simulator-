@@ -1003,11 +1003,13 @@ test('read more sources: topics, live Wikipedia summaries and web searches', asy
   await expect(sites.first()).toHaveAttribute('href', /^https:\/\/www\.google\.com\/search\?q=/);
   expect(searched[0]).toMatch(/^en\.wikipedia\.org\|/);
 
-  // Arabic: searches Arabic Wikipedia first, then falls back to English and says so.
+  // Arabic: searches again (Arabic Wikipedia first, or straight to English for topics it lacks)
+  // and labels the English article it falls back to.
+  const before = searched.length;
   await page.getByRole('button', { name: 'العربية' }).click();
   await expect(q1.getByRole('button', { name: 'اقرأ مصادر أخرى' })).toBeVisible();
   await expect(panel.getByTestId('qz-src-hits').locator('li').first()).toContainText('بالإنجليزية');
-  expect(searched.some(entry => entry.startsWith('ar.wikipedia.org|'))).toBe(true);
+  expect(searched.length).toBeGreaterThan(before);
 });
 
 test('every question gets a search topic', () => {

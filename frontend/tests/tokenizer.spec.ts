@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { addVectors, averageVector, embeddingRow, formatNumber, inputVector, positionVector } from '../src/vectors';
 
 async function openTokenizer(page: Page) {
   await page.goto('/');
@@ -112,4 +113,45 @@ test('tokenizer: live counting as you type, in Arabic', async ({ page }) => {
   await page.getByTestId('tk-input').pressSequentially(' إلى الميناء.');
   await expect(page.getByTestId('tk-word-count')).toHaveText('4');
   await expect(page.getByTestId('tk-explain')).toContainText('الرمز قطعة من النص');
+});
+
+test('tokenizer: click a token to follow it into a vector, then the sentence vector', async ({ page }) => {
+  await openTokenizer(page);
+  await page.getByRole('button', { name: 'The ship reached the port.' }).click();
+  await expect(page.getByTestId('tk-token-count')).toHaveText('6');
+
+  // Click " ship" (ID 12407, position 2): the panel follows it.
+  await page.getByTestId('tk-cards').locator('.tk-card').nth(1).click();
+  const lab = page.getByTestId('vx-lab');
+  await expect(lab.getByTestId('vx-picked')).toContainText('12407');
+  await expect(lab.getByTestId('vx-badge')).toContainText('Demonstration table');
+
+  // Token row + position vector = input vector, number by number.
+  const row = embeddingRow(12407), place = positionVector(1), total = addVectors(row, place);
+  expect(place.slice(0, 2)).toEqual([0.84, 0.54]);
+  await expect(lab.getByTestId('vx-token-vector')).toHaveAttribute('aria-label', `Token vector: ${row.map(formatNumber).join(', ')}`);
+  await expect(lab.getByTestId('vx-input-vector')).toHaveAttribute('aria-label', `Input vector: ${total.map(formatNumber).join(', ')}`);
+
+  // The whole sentence: 6 rows, then the column averages.
+  await expect(lab.getByTestId('vx-matrix').locator('.vx-matrix-row:not(.head)')).toHaveCount(6);
+  const ids = [976, 12407, 15237, 290, 3135, 13];
+  const sentence = averageVector(ids.map((id, pos) => inputVector(id, pos)));
+  await expect(lab.getByTestId('vx-sentence-vector')).toHaveAttribute('aria-label', `Sentence vector: ${sentence.map(formatNumber).join(', ')}`);
+  await expect(lab.getByTestId('vx-average-sum')).toContainText(`÷ 6 = ${formatNumber(sentence[0])}`);
+
+  // Clicking a matrix row selects that token; the next button moves along.
+  await lab.getByTestId('vx-matrix').locator('.vx-matrix-row:not(.head)').nth(4).click();
+  await expect(lab.getByTestId('vx-picked')).toContainText('3135');
+  await lab.getByRole('button', { name: 'Next token' }).click();
+  await expect(lab.getByTestId('vx-picked')).toContainText('13');
+  await lab.getByRole('button', { name: 'Play the steps' }).click();
+  await expect(lab.locator('.vx-stage.spot')).toHaveCount(1);
+});
+
+test('vectors: same ID, same row; position changes the input vector', () => {
+  expect(embeddingRow(1645)).toEqual(embeddingRow(1645));
+  expect(embeddingRow(1645)).toHaveLength(8);
+  expect(inputVector(1645, 5)).not.toEqual(inputVector(1645, 8));
+  expect(positionVector(0)).toEqual([0, 1, 0, 1, 0, 1, 0, 1]);
+  expect(averageVector([[0.1, -0.385, 0, 0, 0, 0, 0, 0], [0.2, -0.385, 0, 0, 0, 0, 0, 0]])[1]).toBe(-0.39);
 });

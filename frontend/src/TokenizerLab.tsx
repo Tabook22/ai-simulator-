@@ -10,6 +10,7 @@ import { t, useTx } from './FineTuneScenes';
 import type { Text } from './FineTuneScenes';
 import { HERO_IDS, MAX_CHARACTERS, tokenize, visiblePiece } from './tokenizer';
 import type { Segment, TokenizeResult } from './tokenizer';
+import { VectorLab } from './VectorLab';
 
 const EXAMPLES: { text: string; name: Text }[] = [
   { text: 'The ship reached the port.', name: t('English sentence', 'جملة إنجليزية') },
@@ -71,7 +72,9 @@ function lineDirection(text: string): 'rtl' | 'ltr' {
 }
 
 /** Every token as a card: its piece on top and its ID number underneath, in the same colour as the text. */
-function TokenCards({ result, active, setActive }: { result: TokenizeResult; active: number | null; setActive: (index: number | null) => void }) {
+function TokenCards({ result, active, setActive, picked, onPick }: {
+  result: TokenizeResult; active: number | null; setActive: (index: number | null) => void; picked: number; onPick: (position: number) => void;
+}) {
   const say = useTx();
   // Start a new row after every line break, so the cards follow the lines of the text.
   const lines: number[][] = [[]];
@@ -85,9 +88,11 @@ function TokenCards({ result, active, setActive }: { result: TokenizeResult; act
       {line.map(index => {
         const segment = result.segments[index];
         const ids = segment.tokens.map(position => result.tokens[position].id);
-        return <div key={index} className={`tk-card c${index % 8}${active === index ? ' on' : ''}${ids.length > 1 ? ' multi' : ''}`}
+        return <div key={index} className={`tk-card c${index % 8}${active === index ? ' on' : ''}${segment.tokens.includes(picked) ? ' picked' : ''}${ids.length > 1 ? ' multi' : ''}`}
           style={index < 120 && !reducedMotion() ? { animationDelay: `${index * 22}ms` } : undefined}
-          onMouseEnter={() => setActive(index)} onClick={() => setActive(index)}
+          onMouseEnter={() => setActive(index)} onClick={() => { setActive(index); onPick(segment.tokens[0]); }}
+          role="button" tabIndex={0} aria-pressed={segment.tokens.includes(picked)}
+          onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onPick(segment.tokens[0]); } }}
           title={ids.length > 1 ? say(t(`One character split across ${ids.length} tokens`, `حرف واحد مقسوم على ${ids.length} رموز`)) : undefined}>
           <span className="tk-card-text" dir="auto"><CardText text={segment.text}/></span>
           <span className="tk-card-ids" dir="ltr">{ids.map((id, n) => <b key={n} data-keep>{id}</b>)}</span>
@@ -97,8 +102,8 @@ function TokenCards({ result, active, setActive }: { result: TokenizeResult; act
   </div>;
 }
 
-function Preview({ result, showSpaces, active, setActive }: {
-  result: TokenizeResult; showSpaces: boolean; active: number | null; setActive: (index: number | null) => void;
+function Preview({ result, showSpaces, active, setActive, onPick }: {
+  result: TokenizeResult; showSpaces: boolean; active: number | null; setActive: (index: number | null) => void; onPick: (position: number) => void;
 }) {
   const say = useTx();
   const box = useRef<HTMLDivElement>(null);
@@ -137,6 +142,7 @@ function Preview({ result, showSpaces, active, setActive }: {
     if (index === null) return;
     setFocusIndex(index);
     setActive(index);
+    onPick(segments[index].tokens[0]);
   };
   const move = (event: ReactKeyboardEvent) => {
     const keys: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
@@ -192,6 +198,7 @@ export function TokenizerLab() {
   const [error, setError] = useState<string | null>(null);
   const [showSpaces, setShowSpaces] = useState(false);
   const [active, setActive] = useState<number | null>(null);
+  const [picked, setPicked] = useState(0);
   const [tableOpen, setTableOpen] = useState(false);
   const request = useRef(0);
   const tooLong = text.length > MAX_CHARACTERS;
@@ -205,6 +212,7 @@ export function TokenizerLab() {
       const data = await tokenize(value);
       if (id !== request.current) return;
       setResult(data);
+      setPicked(0);
       setAnalyzed(value);
       setActive(null);
     } catch (problem) {
@@ -316,12 +324,12 @@ export function TokenizerLab() {
           </div>
           <p className="tk-hint">{say(t('Each coloured box is one token, with a line between neighbours. Hover, tap, or press Tab then the arrow keys to read its position and ID.',
             'كل مربع ملوّن رمز واحد، وبين كل رمزين خط فاصل. مرّر المؤشر أو انقر، أو اضغط Tab ثم الأسهم لقراءة موضعه ورقمه.'))}</p>
-          <Preview result={result} showSpaces={showSpaces} active={active} setActive={setActive}/>
+          <Preview result={result} showSpaces={showSpaces} active={active} setActive={setActive} onPick={setPicked}/>
           {result.token_count <= CARD_LIMIT
             ? <section className="tk-cards-wrap" aria-label={say(t('Each token and its ID', 'كل رمز ورقمه'))}>
               <h3><Icon name="tokens" size={16}/>{say(t('Each token and its ID', 'كل رمز ورقمه'))}
-                <small>{say(t('the piece on top, the number the model reads underneath', 'القطعة في الأعلى، والرقم الذي يقرؤه النموذج تحتها'))}</small></h3>
-              <TokenCards result={result} active={active} setActive={setActive}/>
+                <small>{say(t('the piece on top, the number the model reads underneath. Click a token to see its vector.', 'القطعة في الأعلى، والرقم الذي يقرؤه النموذج تحتها. انقر رمزًا لترى متجهه.'))}</small></h3>
+              <TokenCards result={result} active={active} setActive={setActive} picked={picked} onPick={setPicked}/>
             </section>
             : <p className="tk-many" data-testid="tk-many"><Icon name="tokens" size={16}/><span>{say(t(
               `This text has ${format(result.token_count)} tokens, too many to list one by one. Hover, tap or use the arrow keys on the text above to see any token's ID, or open the table below.`,
@@ -347,6 +355,8 @@ export function TokenizerLab() {
                 '· مسافة، و ↵ فاصل سطر، و → مسافة جدولة. و ⟨D8 A8⟩ بايتات خام لرمز يحمل جزءًا من حرف فقط.'))}</p>
             </div>}
           </details>
+
+          <VectorLab result={result} picked={Math.min(picked, result.tokens.length - 1)} onPick={setPicked}/>
         </>}
     </div>}
 
