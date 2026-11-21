@@ -11,34 +11,15 @@ import { Icon } from './ui';
 import { t, useTx } from './FineTuneScenes';
 import { visiblePiece } from './tokenizer';
 import type { TokenizeResult } from './tokenizer';
-import { DIMS, VOCAB_SIZE, addVectors, averageVector, embeddingRow, formatNumber, inputVector, positionVector } from './vectors';
+import { DIMS, VOCAB_SIZE, addVectors, averageVector, embeddingRow, formatNumber, heat, inputVector, positionVector } from './vectors';
+import { EmbeddingStory } from './EmbeddingStory';
+import { VecBars } from './VecBars';
 
 const MATRIX_ROWS = 40;
 const STEP_MS = 1900;
 const dims = Array.from({ length: DIMS }, (_, d) => d);
 const format = (value: number) => value.toLocaleString('en-US');
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-/** A colour for one number: cyan when positive, pink when negative, stronger when larger. */
-function heat(value: number): CSSProperties {
-  const strength = Math.min(1, Math.abs(value) / 1.6);
-  const tone = value >= 0 ? '94, 231, 255' : '255, 143, 208';
-  return { background: `rgba(${tone}, ${0.12 + strength * 0.62})`, color: strength > 0.55 ? '#06101f' : '#eef2ff' };
-}
-
-/** A vector drawn as eight bars around a zero line, each with its number. */
-function VecBars({ values, tone, label, testId }: { values: number[]; tone: string; label: string; testId?: string }) {
-  return <div className="vx-bars" style={{ '--vx-tone': tone } as CSSProperties} data-testid={testId} role="img"
-    aria-label={`${label}: ${values.map(formatNumber).join(', ')}`}>
-    {values.map((value, d) => <div key={d} className="vx-bar">
-      <span className="vx-num" dir="ltr">{formatNumber(value)}</span>
-      <span className="vx-track">
-        <i className={value >= 0 ? 'up' : 'down'} style={{ height: `${Math.min(50, Math.abs(value) / 1.6 * 50)}%`, animationDelay: `${d * 40}ms` }}/>
-      </span>
-      <small dir="ltr">d{d + 1}</small>
-    </div>)}
-  </div>;
-}
 
 /** Three vectors lined up column by column: token row + position = input vector. */
 function SumTable({ token, position, total }: { token: number[]; position: number[]; total: number[] }) {
@@ -97,6 +78,8 @@ export function VectorLab({ result, picked, onPick }: { result: TokenizeResult; 
         `Demonstration table: ${DIMS} numbers per token, fixed for each ID but not learned, so they carry no meaning. GPT-4o’s real table is not public and has thousands of numbers per token.`,
         `جدول توضيحي: ${DIMS} أرقام لكل رمز، ثابتة لكل رقم رمز لكنها غير متعلَّمة، فلا تحمل معنى. جدول GPT-4o الحقيقي غير منشور، وفيه آلاف الأرقام لكل رمز.`))}</span></p>
     </header>
+
+    <EmbeddingStory result={result} picked={Math.min(picked, tokens.length - 1)} onPick={onPick}/>
 
     <div className="vx-picker">
       <button type="button" className="button small" disabled={picked <= 0} onClick={() => onPick(picked - 1)} aria-label={say(t('Previous token', 'الرمز السابق'))}>

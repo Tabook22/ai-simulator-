@@ -100,3 +100,16 @@ def test_hero_animation_uses_the_real_ids():
     source = (Path(__file__).resolve().parents[1] / "frontend" / "src" / "tokenizer.ts").read_text(encoding="utf-8")
     hero = [int(n) for n in re.search(r"HERO_IDS = \[([^\]]+)\]", source).group(1).split(",")]
     assert hero == ENC.encode("The ship reached the port.")
+
+
+def test_embedding_story_examples_use_real_ids():
+    """The " bank" and " photosynthesis" examples on the page use real o200k_base IDs."""
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "frontend" / "src" / "EmbeddingStory.tsx").read_text(encoding="utf-8")
+    assert "BANK_ID = 6922" in source
+    assert ENC.encode("I sat on the river bank.") == [40, 10139, 402, 290, 20608, 6922, 13]
+    assert ENC.encode("I opened a bank account.") == [40, 13906, 261, 6922, 3527, 13]
+    assert "[[40, 'I'], [10139, ' sat'], [402, ' on'], [290, ' the'], [20608, ' river'], [6922, ' bank'], [13, '.']]" in source
+    assert "[[40, 'I'], [13906, ' opened'], [261, ' a'], [6922, ' bank'], [3527, ' account'], [13, '.']]" in source
+    assert ENC.encode(" photosynthesis") == [8309, 73972]
+    assert "{ id: 8309, piece: ' photos' }, { id: 73972, piece: 'ynthesis' }" in source

@@ -7,6 +7,7 @@
  * The steps are the real ones: look up the row for the ID, add a position vector, then average the
  * token vectors to get one vector for the whole sentence (mean pooling).
  */
+import type { CSSProperties } from 'react';
 
 export const DIMS = 8;
 export const VOCAB_SIZE = 200_019; // o200k_base has token IDs 0 … 200,018
@@ -64,3 +65,13 @@ export function averageVector(rows: number[][]): number[] {
 }
 
 export const formatNumber = (value: number) => (value >= 0 ? '+' : '−') + Math.abs(value).toFixed(2);
+
+/** A colour for one number: cyan when positive, pink when negative, stronger when larger. */
+export function heat(value: number): CSSProperties {
+  const strength = Math.min(1, Math.abs(value) / 1.6);
+  const tone = value >= 0 ? '94, 231, 255' : '255, 143, 208';
+  return { background: `rgba(${tone}, ${0.12 + strength * 0.62})`, color: strength > 0.55 ? '#06101f' : '#eef2ff' };
+}
+
+/** Blend two vectors: (1 − share) of `a` plus `share` of `b`. */
+export const mixVectors = (a: number[], b: number[], share: number) => a.map((value, d) => round(value * (1 - share) + b[d] * share));

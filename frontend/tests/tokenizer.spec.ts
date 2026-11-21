@@ -155,3 +155,43 @@ test('vectors: same ID, same row; position changes the input vector', () => {
   expect(positionVector(0)).toEqual([0, 1, 0, 1, 0, 1, 0, 1]);
   expect(averageVector([[0.1, -0.385, 0, 0, 0, 0, 0, 0], [0.2, -0.385, 0, 0, 0, 0, 0, 0]])[1]).toBe(-0.39);
 });
+
+test('tokenizer: the big picture links words, tokens, IDs and table rows', async ({ page }) => {
+  await page.setViewportSize({ width: 1400, height: 1000 });
+  await openTokenizer(page);
+  await analyze(page, 'The ship reached the port. Plants use photosynthesis in the port.');
+  await page.getByTestId('tk-cards').locator('.tk-card').nth(1).click();
+  const story = page.getByTestId('ex-story');
+
+  // Four panels: sentence → tokenizer → table row → starting vector, for " ship" (ID 12407).
+  const glance = story.getByTestId('ex-glance');
+  await expect(glance.locator('mark')).toHaveText(' ship');
+  await expect(glance).toContainText('Look up row 12407');
+  await expect(story.getByTestId('ex-g-vector')).toHaveText(`[${embeddingRow(12407).map(formatNumber).join(', ')}]`);
+
+  // Words above tokens: "photosynthesis" is two tokens; punctuation is not counted as part of a word.
+  await expect(story.getByTestId('ex-split')).toHaveText(/“photosynthesis” is split into several tokens/);
+  // " the" and " port" appear twice: 2 tokens, 1 row each.
+  await expect(story.getByTestId('ex-shared')).toHaveCount(3);
+  await story.screenshot({ path: 'test-results/embedding-story.png' });
+
+  // Training moves the numbers; the ID stays.
+  await story.getByLabel('Training progress').fill('100');
+  await expect(story.getByTestId('ex-time').locator('li.done')).toHaveCount(3);
+
+  // " bank": same starting vector in both sentences, different after (toy) attention.
+  const start = await story.getByTestId('ex-bank-start-0').getAttribute('aria-label');
+  await expect(story.getByTestId('ex-bank-start-1')).toHaveAttribute('aria-label', start!);
+  expect(await story.getByTestId('ex-bank-after-0').getAttribute('aria-label')).not.toBe(await story.getByTestId('ex-bank-after-1').getAttribute('aria-label'));
+
+  // Clicking a column selects that token everywhere.
+  await story.getByTestId('ex-flow').getByRole('button', { name: /Token 9,/ }).click();
+  await expect(page.getByTestId('vx-picked')).toContainText('8309');
+
+  await page.getByRole('button', { name: 'العربية' }).click();
+  await expect(story).toContainText('الفكرة الأساسية');
+  await expect(story.getByTestId('ex-glance').locator('.ex-g-sentence')).toContainText('Plants use photos');
+  await page.setViewportSize({ width: 390, height: 900 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await story.screenshot({ path: 'test-results/embedding-story-ar-mobile.png' });
+});

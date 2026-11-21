@@ -8,6 +8,9 @@ export interface Token {
   /** The token's raw UTF-8 bytes in hex, e.g. "D8 A8". */
   bytes: string;
   partial: boolean;
+  /** Where the token starts and ends in the text, counted in characters (code points). */
+  start: number;
+  end: number;
 }
 
 /** A coloured piece of the preview: one token, or several tokens that share a character. */
