@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { BANK, BANK_SIZE } from '../src/quiz/bank';
+import { RESOURCES, STEPS } from '../src/quiz/learnMore';
 
 /** The lab shows one part at a time; open a part, then one of its Watch / Try / Remember tabs. */
 const PARTS = ['why', 'words', 'data', 'freeze', 'lora', 'quant', 'qlora', 'unsloth', 'step', 'workflow', 'hybrid', 'rag', 'recipe', 'turath', 'vision', 'utas'];
@@ -903,9 +904,22 @@ test('check yourself: five question kinds, fresh sets, scoring', async ({ page }
   await quiz.getByRole('tab', { name: /Multiple choice/ }).click();
   await expect(quiz.locator('.qz-q')).toHaveCount(10);
   const first = await quiz.locator('.qz-q').evaluateAll(items => items.map(item => item.getAttribute('data-qid')));
-  await quiz.locator('.qz-q').first().locator('.qz-options button').first().click();
-  await expect(quiz.locator('.qz-q').first().getByTestId('qz-feedback')).toBeVisible();
+  const q1 = quiz.locator('.qz-q').first();
+  await q1.locator('.qz-options button').first().click();
+  await expect(q1.getByTestId('qz-feedback')).toHaveCount(0);
+  await q1.getByRole('button', { name: 'Check my answer' }).click();
+  await expect(q1.getByTestId('qz-feedback')).toBeVisible();
   await expect(quiz.locator('.qz-progress')).toContainText('1 of 10 answered');
+
+  // Explain it step by step: numbered reasons that end with the answer.
+  await q1.getByRole('button', { name: 'Explain it step by step' }).click();
+  await expect(q1.getByTestId('qz-steps').locator('li').first()).toBeVisible();
+  expect(await q1.getByTestId('qz-steps').locator('li').count()).toBeGreaterThanOrEqual(3);
+  await expect(q1.getByTestId('qz-steps')).toContainText('So the answer is:');
+  // Learn more: the lab part, key words and trusted resources.
+  await q1.getByRole('button', { name: 'Learn more' }).click();
+  await expect(q1.getByTestId('qz-more')).toContainText('Read it again in the lab');
+  await expect(q1.getByTestId('qz-more').locator('a[target="_blank"]').first()).toHaveAttribute('rel', /noopener/);
 
   // A new set brings different questions (unseen ones first).
   await quiz.getByRole('button', { name: 'New questions' }).click();
@@ -917,6 +931,8 @@ test('check yourself: five question kinds, fresh sets, scoring', async ({ page }
   const blank = quiz.locator('.qz-q').first();
   await blank.locator('.qz-options button').first().click();
   await expect(blank.locator('.qz-blank')).not.toHaveText(/^\s*$/);
+  await blank.getByRole('button', { name: 'Check my answer' }).click();
+  await expect(blank.getByRole('button', { name: 'Explain it step by step' })).toBeVisible();
 
   // Explain in your words: key points and a model answer.
   await quiz.getByRole('tab', { name: /Explain in your words/ }).click();
@@ -935,9 +951,29 @@ test('check yourself: five question kinds, fresh sets, scoring', async ({ page }
   }
   await link.getByRole('button', { name: 'Check the links' }).click();
   await expect(link.getByTestId('qz-feedback')).toContainText('of 4 linked correctly');
+  await link.getByRole('button', { name: 'Explain it step by step' }).click();
+  await expect(link.getByTestId('qz-steps')).toBeVisible();
 
   // Look at the picture: every question has a drawn figure.
   await quiz.getByRole('tab', { name: /Look at the picture/ }).click();
   await expect(quiz.locator('.qz-q')).toHaveCount(5);
   await expect(quiz.locator('.qz-q svg.qz-fig')).toHaveCount(5);
+});
+
+test('every question has a step-by-step explanation and every part has resources', () => {
+  for (const question of Object.values(BANK).flat()) {
+    const steps = STEPS[question.id];
+    expect(steps, question.id).toBeDefined();
+    expect(steps.length, question.id).toBeGreaterThanOrEqual(3);
+    for (const [en, ar] of steps) {
+      expect(en.length, question.id).toBeGreaterThan(10);
+      expect(ar.length, question.id).toBeGreaterThan(10);
+    }
+  }
+  expect(Object.keys(STEPS)).toHaveLength(225);
+  expect(RESOURCES).toHaveLength(16);
+  for (const list of RESOURCES) {
+    expect(list.length).toBeGreaterThanOrEqual(2);
+    for (const resource of list) expect(resource.url).toMatch(/^https:\/\//);
+  }
 });

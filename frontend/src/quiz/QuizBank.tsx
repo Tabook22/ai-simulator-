@@ -13,6 +13,8 @@ import { t, useTx } from '../FineTuneScenes';
 import type { Text } from '../FineTuneScenes';
 import { BANK, BANK_SIZE } from './bank';
 import { Figure } from './Figure';
+import { RESOURCES, STEPS } from './learnMore';
+import { GLOSSARY } from '../lessonContent';
 import type { Choice, ExplainQuestion, ImageQuestion, Kind, MatchQuestion, Question } from './types';
 
 const cls = (...names: (string | false | null | undefined)[]) => names.filter(Boolean).join(' ');
@@ -69,25 +71,80 @@ function PartLink({ part }: { part: number }) {
 
 type Report = (id: string, score: number) => void;
 
+/**
+ * The two help buttons shown after a question is checked:
+ * "Explain it step by step" (numbered reasons ending with the answer) and "Learn more" (where to read further).
+ */
+function Help({ question, answer }: { question: { id: string; part: number }; answer: string }) {
+  const say = useTx();
+  const nav = usePartNav();
+  const [open, setOpen] = useState<'steps' | 'more' | null>(null);
+  const steps = STEPS[question.id] ?? [];
+  const words = GLOSSARY.filter(term => term.part === question.part + 1).slice(0, 4);
+  const toggle = (panel: 'steps' | 'more') => setOpen(current => current === panel ? null : panel);
+  return <div className="qz-help">
+    <div className="qz-help-buttons">
+      <button type="button" className={cls('qz-help-btn steps', open === 'steps' && 'on')} aria-expanded={open === 'steps'} onClick={() => toggle('steps')}>
+        <Icon name="bulb" size={14}/>{say(t('Explain it step by step', 'اشرح لي خطوة خطوة'))}</button>
+      <button type="button" className={cls('qz-help-btn more', open === 'more' && 'on')} aria-expanded={open === 'more'} onClick={() => toggle('more')}>
+        <Icon name="book" size={14}/>{say(t('Learn more', 'تعلّم المزيد'))}</button>
+    </div>
+    {open === 'steps' && <div className="qz-steps" data-testid="qz-steps">
+      <b className="qz-steps-title">{say(t('Let’s work it out together', 'لنفكّر فيها معًا'))}</b>
+      <ol>{steps.map(([en, ar], index) => <li key={index} style={{ animationDelay: `${index * 0.12}s` }}>
+        <span className="qz-step-n" dir="ltr">{index + 1}</span><p>{say(t(en, ar))}</p></li>)}</ol>
+      <p className="qz-so"><Icon name="check" size={14}/><span><strong>{say(t('So the answer is: ', 'إذن الإجابة هي: '))}</strong>{answer}</span></p>
+    </div>}
+    {open === 'more' && <div className="qz-more" data-testid="qz-more">
+      <div className="qz-more-block">
+        <b><Icon name="layers" size={13}/>{say(t('Read it again in the lab', 'اقرأه مجددًا في المختبر'))}</b>
+        <button type="button" className="lx-link" onClick={() => nav.go(question.part)}>
+          {say(t(`Part ${question.part + 1}`, `الجزء ${question.part + 1}`))}: {say(nav.parts[question.part].label)}<Icon name="next" size={11}/></button>
+        <small>{say(t('Watch its animation, then try its tools: they show this idea step by step.', 'شاهد رسومه المتحركة ثم جرّب أدواته: إنها تُري هذه الفكرة خطوة خطوة.'))}</small>
+      </div>
+      {words.length > 0 && <div className="qz-more-block">
+        <b><Icon name="bookmark" size={13}/>{say(t('Key words, in plain language', 'كلمات أساسية بلغة بسيطة'))}</b>
+        <dl className="qz-words">{words.map(term => <div key={term.name.en}><dt>{say(term.name)}</dt><dd>{say(term.plain)}</dd></div>)}</dl>
+      </div>}
+      <div className="qz-more-block">
+        <b><Icon name="external" size={13}/>{say(t('Trusted resources to go further', 'مصادر موثوقة للتوسع'))}</b>
+        <ul className="qz-links">{(RESOURCES[question.part] ?? []).map(resource => <li key={resource.url}>
+          <a href={resource.url} target="_blank" rel="noopener noreferrer">{say(t(...resource.title))}</a>
+          <small>{say(t(...resource.kind))}{say(t(' · in English', ' · بالإنجليزية'))}</small></li>)}</ul>
+        <small>{say(t('Tip: ask your teacher to go through one of these with you.', 'نصيحة: اطلب من معلمك أن يراجع أحدها معك.'))}</small>
+      </div>
+    </div>}
+  </div>;
+}
+
 // ------------------------------------------------------------- choice (mcq, fill, image)
 
 function ChoiceCard({ question, onDone }: { question: Choice & { kind: 'mcq' | 'fill' | 'image' }; onDone: Report }) {
   const say = useTx();
   const order = useMemo(() => shuffle(question.options.map((_, index) => index)), [question]);
+  const [selected, setSelected] = useState<number | null>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const ask = say(question.ask);
   const blank = question.kind === 'fill' ? ask.split('____') : null;
-  const choose = (index: number) => { setPicked(index); onDone(question.id, index === question.right ? 1 : 0); };
+  const check = () => { if (selected === null) return; setPicked(selected); onDone(question.id, selected === question.right ? 1 : 0); };
+  const rightText = say(question.options[question.right]);
+  const answer = blank && blank.length === 2 ? `${blank[0]}${rightText}${blank[1]}`.trim() : rightText;
   return <>
     {question.kind === 'image' && <Figure spec={(question as ImageQuestion).figure}/>}
     <p className="qz-ask">{blank && blank.length === 2
-      ? <>{blank[0]}<span className={cls('qz-blank', picked !== null && (picked === question.right ? 'right' : 'wrong'))}>{picked === null ? ' '.repeat(10) : say(question.options[picked])}</span>{blank[1]}</>
+      ? <>{blank[0]}<span className={cls('qz-blank', picked !== null && (picked === question.right ? 'right' : 'wrong'))}>{picked === null ? selected !== null ? say(question.options[selected]) : ' '.repeat(10) : say(question.options[picked])}</span>{blank[1]}</>
       : ask}</p>
     <div className="qz-options">{order.map(index => <button key={index} type="button" disabled={picked !== null}
-      className={picked === null ? '' : index === question.right ? 'right' : index === picked ? 'wrong' : ''} onClick={() => choose(index)}>
+      className={picked === null ? (index === selected ? 'selected' : '') : index === question.right ? 'right' : index === picked ? 'wrong' : ''}
+      aria-pressed={picked === null ? index === selected : undefined} onClick={() => setSelected(index)}>
       {say(question.options[index])}</button>)}</div>
-    {picked !== null && <p className={cls('qz-why', picked === question.right ? 'right' : 'wrong')} data-testid="qz-feedback">
-      <strong>{picked === question.right ? say(t('Correct.', 'صحيح.')) : say(t('Not quite.', 'ليس تمامًا.'))}</strong> {say(question.why)}</p>}
+    {picked === null
+      ? <button type="button" className="button small primary qz-check" disabled={selected === null} onClick={check}><Icon name="check" size={13}/>{say(t('Check my answer', 'افحص إجابتي'))}</button>
+      : <>
+        <p className={cls('qz-why', picked === question.right ? 'right' : 'wrong')} data-testid="qz-feedback">
+          <strong>{picked === question.right ? say(t('Correct!', 'صحيح!')) : say(t(`Not quite. The right answer is: ${question.options[question.right].en}.`, `ليس تمامًا. الإجابة الصحيحة: ${question.options[question.right].ar}.`))}</strong> {say(question.why)}</p>
+        <Help question={question} answer={answer}/>
+      </>}
   </>;
 }
 
@@ -123,6 +180,7 @@ function ExplainCard({ question, onDone }: { question: ExplainQuestion; onDone: 
         <small>{say(t('The check looks for key words, so it can miss your wording: tick a point yourself if you covered it.', 'يبحث الفحص عن كلمات مفتاحية فقد يفوته تعبيرك: ضع علامة على النقطة بنفسك إن غطيتها.'))}</small>
         <div className="qz-model"><b>{say(t('A model answer', 'إجابة نموذجية'))}</b><p>{say(question.model)}</p></div>
       </div>}
+    {checked !== null && <Help question={question} answer={say(question.model)}/>}
   </>;
 }
 
@@ -166,6 +224,7 @@ function MatchCard({ question, onDone }: { question: MatchQuestion; onDone: Repo
       ? <button type="button" className="button small primary" disabled={placed.size < question.pairs.length} onClick={check}><Icon name="check" size={13}/>{say(t('Check the links', 'افحص الروابط'))}</button>
       : <p className={cls('qz-why', score === question.pairs.length ? 'right' : 'wrong')} data-testid="qz-feedback">
         <strong>{say(t(`${score} of ${question.pairs.length} linked correctly.`, `${score} من ${question.pairs.length} روابط صحيحة.`))}</strong> {say(question.why)}</p>}
+    {checked && <Help question={question} answer={question.pairs.map(([left, right]) => `${say(left)} → ${say(right)}`).join(' · ')}/>}
   </>;
 }
 
