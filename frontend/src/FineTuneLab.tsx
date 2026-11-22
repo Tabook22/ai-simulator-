@@ -23,6 +23,7 @@ import { RelayScene } from './RelayScene';
 import { CourseBrief, ModelChoice, ProjectRoadmap, RecipeScene, WhoDoesWhat } from './ProjectsOverview';
 import { ChunkingLab, CitedAnswer, IndexScene, QueryScene, RagDoctor, RagInProjects, RagIntro, SearchLab, TokensToVectors } from './RagDeep';
 import { VectorDatabases } from './VectorDatabases';
+import { KnowledgeStructures } from './KnowledgeStructures';
 import {
   ArchitectureLayers, ArchiveSearch, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
   ProjectGuide, RecordToJsonl, ReferenceSplit, SystemDesign, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
@@ -645,7 +646,7 @@ export function FineTuneLab() {
               'RAG هو العملية كلها: خطوة بحث تجد المقتطفات والمراجع، ونموذج لغوي مثل Qwen يقرؤها ويكتب الإجابة. والضبط الدقيق اختياري، وقد يساعد Qwen على قراءة الأدلة التراثية بأمانة أكبر. النموذج لا يعرف إلا بيانات تدريبه، وقد يختلق إجابات سلسة، ولا يستطيع أن يبيّن مصدر المعلومة، ويجب أن يُعاد تدريبه ليتعلم أي جديد. ويعالج RAG الأربعة: وثائقك أنت، وإجابات مؤسَّسة، ومصدر لكل معلومة، وتحديث بإعادة فهرسة وثيقة. وكلا المشروعين الطلابيين يعتمدان عليه.'),
             tryIt: tx('Play both scenes. Then, in the chunking lab, find a size and strategy that keeps the test answer in one chunk; compare the similarity of the resin sentences; search “What is Al-Bar’ah?” with and without hybrid search; and click a citation to see its source. Then compare three versions of Qwen on the same two interviews, pick a test result on the fix ladder, switch between the two fair-test results, and read the claim, put precisely.',
               'شغّل المشهدين. ثم ابحث في مختبر التقطيع عن حجم وطريقة يُبقيان إجابة الاختبار في مقطع واحد، وقارن تشابه جمل الراتنج، وابحث عن “ما هي البرعة؟” مع البحث الهجين ودونه، وانقر استشهادًا لترى مصدره. ثم قارن ثلاث نسخ من Qwen على المقابلتين نفسيهما، واختر نتيجة اختبار في سلّم الإصلاح، وبدّل بين نتيجتي الاختبار العادل، واقرأ الادعاء بدقة.'),
-          }}><RagIntro/><ChunkingLab/><TokensToVectors/><VectorDatabases/><SearchLab/><CitedAnswer/><WhoWritesAnswer/><RagInProjects/><RagDoctor/><FixLadder/><FairTest/><HeritageClaim/></Stage>,
+          }}><RagIntro/><ChunkingLab/><TokensToVectors/><VectorDatabases/><KnowledgeStructures/><SearchLab/><CitedAnswer/><WhoWritesAnswer/><RagInProjects/><RagDoctor/><FixLadder/><FairTest/><HeritageClaim/></Stage>,
 
         <Stage index={12} summary={tx('open model + RAG + fine-tuning (+ vision)', 'نموذج مفتوح + RAG + ضبط دقيق (+ رؤية)')} scene={<RecipeScene/>}
           flow={tx('the first project in full: TurathAI', 'المشروع الأول كاملًا: تراث AI')}

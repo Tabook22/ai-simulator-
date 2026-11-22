@@ -1,0 +1,137 @@
+/* Part 12: taxonomy, ontology, knowledge graph and semantics (prefix kn-) */
+.kn { display: grid; gap: 12px; }
+.kn-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.kn-tabs button { --tone: #60a5fa; display: flex; align-items: center; gap: 7px; padding: 9px 11px; border-radius: 12px; border: 1px solid #ffffff1f; background: #ffffff06; color: #d6def4; font: inherit; font-size: .86em; font-weight: 700; text-align: start; cursor: pointer; transition: background .2s, border-color .2s; }
+.kn-tabs button:hover { border-color: var(--tone); }
+.kn-tabs button .num { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #ffffff14; font-size: .8em; }
+.kn-tabs button svg { flex: none; color: var(--tone); }
+.kn-tabs button.on { border-color: var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent); color: #fff; }
+.kn-tabs button.on .num { background: var(--tone); color: #06142c; }
+
+.kn-panel { --tone: #60a5fa; display: grid; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent); background: #060a18; }
+.kn-def p { margin: 0; color: #dbe3f8; font-size: .92em; line-height: 1.6; }
+.kn-def .kn-q { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-bottom: 4px; color: #aab6d6; }
+.kn-def .kn-q svg { color: var(--tone); }
+.kn-def .kn-q b { color: var(--tone); font-size: 1.05em; }
+.kn-view { display: grid; gap: 10px; }
+.kn-caption { margin: 0; color: #aab6d6; font-size: .86em; line-height: 1.6; }
+
+/* taxonomy tree */
+.kn-tree, .kn-tree ul { list-style: none; margin: 0; padding: 0; }
+.kn-tree ul { padding-inline-start: 26px; }
+.kn-tree li { position: relative; padding: 5px 0; }
+.kn-tree ul li::before { content: ''; position: absolute; inset-inline-start: -16px; top: 0; bottom: 0; border-inline-start: 1.5px solid #5ee7ff55; }
+.kn-tree ul li:last-child::before { bottom: auto; height: 20px; }
+.kn-tree ul li::after { content: ''; position: absolute; inset-inline-start: -16px; top: 20px; width: 12px; border-top: 1.5px solid #5ee7ff55; }
+.kn-node { display: inline-block; padding: 5px 11px; border-radius: 10px; border: 1px solid #ffffff22; background: #ffffff08; color: #dbe3f8; font-size: .88em; }
+.kn-node.root { border-color: #5ee7ff; color: #fff; font-weight: 800; }
+.kn-node.leaf { border-style: dashed; }
+.kn-node.focus { border: 1.5px solid #5ef2a0; color: #fff; font-weight: 700; box-shadow: 0 0 14px -6px #5ef2a0; }
+
+/* ontology */
+.kn-classes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.kn-class { display: grid; gap: 4px; align-content: start; padding: 10px 12px; border-radius: 12px; border: 1px solid #a78bfa66; background: #a78bfa0d; }
+.kn-class > b { color: #c4b5fd; font-family: ui-monospace, monospace; }
+.kn-class > small { color: #aab6d6; font-size: .8em; }
+.kn-class ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
+.kn-class li { display: grid; gap: 1px; }
+.kn-class code { color: #fff; font-size: .82em; }
+.kn-class li span { color: #aab6d6; font-size: .8em; }
+.kn-rules { display: grid; gap: 4px; }
+.kn-rules p { display: flex; gap: 7px; margin: 0; color: #dbe3f8; font-size: .87em; line-height: 1.55; }
+.kn-rules svg { flex: none; margin-top: 3px; color: #a78bfa; }
+
+/* knowledge graph */
+.kn-queries { display: flex; flex-wrap: wrap; gap: 6px; }
+.kn-queries button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; border: 1px solid #ffffff26; background: #ffffff08; color: #d6def4; font: inherit; font-size: .84em; cursor: pointer; }
+.kn-queries button:hover { border-color: #5ef2a0; }
+.kn-queries button.on { background: #5ef2a0; border-color: #5ef2a0; color: #04201c; font-weight: 700; }
+.kn-graph { width: 100%; height: auto; max-height: 340px; }
+.kn-edge line { stroke: #ffffff30; stroke-width: 1.5; transition: stroke .25s, opacity .25s; }
+.kn-edge text { fill: #8f9bbd; font-size: 11px; font-family: ui-monospace, monospace; paint-order: stroke; stroke: #060a18; stroke-width: 4px; }
+.kn-edge.on line { stroke: #5ef2a0; stroke-width: 2.5; }
+.kn-edge.on text { fill: #5ef2a0; font-weight: 700; }
+.kn-edge.dim, .kn-gnode.dim { opacity: .3; }
+.kn-gnode { transition: opacity .25s; }
+.kn-gnode rect { fill: #0b1226; stroke-width: 1.5; }
+.kn-gnode text { fill: #e6edff; font-size: 12.5px; font-weight: 600; }
+.kn-gnode.focus rect { fill: #0f2a26; stroke: #5ef2a0; }
+.kn-gnode.material rect { stroke: #ffc46b; }
+.kn-gnode.occasion rect { stroke: #f472b6; }
+.kn-gnode.class rect { stroke: #a78bfa; }
+.kn-gnode.source rect { stroke: #5ee7ff; stroke-dasharray: 4 3; }
+.kn-triples { display: flex; flex-wrap: wrap; gap: 5px; }
+.kn-triples code { padding: 3px 8px; border-radius: 8px; background: #ffffff08; border: 1px solid #ffffff14; color: #c4cee9; font-size: .78em; transition: opacity .25s, border-color .25s; }
+.kn-triples code b { color: #93c5fd; }
+.kn-triples code.on { border-color: #5ef2a0; color: #fff; }
+.kn-triples code.on b { color: #5ef2a0; }
+.kn-triples code.dim { opacity: .35; }
+
+/* semantics */
+.kn-sem { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.kn-sem-card { display: grid; gap: 8px; align-content: start; justify-items: start; padding: 10px 12px; border-radius: 12px; border: 1px solid #ffc46b55; background: #ffc46b0a; }
+.kn-sem-card h6 { margin: 0; color: #ffd796; font-size: .88em; }
+.kn-sem-card p { margin: 0; color: #c4cee9; font-size: .84em; line-height: 1.55; }
+.kn-sem-card > svg { color: #ffc46b; }
+.kn-labels { display: flex; flex-wrap: wrap; gap: 5px; }
+.kn-labels span { padding: 3px 9px; border-radius: 999px; background: #ffffff0d; border: 1px solid #ffffff22; color: #fff; font-size: .84em; }
+.kn-id { padding: 4px 10px; border-radius: 8px; background: #ffc46b; color: #261600; font-weight: 800; font-size: .84em; }
+.kn-split { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+.kn-split span { display: grid; gap: 3px; padding: 7px 9px; border-radius: 10px; background: #ffffff08; border: 1px solid #ffffff14; }
+.kn-split b { color: #fff; }
+.kn-split small { color: #aab6d6; font-size: .78em; line-height: 1.4; }
+.kn-split code { color: #ffd796; font-size: .74em; overflow-wrap: anywhere; }
+
+/* comparison table */
+.kn-table { display: grid; gap: 4px; }
+.kn-table .row { --tone: #60a5fa; display: grid; grid-template-columns: minmax(130px, .8fr) repeat(3, minmax(0, 1fr)); gap: 10px; align-items: center; padding: 9px 12px; border-radius: 10px; background: #060a18; border: 1px solid #ffffff10; border-inline-start: 3px solid var(--tone); font-size: .86em; line-height: 1.5; color: #dbe3f8; transition: background .25s; }
+.kn-table .head { background: none; border: 0; color: #fff; font-weight: 800; font-size: .78em; text-transform: uppercase; letter-spacing: .05em; }
+.kn-table .row b { color: var(--tone); }
+.kn-table .row.on { background: color-mix(in srgb, var(--tone) 10%, #060a18); }
+.kn-table .row small { display: none; }
+
+/* ladder, uses and summary */
+.kn-ladder { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: kn; }
+.kn-ladder li { --tone: #60a5fa; display: flex; align-items: flex-start; gap: 9px; padding: 9px 12px; border-radius: 12px; background: #060a18; border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent); color: #dbe3f8; font-size: .9em; line-height: 1.55; }
+.kn-ladder li:nth-child(2) { margin-inline-start: 18px; }
+.kn-ladder li:nth-child(3) { margin-inline-start: 36px; }
+.kn-ladder li:nth-child(4) { margin-inline-start: 54px; }
+.kn-ladder svg { flex: none; margin-top: 3px; color: var(--tone); }
+.kn-ladder b { color: var(--tone); }
+.kn-uses { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kn-uses > div { padding: 11px 13px; border-radius: 14px; border: 1px solid #ffffff1a; background: #ffffff05; }
+.kn-uses h6 { display: flex; align-items: center; gap: 6px; margin: 0 0 5px; color: #e6edff; font-size: .9em; }
+.kn-uses h6 svg { color: #5ee7ff; }
+.kn-uses p { margin: 0; color: #c4cee9; font-size: .87em; line-height: 1.62; }
+.kn-summary { display: flex; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid #5ef2a055; background: #5ef2a00d; }
+.kn-summary > svg { flex: none; margin-top: 3px; color: #5ef2a0; }
+.kn-summary p { margin: 0; color: #dcfbe9; font-size: .92em; line-height: 1.65; }
+.kn-summary b { color: #5ef2a0; }
+
+@media (max-width: 760px) {
+  .kn-tabs { grid-template-columns: 1fr 1fr; }
+  .kn-classes, .kn-sem, .kn-uses { grid-template-columns: minmax(0, 1fr); }
+  .kn-table .head { display: none; }
+  .kn-table .row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .kn-table .row small { display: block; color: #8f9bbd; font-size: .78em; text-transform: uppercase; letter-spacing: .04em; }
+  .kn-ladder li:nth-child(n) { margin-inline-start: 0; }
+}
+
+/* phone view of the graph: the centre and one row per relation */
+.kn-hub { display: none; }
+@media (max-width: 560px) {
+  .kn-graph { display: none; }
+  .kn-hub { display: grid; gap: 6px; }
+  .kn-hub-centre { justify-self: center; padding: 6px 16px; border-radius: 999px; border: 1.5px solid #5ef2a0; background: #0f2a26; color: #fff; font-weight: 800; }
+  .kn-hub-row { display: grid; gap: 5px; padding: 7px 10px; border-radius: 12px; border: 1px solid #ffffff14; background: #ffffff05; transition: opacity .25s, border-color .25s; }
+  .kn-hub-row code { color: #8f9bbd; font-size: .8em; }
+  .kn-hub-row span { display: flex; flex-wrap: wrap; gap: 5px; }
+  .kn-hub-row em { font-style: normal; padding: 3px 10px; border-radius: 999px; border: 1.5px solid #ffffff30; color: #e6edff; font-size: .85em; }
+  .kn-hub-row em.material { border-color: #ffc46b; }
+  .kn-hub-row em.occasion { border-color: #f472b6; }
+  .kn-hub-row em.class { border-color: #a78bfa; }
+  .kn-hub-row em.source { border-color: #5ee7ff; border-style: dashed; }
+  .kn-hub-row.on { border-color: #5ef2a0; background: #5ef2a00d; }
+  .kn-hub-row.on code { color: #5ef2a0; font-weight: 700; }
+  .kn-hub-row.dim { opacity: .35; }
+}

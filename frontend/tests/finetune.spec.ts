@@ -749,6 +749,23 @@ test('teaches RAG in depth: indexing and answering scenes, chunking, vectors, se
   await expect(vdb.getByTestId('vdb-row-qdrant')).toContainText('start here');
   await expect(vdb.getByTestId('vdb-stack')).toContainText('SQLite');
 
+  // Structured knowledge: four tabs on one heritage example, and the graph answers by relation.
+  const kn = page.getByTestId('knowledge-structures');
+  await expect(kn.locator('[role="tab"]')).toHaveCount(4);
+  await expect(kn.getByTestId('kn-tree')).toContainText('Al-Khanjar');
+  await kn.getByTestId('kn-tab-ontology').click();
+  await expect(kn.getByTestId('kn-tab-ontology')).toHaveAttribute('aria-selected', 'true');
+  await expect(kn.getByTestId('kn-classes')).toContainText('documented_in → Source');
+  await kn.getByTestId('kn-tab-graph').click();
+  await kn.getByTestId('kn-query-made_of').click();
+  await expect(kn.locator('.kn-edge.on')).toHaveCount(3);
+  await expect(kn.locator('.kn-triples code.on')).toHaveCount(3);
+  await kn.getByTestId('kn-tab-semantics').click();
+  await expect(kn.getByTestId('kn-semantics')).toContainText('heritage:Khanjar');
+  await expect(kn.getByTestId('kn-row-semantics')).toHaveClass(/\bon\b/);
+  await expect(kn.getByTestId('kn-ladder').locator('li')).toHaveCount(4);
+  await expect(kn.getByTestId('kn-summary')).toContainText('machine-readable');
+
   const intro = page.locator('.rd-intro');
   await expect(intro.getByTestId('rag-exam')).toContainText('cited');
   await intro.getByRole('button', { name: /Closed-book/ }).click();
