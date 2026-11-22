@@ -734,6 +734,21 @@ test('teaches RAG in depth: indexing and answering scenes, chunking, vectors, se
   await expect(query.locator('.rd-final')).toContainText('Source A');
 
   await part(page, 'rag', 'try');
+
+  // Well-known vector databases: a situation lights up its option, every option links to its official docs.
+  const vdb = page.getByTestId('vector-databases');
+  await expect(vdb.locator('.rd-vdb-table .row:not(.head)')).toHaveCount(7);
+  await expect(vdb.locator('.rd-vdb-table a')).toHaveCount(7);
+  for (const href of await vdb.locator('.rd-vdb-table a').evaluateAll(links => links.map(link => (link as HTMLAnchorElement).href))) {
+    expect(href).toMatch(/^https:\/\//);
+    expect(href).not.toContain('utm_');
+  }
+  await vdb.getByTestId('vdb-need-pgvector').click();
+  await expect(vdb.getByTestId('vdb-row-pgvector')).toHaveClass(/\bon\b/);
+  await expect(vdb.locator('.rd-vdb-table .row.dim')).toHaveCount(6);
+  await expect(vdb.getByTestId('vdb-row-qdrant')).toContainText('start here');
+  await expect(vdb.getByTestId('vdb-stack')).toContainText('SQLite');
+
   const intro = page.locator('.rd-intro');
   await expect(intro.getByTestId('rag-exam')).toContainText('cited');
   await intro.getByRole('button', { name: /Closed-book/ }).click();
