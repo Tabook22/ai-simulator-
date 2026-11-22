@@ -175,6 +175,29 @@ test('walks the TurathAI case study: journey, dataset split, evaluation and chec
   await expect(turath.getByRole('heading', { name: 'TurathAI: fine-tuning a model on Omani heritage' })).toBeVisible();
   await expect(turath.locator('.tj-questions > div')).toHaveCount(4);
 
+  // The big picture: the illustration loads, each workflow step lights up its panels, one question is followed to a cited answer.
+  const overview = turath.getByTestId('tv-overview');
+  const image = overview.getByTestId('tv-image');
+  await image.scrollIntoViewIfNeeded();
+  await expect.poll(() => image.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await expect(overview.locator('.tv-step')).toHaveCount(4);
+  await overview.getByTestId('tv-step-3').click();
+  await expect(overview.locator('.tv-spot')).toHaveCount(2);
+  await overview.getByTestId('tv-step-1').click();
+  await expect(overview.locator('.tv-spot')).toHaveCount(1);
+  await expect(overview.getByTestId('tv-split')).toContainText('10–20%');
+  await overview.getByTestId('tv-flow-1').click();
+  await expect(overview.locator('.tv-passages li.keep')).toHaveCount(2);
+  await overview.getByTestId('tv-flow-2').click();
+  await expect(overview.getByTestId('tv-prompt')).toContainText('Question: When is the Omani khanjar worn');
+  await overview.getByTestId('tv-flow-3').click();
+  await expect(overview.getByTestId('tv-answer')).toContainText('[2]');
+  await expect(overview.getByTestId('tv-answer').getByRole('link').first()).toHaveAttribute('href', /ich\.unesco\.org/);
+  await overview.getByRole('button', { name: 'Enlarge the project illustration' }).click();
+  await expect(page.getByRole('dialog', { name: 'Building an Omani Heritage AI Assistant' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
   // The journey follows the report's phases.
   const journey = page.locator('#tj-journey');
   await expect(journey.locator('.ft-scene-count')).toHaveText('1 / 9');
@@ -223,6 +246,9 @@ test('shows the TurathAI case study in Arabic', async ({ page }) => {
   await expect(turath.getByRole('heading', { name: 'تراث AI: ضبط نموذج بدقة على التراث العُماني' })).toBeVisible();
   await expect(page.locator('#tj-journey .ft-scene-caption strong')).toHaveText('المرحلة 2 · جمع التراث من مصادر موثوقة');
   await expect(turath.locator('.tj-builder')).toContainText('مدخل في سجل المصادر');
+  await expect(turath.getByTestId('tv-overview')).toContainText('هدف المشروع');
+  await turath.getByTestId('tv-flow-3').click();
+  await expect(turath.getByTestId('tv-answer')).toContainText('يُلبس الخنجر العُماني حول الخصر');
 });
 
 test('teaches the key words: the loop scene, and the glossary in the reference sheet', async ({ page }) => {

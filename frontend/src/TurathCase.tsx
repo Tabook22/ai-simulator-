@@ -9,6 +9,7 @@ import { Icon } from './ui';
 import { useI18n } from './i18n';
 import { readStored, writeStored } from './libraryStorage';
 import { PartNavContext } from './LabShell';
+import { TurathOverview } from './TurathOverview';
 import { Lock, Scene, packet, show, t, usePlayer, useTx } from './FineTuneScenes';
 import type { Text } from './FineTuneScenes';
 import { GPUS, MODEL_SIZES, budget } from './finetuneModel';
@@ -572,6 +573,9 @@ export function TurathCase({ index, total }: { index: number; total: number }) {
       <div className="tj-questions">
         {QUESTIONS.map(question => <div key={question.tag}><b>{question.tag}</b><span>{say(question.text)}</span></div>)}
       </div>
+
+      <h4 className="llm-sub ft-handson"><Icon name="layers" size={13}/>{say(t('The big picture: building the Omani heritage AI assistant', 'الصورة الكاملة: بناء المساعد الذكي للتراث العُماني'))}</h4>
+      <TurathOverview/>
 
       <TurathJourney/>
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import './house.css';
 import { Icon } from './ui';
 
 export interface Poster {
@@ -41,7 +42,15 @@ const POSTERS: Poster[] = [
   },
 ];
 
-function PosterLightbox({ poster, onClose }: { poster: Poster; onClose: () => void }) {
+/** Button and hint text for the poster viewer, so pages in other languages can pass their own. */
+export interface PosterLabels { zoomIn: string; fit: string; open: string; close: string; hintZoomed: string; hintFit: string }
+const ENGLISH_LABELS: PosterLabels = {
+  zoomIn: 'Zoom in', fit: 'Fit to screen', open: 'Open original', close: 'Close reference poster',
+  hintZoomed: 'Scroll to explore the poster. Click the image or Fit to screen to return.',
+  hintFit: 'Click the poster to zoom in, or open the original in a new tab.',
+};
+
+export function PosterLightbox({ poster, onClose, labels = ENGLISH_LABELS }: { poster: Poster; onClose: () => void; labels?: PosterLabels }) {
   const [zoomed, setZoomed] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -74,12 +83,12 @@ function PosterLightbox({ poster, onClose }: { poster: Poster; onClose: () => vo
         </div>
         <div className="house-poster-actions">
           <button type="button" className="button small" onClick={() => setZoomed(value => !value)}>
-            <Icon name="search" size={14}/>{zoomed ? 'Fit to screen' : 'Zoom in'}
+            <Icon name="search" size={14}/>{zoomed ? labels.fit : labels.zoomIn}
           </button>
           <a className="button small" href={poster.full} target="_blank" rel="noreferrer">
-            <Icon name="next" size={14}/>Open original
+            <Icon name="next" size={14}/>{labels.open}
           </a>
-          <button ref={closeRef} type="button" className="icon-button" aria-label="Close reference poster" onClick={onClose}>
+          <button ref={closeRef} type="button" className="icon-button" aria-label={labels.close} onClick={onClose}>
             <Icon name="close" size={18}/>
           </button>
         </div>
@@ -88,7 +97,7 @@ function PosterLightbox({ poster, onClose }: { poster: Poster; onClose: () => vo
         <img src={poster.full} alt={poster.alt} width={poster.width} height={poster.height}
           onClick={() => setZoomed(value => !value)}/>
       </div>
-      <p className="house-poster-hint">{zoomed ? 'Scroll to explore the poster. Click the image or Fit to screen to return.' : 'Click the poster to zoom in, or open the original in a new tab.'}</p>
+      <p className="house-poster-hint">{zoomed ? labels.hintZoomed : labels.hintFit}</p>
     </div>
   </div>, document.body);
 }
