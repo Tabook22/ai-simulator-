@@ -113,3 +113,14 @@ def test_embedding_story_examples_use_real_ids():
     assert "[[40, 'I'], [13906, ' opened'], [261, ' a'], [6922, ' bank'], [3527, ' account'], [13, '.']]" in source
     assert ENC.encode(" photosynthesis") == [8309, 73972]
     assert "{ id: 8309, piece: ' photos' }, { id: 73972, piece: 'ynthesis' }" in source
+
+
+def test_transformer_story_examples_use_real_ids():
+    """The ship, Oman question and Oman answer token cards use real o200k_base IDs."""
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "frontend" / "src" / "TransformerStory.tsx").read_text(encoding="utf-8")
+    for name, text in [("SHIP_SENTENCE", "The ship reached the port."),
+                       ("OMAN_QUESTION", "What is the capital of Oman?"),
+                       ("OMAN_ANSWER", "The capital of Oman is Muscat.")]:
+        literal = "[" + ", ".join(f"[{i}, {ENC.decode([i])!r}]" for i in ENC.encode(text)) + "]"
+        assert f"export const {name} = {literal};" in source, name

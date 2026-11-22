@@ -11,6 +11,7 @@ import type { Text } from './FineTuneScenes';
 import { HERO_IDS, MAX_CHARACTERS, tokenize, visiblePiece } from './tokenizer';
 import type { Segment, TokenizeResult } from './tokenizer';
 import { VectorLab } from './VectorLab';
+import { TransformerStory } from './TransformerStory';
 
 const EXAMPLES: { text: string; name: Text }[] = [
   { text: 'The ship reached the port.', name: t('English sentence', 'جملة إنجليزية') },
@@ -359,6 +360,8 @@ export function TokenizerLab() {
           <VectorLab result={result} picked={Math.min(picked, result.tokens.length - 1)} onPick={setPicked}/>
         </>}
     </div>}
+
+    <TransformerStory/>
 
     <aside className="tk-explain">
       <Icon name="book" size={18}/>
