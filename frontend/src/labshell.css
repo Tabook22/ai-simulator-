@@ -8,7 +8,7 @@
 .ft-lab-title h2 { margin: 4px 0 6px; font-size: clamp(1.5rem, 2.4vw, 2.05rem); letter-spacing: -.02em; }
 .ft-lab-title p { color: #b3bfdf; line-height: 1.6; max-width: 78ch; }
 .ft-head-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.ft-search-button kbd, .ft-search-input kbd { padding: 1px 6px; border-radius: 6px; border: 1px solid #ffffff33; background: #ffffff0d; color: #9aa8cc; font: 700 .72em var(--mono); }
+.ft-search-button kbd { padding: 1px 6px; border-radius: 6px; border: 1px solid #ffffff33; background: #ffffff0d; color: #9aa8cc; font: 700 .72em var(--mono); }
 
 /* ---------- pipeline map ---------- */
 .ft-map { grid-column: 1 / -1; display: flex; align-items: stretch; gap: 0; overflow-x: auto; scrollbar-width: thin; padding: 4px 2px 2px; }
@@ -109,24 +109,7 @@
 .ft-glossary dt small { color: #8593b8; font-weight: 600; font-size: .76em; }
 .ft-glossary dd { margin: 3px 0 0; color: #c3cdea; font-size: .88em; line-height: 1.55; }
 
-/* ---------- search ---------- */
-.ft-search-backdrop { position: fixed; inset: 0; z-index: 400; display: grid; justify-items: center; align-items: start; padding: max(96px, 12vh) 16px 16px; background: #02040ccc; backdrop-filter: blur(6px); animation: ft-pop .18s ease both; }
-.ft-search { width: min(680px, 100%); display: grid; border-radius: 18px; border: 1px solid #5ee7ff55; background: #0a1128; box-shadow: 0 30px 80px #000c; overflow: hidden; }
-.ft-search-input { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid #ffffff14; color: #9fe9ff; }
-.ft-search-input input { flex: 1; min-width: 0; border: 0; background: transparent; color: #fff; font: inherit; font-size: 1.05em; outline: none; }
-.ft-search-hits { display: grid; gap: 2px; max-height: 56vh; overflow-y: auto; margin: 0; padding: 6px; list-style: none; }
-.ft-search-hits button { display: grid; grid-template-columns: 74px minmax(0, 1fr) 28px; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border-radius: 12px;
-  border: 1px solid transparent; background: none; color: #dbe3f8; text-align: start; cursor: pointer; font: inherit; }
-.ft-search-hits button.current { background: color-mix(in srgb, var(--tone) 14%, transparent); border-color: color-mix(in srgb, var(--tone) 55%, transparent); }
-.ft-search-kind { justify-self: start; padding: 2px 8px; border-radius: 999px; font-size: .72em; font-weight: 800; background: #ffffff10; color: #b6c2e3; }
-.ft-search-kind.tool { background: #ffc46b22; color: #ffd08a; }
-.ft-search-kind.scene { background: #5ee7ff22; color: #9fe9ff; }
-.ft-search-kind.term { background: #a78bfa26; color: #d8c8ff; }
-.ft-search-text { display: grid; min-width: 0; }
-.ft-search-text strong { font-size: .94em; }
-.ft-search-text small { color: #8f9cc2; font-size: .8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ft-search-part { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--tone); color: #06101e; font: 900 .78em var(--mono); }
-.ft-search-none { padding: 16px; color: #9aa8cc; text-align: center; }
+/* ---------- jump highlight ---------- */
 .ft-flash { animation: ft-flash 1.8s ease; border-radius: 14px; }
 
 @keyframes ft-map-run { from { left: -10px; } to { left: 100%; } }

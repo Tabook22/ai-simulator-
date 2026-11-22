@@ -556,9 +556,10 @@ test('navigates the lab: tabs, remember cards, next part, search and remembered 
   await expect(page.locator('#ft-freeze-title')).toHaveText('Four ways to fine-tune');
   await expect(page.locator('.ft-map-step.current')).toContainText('Methods');
 
-  // Search jumps straight to a tool inside a part.
+  // The site search jumps straight to a tool inside a part.
   await page.keyboard.press('Control+k');
-  await page.getByRole('dialog').getByRole('textbox', { name: 'Search' }).fill('meaning map');
+  await page.getByTestId('site-search-input').fill('meaning map');
+  await expect(page.getByTestId('site-search-results').locator('li').first()).toContainText('Part 11');
   await page.keyboard.press('Enter');
   await expect(page.locator('#ft-hybrid-title')).toBeVisible();
   await expect(page.locator('.rg-search')).toBeVisible();

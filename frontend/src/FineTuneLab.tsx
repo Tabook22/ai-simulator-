@@ -24,6 +24,7 @@ import { CourseBrief, ModelChoice, ProjectRoadmap, RecipeScene, WhoDoesWhat } fr
 import { ChunkingLab, CitedAnswer, IndexScene, QueryScene, RagDoctor, RagInProjects, RagIntro, SearchLab, TokensToVectors } from './RagDeep';
 import { VectorDatabases } from './VectorDatabases';
 import { KnowledgeStructures } from './KnowledgeStructures';
+import { NAVIGATE, openSiteSearch, takePending } from './searchIndex';
 import {
   ArchitectureLayers, ArchiveSearch, BackboneCalculator, ConfusionMatrix, GroupSplit, PhotoPrep, PhotoToAnswerScene, ProcedureTracks, ProjectBrief,
   ProjectGuide, RecordToJsonl, ReferenceSplit, SystemDesign, ThreeConfigs, ThresholdTool, TransferScene, TwoFineTunings,
@@ -31,9 +32,8 @@ import {
 import { QUIZ, SCENARIOS, UNSLOTH_STEPS } from './finetuneContent';
 import {
   ChapterRail, LabHeaderActions, PartFooter, PartNavContext, PartTabs, PipelineMap, QUIZ as QUIZ_VIEW, REFERENCE, ReferenceSheet,
-  RememberCard, SearchPalette, ToolIndex, flashWhenReady, useLabProgress, usePartNav, useSearchShortcut,
+  RememberCard, ToolIndex, useLabProgress, usePartNav,
 } from './LabShell';
-import type { Hit } from './LabShell';
 import type { PartTab } from './labNav';
 import type { Text } from './finetuneContent';
 import {
@@ -501,7 +501,6 @@ export function FineTuneLab() {
   const tx = useTx();
   const progress = useLabProgress();
   const [tab, setTab] = useState<PartTab | null>(null);
-  const [searching, setSearching] = useState(false);
   const active = progress.active;
 
   const goTo = useCallback((index: number, nextTab: PartTab | null = null) => {
@@ -512,12 +511,16 @@ export function FineTuneLab() {
       if (stages && stages.getBoundingClientRect().top < 0) stages.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
     });
   }, [progress]);
-  const openSearch = useCallback(() => setSearching(true), []);
-  useSearchShortcut(openSearch);
-  const pick = (hit: Hit) => {
-    goTo(hit.part, hit.tab);
-    if (hit.selector) flashWhenReady(hit.selector);
-  };
+  // A site-search result in this lab: open its part and tab (searchIndex.ts then finds the words).
+  useEffect(() => {
+    const open = () => {
+      const place = takePending('finetune');
+      if (place?.part !== undefined) goTo(place.part, place.tab ?? null);
+    };
+    open();
+    window.addEventListener(NAVIGATE, open);
+    return () => window.removeEventListener(NAVIGATE, open);
+  }, [goTo]);
 
   const content: ReactNode[] = [
         <Stage index={0} summary={tx('base → specialist', 'أساسي ← متخصص')} flow={tx('so we need examples', 'إذن نحتاج إلى أمثلة')}
@@ -695,7 +698,7 @@ export function FineTuneLab() {
           <p>{tx('Sixteen short parts in six chapters, in the order a real project follows: from the base model and its data, through LoRA, quantization, QLoRA and Unsloth, to training, evaluation and RAG in depth, and then two real student projects that share one recipe, one of them with computer vision. Each part has an animation to watch, tools to try and a card to remember.',
             'ستة عشر جزءًا قصيرًا في ستة فصول، بالترتيب الذي يتبعه مشروع حقيقي: من النموذج الأساسي وبياناته، مرورًا بـ LoRA والتكميم و QLoRA و Unsloth، إلى التدريب والتقييم و RAG بالتفصيل، ثم مشروعان طلابيان حقيقيان يشتركان في وصفة واحدة، أحدهما بالرؤية الحاسوبية. ولكل جزء مشهد للمشاهدة وأدوات للتجربة وبطاقة للتذكّر.')}</p>
         </div>
-        <LabHeaderActions onSearch={openSearch} onReference={() => goTo(REFERENCE)}/>
+        <LabHeaderActions onSearch={openSiteSearch} onReference={() => goTo(REFERENCE)}/>
         <PipelineMap active={active} visited={progress.visited} onPick={index => goTo(index)}/>
       </header>
 
@@ -709,7 +712,6 @@ export function FineTuneLab() {
           {active === QUIZ_VIEW && <QuizBank/>}
         </div>
       </div>
-      <SearchPalette open={searching} onClose={() => setSearching(false)} onPick={pick}/>
     </div>
   </PartNavContext.Provider>;
 }

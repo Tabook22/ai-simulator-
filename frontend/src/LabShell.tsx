@@ -3,13 +3,13 @@
  * the part summary cards, the printable reference sheet, the search palette and the
  * remembered progress.
  */
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import './labshell.css';
 import { Icon } from './ui';
 import type { IconName } from './ui';
 import { useI18n } from './i18n';
-import { CARDS, CHAPTERS, TOOLS, chapterOf } from './labNav';
+import { CARDS, CHAPTERS, chapterOf } from './labNav';
 import type { PartTab } from './labNav';
 import { GLOSSARY } from './lessonContent';
 import type { Text } from './finetuneContent';
@@ -227,55 +227,7 @@ export function ReferenceSheet() {
   </section>;
 }
 
-// -------------------------------------------------------------- search
-
-interface Hit { key: string; kind: 'part' | 'tool' | 'scene' | 'term'; title: string; detail: string; part: number; tab: PartTab | null; selector?: string }
-
-export function SearchPalette({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick: (hit: Hit) => void }) {
-  const say = useSay();
-  const { parts } = usePartNav();
-  const [query, setQuery] = useState('');
-  const [index, setIndex] = useState(0);
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (open) { setQuery(''); setIndex(0); input.current?.focus(); } }, [open]);
-  const all = useMemo<Hit[]>(() => [
-    ...parts.map((part, number) => ({ key: `p${number}`, kind: 'part' as const, title: say(part.label), detail: say(part.question), part: number, tab: null })),
-    ...TOOLS.map((tool, number) => ({ key: `t${number}`, kind: tool.kind, title: say(tool.name), detail: say(parts[tool.part].label), part: tool.part, tab: tool.tab, selector: tool.selector })),
-    ...GLOSSARY.map((term, number) => ({ key: `g${number}`, kind: 'term' as const, title: say(term.name), detail: say(term.plain), part: term.part - 1, tab: 'remember' as PartTab })),
-  ], [parts, say]);
-  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const hits = (words.length ? all.filter(hit => words.every(word => `${hit.title} ${hit.detail}`.toLowerCase().includes(word))) : all.filter(hit => hit.kind === 'part')).slice(0, 12);
-  if (!open) return null;
-  const choose = (hit: Hit | undefined) => { if (hit) { onPick(hit); onClose(); } };
-  const kindName = { part: t('part', 'جزء'), tool: t('tool', 'أداة'), scene: t('animation', 'مشهد'), term: t('word', 'كلمة') };
-  return <div className="ft-search-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className="ft-search" role="dialog" aria-modal="true" aria-label={say(t('Search the fine-tuning lab', 'ابحث في مختبر الضبط الدقيق'))}>
-      <label className="ft-search-input"><Icon name="search" size={18}/>
-        <input ref={input} autoFocus value={query} placeholder={say(t('Search parts, tools and words: try “rank”, “JSONL”, “batch”…', 'ابحث في الأجزاء والأدوات والكلمات: جرّب “الرتبة” أو “JSONL” أو “الدفعة”…'))}
-          aria-label={say(t('Search', 'بحث'))}
-          onChange={event => { setQuery(event.target.value); setIndex(0); }}
-          onKeyDown={event => {
-            if (event.key === 'ArrowDown') { event.preventDefault(); setIndex(value => Math.min(hits.length - 1, value + 1)); }
-            if (event.key === 'ArrowUp') { event.preventDefault(); setIndex(value => Math.max(0, value - 1)); }
-            if (event.key === 'Enter') { event.preventDefault(); choose(hits[index]); }
-            if (event.key === 'Escape') onClose();
-          }}/>
-        <kbd>Esc</kbd></label>
-      <ul className="ft-search-hits" role="listbox">
-        {hits.map((hit, position) => <li key={hit.key} role="option" aria-selected={position === index}>
-          <button type="button" className={position === index ? 'current' : ''} onMouseEnter={() => setIndex(position)} onClick={() => choose(hit)}
-            style={tone(parts[hit.part].tone)}>
-            <span className={`ft-search-kind ${hit.kind}`}>{say(kindName[hit.kind])}</span>
-            <span className="ft-search-text"><strong>{hit.title}</strong><small>{hit.detail}</small></span>
-            <span className="ft-search-part">{hit.part + 1}</span>
-          </button>
-        </li>)}
-        {!hits.length && <li className="ft-search-none">{say(t('Nothing found. Try another word.', 'لم يُعثر على شيء. جرّب كلمة أخرى.'))}</li>}
-      </ul>
-    </div>
-  </div>;
-}
-export type { Hit };
+// -------------------------------------------------------------- jump
 
 /** Scroll to an element once it exists, and make it glow for a moment. */
 export function flashWhenReady(selector: string) {
@@ -291,20 +243,6 @@ export function flashWhenReady(selector: string) {
   look();
 }
 
-export function useSearchShortcut(open: () => void) {
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      const typing = target.closest('input, textarea, select, [contenteditable="true"]');
-      if ((event.key === 'k' && (event.ctrlKey || event.metaKey)) || (event.key === '/' && !typing)) {
-        event.preventDefault();
-        open();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
-}
 
 export function LabHeaderActions({ onSearch, onReference }: { onSearch: () => void; onReference: () => void }) {
   const say = useSay();

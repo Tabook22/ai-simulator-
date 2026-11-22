@@ -31,6 +31,9 @@ import type { WorkshopTab } from './lessons';
 import { Settings, shapeOf } from './Settings';
 import type { PresetKey, Shape } from './Settings';
 import { Training } from './Training';
+import { SiteSearch } from './SiteSearch';
+import { NAVIGATE } from './searchIndex';
+import type { Place } from './searchIndex';
 import { api, blankExample, finite, format, layerName, networkPayload, neuronName, trainingPayload } from './model';
 import type { Activation, AutoBackpropResult, BackpropResult, Connection, Example, Forward, LoadedLesson, Network, SavedLesson,
   TrainingResult, TrainingSettings } from './model';
@@ -568,6 +571,25 @@ export default function App() {
     setNotice('');
   }
 
+  // A site-search result: open its lab, the library, the lectures or the glossary.
+  const navigate = useRef<(place: Place) => void>(() => undefined);
+  navigate.current = place => {
+    setError('');
+    setNotice('');
+    if (place.lab === 'glossary') { setLibraryOpen(false); setWatchOpen(false); setModal('glossary'); return; }
+    setModal(null);
+    if (place.lab === 'library') { setWatchOpen(false); setLibraryOpen(true); window.scrollTo({ top: 0 }); return; }
+    if (place.lab === 'watch') { setLibraryOpen(false); setWatchOpen(true); window.scrollTo({ top: 0 }); return; }
+    setLibraryOpen(false);
+    setWatchOpen(false);
+    openTab(place.lab);
+  };
+  useEffect(() => {
+    const onNavigate = (event: Event) => navigate.current((event as CustomEvent<Place>).detail);
+    window.addEventListener(NAVIGATE, onNavigate);
+    return () => window.removeEventListener(NAVIGATE, onNavigate);
+  }, []);
+
   function editActivation(index: number, activation: Activation, runNow = false) {
     if (!network) return;
     const next = { ...network, layers: network.layers.map((layer, position) => position === index ? { ...layer, activation } : layer) };
@@ -703,6 +725,7 @@ export default function App() {
         </div>
         <div className="top-actions">
           <LanguageSwitcher/>
+          <SiteSearch/>
           <button className="button top-button" aria-pressed={libraryOpen}
             onClick={() => { setLibraryOpen(value => !value); setWatchOpen(false); setModal(null); setError(''); setNotice(''); }}>
             <Icon name="library" size={17}/>{t('Library')}</button>

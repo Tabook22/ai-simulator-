@@ -234,6 +234,13 @@ def create_app(database=None):
         def icon():
             return FileResponse(dist / "neuron.svg")
 
+        @app.get("/search-index.{language}.json", include_in_schema=False)
+        def search_index(language: str):
+            # Built by frontend/scripts/build-search-index.mjs; revalidated so a new index shows at once.
+            if language not in ("en", "ar") or not (dist / f"search-index.{language}.json").is_file():
+                raise HTTPException(404, "No search index for that language.")
+            return FileResponse(dist / f"search-index.{language}.json", headers={"Cache-Control": "no-cache"})
+
     return app
 
 

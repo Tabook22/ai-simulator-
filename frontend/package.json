@@ -7,7 +7,8 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "pretest": "npm run build",
-    "test": "playwright test"
+    "test": "playwright test",
+    "search-index": "node scripts/build-search-index.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",
