@@ -1,7 +1,7 @@
 import { readStored, writeStored } from './libraryStorage';
 import type { IconName } from './ui';
 
-export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'tokenizer' | 'llm' | 'finetune';
+export type WorkshopTab = 'explore' | 'train' | 'examples' | 'playground' | 'house' | 'exam' | 'advisor' | 'python' | 'tokenizer' | 'llm' | 'finetune' | 'knowledge';
 
 export interface Lesson {
   tab: WorkshopTab;
@@ -194,6 +194,22 @@ export const LESSONS: Lesson[] = [
       'In the LoRA part, train with rank 1, then rank 2, and watch the frozen weights stay unchanged.',
       'In the quantization part, go from 8 bits to 2, then compare even spacing with NF4 at 4 bits.',
       'In the QLoRA part, find the largest model that fits on a 16 GB GPU.',
+    ],
+  },
+  {
+    tab: 'knowledge', icon: 'network', label: 'Knowledge structures', fullBleed: true,
+    question: 'How is knowledge organised so people and AI can use it?',
+    goal: 'Tell a taxonomy, an ontology, a knowledge graph and semantics apart, and build each one for a real example.',
+    learn: [
+      'A taxonomy groups information into categories and subcategories: what belongs under what.',
+      'An ontology adds properties, labelled relationships and rules, so a system can explain and conclude.',
+      'A knowledge graph stores the actual facts as connected triples that follow the ontology.',
+      'Semantics fixes what each term and link means, so every system reads it the same way.',
+    ],
+    tryIt: [
+      'In Taxonomy, pick a heritage category and watch the RAG search narrow to the matching sources.',
+      'In How an ontology looks, click each arrow, then apply the prerequisite rule with and without Maryam’s result.',
+      'In Knowledge graph, ask the khanjar graph a question and follow the highlighted links.',
     ],
   },
 ];

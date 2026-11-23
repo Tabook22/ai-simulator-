@@ -23,7 +23,7 @@ const URL_BASE = `http://127.0.0.1:${PORT}`;
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const OUT = fileURLToPath(new URL('../public/', import.meta.url));
 /** The order of the lab buttons (LESSONS in src/lessons.ts). */
-const LABS = ['explore', 'train', 'examples', 'playground', 'house', 'exam', 'advisor', 'python', 'tokenizer', 'llm', 'finetune'];
+const LABS = ['explore', 'train', 'examples', 'playground', 'house', 'exam', 'advisor', 'python', 'tokenizer', 'llm', 'finetune', 'knowledge'];
 
 const server = spawn('python', ['-m', 'uvicorn', 'backend.main:app', '--host', '127.0.0.1', '--port', String(PORT)], {
   cwd: ROOT, env: { ...process.env, NEURON_LAB_DB: join(tmpdir(), `neuron-lab-index-${randomUUID()}.sqlite3`) }, stdio: 'ignore',
@@ -135,8 +135,10 @@ async function crawl(language) {
   };
   /** Record the page as it is, then every other tab or step in each group, one at a time. */
   const visit = async (place, rootSelector = 'main') => {
-    await record(place, rootSelector);
     const groups = await page.evaluate(switchers, rootSelector);
+    // What shows first still needs its tab or step pressed when the student is elsewhere.
+    const starts = groups.map(group => group.find(button => button.on)).filter(Boolean);
+    await record(starts.length ? { ...place, clicks: starts.map(button => button.label), crumbs: [...place.crumbs, ...starts.map(button => button.name)] } : place, rootSelector);
     for (const group of groups) {
       const start = group.find(button => button.on);
       for (const button of group) {

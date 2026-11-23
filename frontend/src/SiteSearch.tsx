@@ -14,7 +14,7 @@ import './site-search.css';
 
 const LAB_ICONS: Record<Place['lab'], IconName> = {
   explore: 'network', train: 'flask', examples: 'target', playground: 'grid', house: 'home', exam: 'book', advisor: 'chip',
-  python: 'code', tokenizer: 'tokens', llm: 'sparkles', finetune: 'sliders', library: 'library', watch: 'play', glossary: 'book',
+  python: 'code', tokenizer: 'tokens', llm: 'sparkles', finetune: 'sliders', knowledge: 'network', library: 'library', watch: 'play', glossary: 'book',
 };
 const RECENT_KEY = 'neuron-lab-recent-searches';
 const SUGGESTIONS = {

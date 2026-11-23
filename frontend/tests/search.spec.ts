@@ -33,10 +33,10 @@ test('searches the whole app and jumps to a section inside the fine-tuning lab',
 test('opens the inner tab or step that holds the words', async ({ page }) => {
   await page.goto('/');
   await page.keyboard.press('Control+k');
-  await page.getByTestId('site-search-input').fill('documented_in at least one Source');
-  await expect(page.getByTestId('site-search-results').locator('li').first()).toContainText('Ontology');
+  await page.getByTestId('site-search-input').fill('loop on Course');
+  await expect(page.getByTestId('site-search-results').locator('li').first()).toContainText('How an ontology looks');
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('kn-tab-ontology')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByTestId('kl-part-diagram')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('.site-search-flash')).toBeInViewport();
 
   // A step of the house case: the step button is pressed for you.
@@ -72,11 +72,11 @@ test('searches in Arabic, ignoring letter forms, and opens the result', async ({
   await page.getByRole('button', { name: 'العربية' }).click();
   await page.getByTestId('site-search-open').click();
   // Written without the hamza: still finds “الأنطولوجيا”.
-  await page.getByTestId('site-search-input').fill('الانطولوجيا');
+  await page.getByTestId('site-search-input').fill('ما الانطولوجيا');
   const first = page.getByTestId('site-search-results').locator('li').first();
-  await expect(first).toContainText('الجزء 12');
+  await expect(first).toContainText('هياكل المعرفة');
   await first.locator('button').click();
-  await expect(page.locator('.ft-rail button[aria-current="step"]')).toHaveAttribute('aria-label', /الجزء 12:/);
+  await expect(page.getByTestId('kl-part-ontology')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('.site-search-flash')).toBeInViewport();
 });
 
@@ -107,6 +107,13 @@ test('the search index is up to date: every heading in every lab and part is in 
       await page.waitForTimeout(150);
       await check(`Fine-tuning part ${j + 1}, tab ${k + 1}`);
     }
+  }
+  await labs.filter({ hasText: 'Knowledge structures' }).click();
+  const parts = page.locator('.kl-rail [role="tab"]');
+  for (let j = 0; j < await parts.count(); j++) {
+    await parts.nth(j).click();
+    await page.waitForTimeout(150);
+    await check(`Knowledge structures part ${j + 1}`);
   }
   expect(missing, 'Run "npm run build && npm run search-index" to rebuild the search index.').toEqual([]);
 });

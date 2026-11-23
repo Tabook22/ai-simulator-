@@ -2174,5 +2174,15 @@
  "Spaces count too: the space before a word usually belongs to that word’s token.": "المسافات تُحسب أيضًا: المسافة قبل الكلمة تنتمي عادة إلى رمز تلك الكلمة.",
  "Load “The ship reached the port.” and compare its tokens with its words.": "حمّل «The ship reached the port.» وقارن رموزها بكلماتها.",
  "Load the Arabic example and find a word that is split into more than one token.": "حمّل المثال العربي وابحث عن كلمة قُسِّمت إلى أكثر من رمز.",
- "Add a sentence of your own, then an emoji, and watch the count change as you type.": "أضف جملة من عندك ثم رمزًا تعبيريًا، وشاهد العدد يتغيّر أثناء الكتابة."
+ "Add a sentence of your own, then an emoji, and watch the count change as you type.": "أضف جملة من عندك ثم رمزًا تعبيريًا، وشاهد العدد يتغيّر أثناء الكتابة.",
+ "Knowledge structures": "هياكل المعرفة",
+ "How is knowledge organised so people and AI can use it?": "كيف تُنظَّم المعرفة ليستخدمها الناس والذكاء الاصطناعي؟",
+ "Tell a taxonomy, an ontology, a knowledge graph and semantics apart, and build each one for a real example.": "ميّز بين التصنيف الهرمي والأنطولوجيا والرسم البياني المعرفي والدلالة، وابنِ كلًّا منها لمثال حقيقي.",
+ "A taxonomy groups information into categories and subcategories: what belongs under what.": "التصنيف الهرمي يجمع المعلومات في فئات وفئات فرعية: ما الذي يندرج تحت ماذا.",
+ "An ontology adds properties, labelled relationships and rules, so a system can explain and conclude.": "الأنطولوجيا تضيف الخصائص والعلاقات المسمّاة والقواعد، فيستطيع النظام أن يشرح ويستنتج.",
+ "A knowledge graph stores the actual facts as connected triples that follow the ontology.": "الرسم البياني المعرفي يخزّن الحقائق الفعلية ثلاثياتٍ مترابطة تتبع الأنطولوجيا.",
+ "Semantics fixes what each term and link means, so every system reads it the same way.": "الدلالة تثبّت معنى كل مصطلح ورابط، فيقرؤه كل نظام بالطريقة نفسها.",
+ "In Taxonomy, pick a heritage category and watch the RAG search narrow to the matching sources.": "في «التصنيف الهرمي» اختر فئة تراثية وراقب بحث RAG يضيق إلى المصادر المطابقة.",
+ "In How an ontology looks, click each arrow, then apply the prerequisite rule with and without Maryam’s result.": "في «كيف تبدو الأنطولوجيا» انقر كل سهم، ثم طبّق قاعدة المتطلب السابق مع نتيجة مريم ومن دونها.",
+ "In Knowledge graph, ask the khanjar graph a question and follow the highlighted links.": "في «الرسم البياني المعرفي» اطرح سؤالًا على رسم الخنجر وتتبّع الروابط المضيئة."
 }

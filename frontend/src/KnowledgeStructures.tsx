@@ -1,10 +1,9 @@
 /**
- * Part 12, "RAG in depth": how structured knowledge is organised (taxonomy), defined (ontology),
- * connected (knowledge graph) and interpreted (semantics). Every view uses the same heritage
- * example, the Omani khanjar, with facts taken from the UNESCO record used elsewhere in the lab.
+ * Pieces of the Knowledge structures lab (KnowledgeLab.tsx): the four ideas compared, the khanjar
+ * knowledge graph and the semantics cards. The khanjar facts come from the UNESCO record used in
+ * the TurathAI case study.
  */
 import { useState } from 'react';
-import type { ReactElement } from 'react';
 import { Icon } from './ui';
 import type { IconName } from './ui';
 import { t, useTx } from './FineTuneScenes';
@@ -52,68 +51,7 @@ export const KNOWLEDGE_CONCEPTS: { key: Key; icon: IconName; tone: string; name:
     role: t('gives the concepts and links their meaning, so they are interpreted correctly', 'يمنح المفاهيم والروابط معناها، فتُفسَّر تفسيرًا صحيحًا') },
 ];
 
-/* ---------- 1 · Taxonomy: a tree of heritage categories ---------- */
-
-const TREE: { name: Text; children: { name: Text; children: Text[] }[] } = {
-  name: t('Omani intangible heritage', 'التراث العُماني غير المادي'),
-  children: [
-    { name: t('Traditional craftsmanship', 'الحرف التقليدية'), children: [t('Al-Khanjar', 'الخنجر')] },
-    { name: t('Performing arts', 'فنون الأداء'), children: [t('Al-Bar’ah', 'البرعة')] },
-    { name: t('Oral traditions', 'التقاليد الشفهية'), children: [t('Alheda’a (calling camel herds)', 'الحداء (نداء قطعان الإبل)')] },
-  ],
-};
-
-function TaxonomyView() {
-  const say = useTx();
-  return <div className="kn-view">
-    <ul className="kn-tree" data-testid="kn-tree">
-      <li><span className="kn-node root">{say(TREE.name)}</span>
-        <ul>{TREE.children.map(branch => <li key={branch.name.en}><span className="kn-node">{say(branch.name)}</span>
-          <ul>{branch.children.map(leaf => <li key={leaf.en}><span className={`kn-node leaf${leaf.en === 'Al-Khanjar' ? ' focus' : ''}`}>{say(leaf)}</span></li>)}</ul>
-        </li>)}</ul>
-      </li>
-    </ul>
-    <p className="kn-caption">{say(t('Every line means only one thing: “is a kind of”. The tree tells you that Al-Khanjar is a traditional craft, but not what it is made of or when it is worn.',
-      'كل خط هنا يعني شيئًا واحدًا فقط: «هو نوع من». تخبرك الشجرة أن الخنجر حرفة تقليدية، لكنها لا تخبرك ممّ يُصنع ولا متى يُلبس.'))}</p>
-  </div>;
-}
-
-/* ---------- 2 · Ontology: classes, properties and a rule ---------- */
-
-const CLASSES: { name: string; label: Text; props: { name: string; range: string; meaning: Text }[] }[] = [
-  { name: 'HeritageElement', label: t('Heritage element', 'عنصر تراثي'), props: [
-    { name: 'name', range: 'Text', meaning: t('its name in Arabic and English', 'اسمه بالعربية والإنجليزية') },
-    { name: 'documented_in', range: 'Source', meaning: t('where the facts come from', 'مصدر المعلومات عنه') },
-  ] },
-  { name: 'Craft', label: t('Craft (a kind of heritage element)', 'حرفة (نوع من العناصر التراثية)'), props: [
-    { name: 'made_of', range: 'Material', meaning: t('what it is made from', 'ممّ يُصنع') },
-    { name: 'worn_at', range: 'Occasion', meaning: t('when it is customarily worn', 'متى يُلبس عادةً') },
-  ] },
-  { name: 'Source', label: t('Source', 'مصدر'), props: [
-    { name: 'title', range: 'Text', meaning: t('the document or recording', 'الوثيقة أو التسجيل') },
-    { name: 'year', range: 'Number', meaning: t('when it was published', 'سنة النشر') },
-  ] },
-];
-
-function OntologyView() {
-  const say = useTx();
-  return <div className="kn-view">
-    <div className="kn-classes" data-testid="kn-classes">
-      {CLASSES.map(cls => <div key={cls.name} className="kn-class">
-        <b dir="ltr" data-keep>{cls.name}</b><small>{say(cls.label)}</small>
-        <ul>{cls.props.map(prop => <li key={prop.name}><code dir="ltr" data-keep>{prop.name} → {prop.range}</code><span>{say(prop.meaning)}</span></li>)}</ul>
-      </div>)}
-    </div>
-    <div className="kn-rules">
-      <p><Icon name="check" size={14}/><span>{say(t('Rule: a Craft is a kind of HeritageElement, so it inherits name and documented_in.', 'قاعدة: الحرفة نوع من العنصر التراثي، فترث الخاصيتين name و documented_in.'))}</span></p>
-      <p><Icon name="check" size={14}/><span>{say(t('Rule: every HeritageElement must be documented_in at least one Source. An element without a source is rejected.', 'قاعدة: كل عنصر تراثي يجب أن يكون documented_in في مصدر واحد على الأقل. ويُرفض العنصر الذي بلا مصدر.'))}</span></p>
-    </div>
-    <p className="kn-caption">{say(t('The ontology is the rulebook. It does not list the facts about the khanjar; it says what kinds of things exist, which properties they may have, and what each property points to.',
-      'الأنطولوجيا هي كتاب القواعد. فهي لا تسرد المعلومات عن الخنجر، بل تحدّد أنواع الأشياء الموجودة، والخصائص التي يجوز أن تكون لها، وما تشير إليه كل خاصية.'))}</p>
-  </div>;
-}
-
-/* ---------- 3 · Knowledge graph: facts as linked triples ---------- */
+/* ---------- Knowledge graph: facts as linked triples ---------- */
 
 type Rel = 'made_of' | 'worn_at' | 'part_of' | 'documented_in';
 const NODES: { id: string; label: Text; x: number; y: number; kind: string }[] = [
@@ -141,7 +79,7 @@ const QUERIES: { rel: Rel; text: Text }[] = [
   { rel: 'documented_in', text: t('Which source says so?', 'أي مصدر يقول ذلك؟') },
 ];
 
-function GraphView() {
+export function GraphView() {
   const say = useTx();
   const [rel, setRel] = useState<Rel | null>(null);
   const node = (id: string) => NODES.find(n => n.id === id)!;
@@ -187,9 +125,9 @@ function GraphView() {
   </div>;
 }
 
-/* ---------- 4 · Semantics: words, concepts and meaning ---------- */
+/* ---------- Semantics: words, concepts and meaning ---------- */
 
-function SemanticsView() {
+export function SemanticsView() {
   const say = useTx();
   return <div className="kn-view">
     <div className="kn-sem" data-testid="kn-semantics">
@@ -217,39 +155,17 @@ function SemanticsView() {
   </div>;
 }
 
-const VIEWS: Record<Key, () => ReactElement> = { taxonomy: TaxonomyView, ontology: OntologyView, graph: GraphView, semantics: SemanticsView };
-
-export function KnowledgeStructures() {
+/** The four ideas side by side: the comparison, how they build on each other, where they are used, and the summary. */
+export function KnowledgeOverview() {
   const say = useTx();
-  const [active, setActive] = useState<Key>('taxonomy');
-  const concept = KNOWLEDGE_CONCEPTS.find(c => c.key === active)!;
-  const View = VIEWS[active];
-  return <div className="kn" data-testid="knowledge-structures">
-    <h4 className="llm-sub ft-handson"><Icon name="network" size={13}/>{say(t('Taxonomy, ontology, knowledge graph and semantics: organising what we know', 'التصنيف الهرمي والأنطولوجيا والرسم البياني المعرفي والدلالة: تنظيم ما نعرفه'))}</h4>
-    <p className="pc-lead">{say(t('Vectors find passages that mean something similar. Structured knowledge does a different job: it states exactly what things are and how they are related. Four ideas build on each other. Pick one to see it applied to the same heritage element, the Omani khanjar.',
-      'تجد المتجهات المقاطع المتقاربة في المعنى. أما المعرفة المنظَّمة فتؤدي عملًا مختلفًا: فهي تنصّ بدقة على ماهية الأشياء وكيف ترتبط. وهناك أربع أفكار يبني بعضها على بعض. اختر واحدة لتراها مطبّقة على العنصر التراثي نفسه: الخنجر العُماني.'))}</p>
-
-    <div className="kn-tabs" role="tablist" aria-label={say(t('Four ways to structure knowledge', 'أربع طرق لتنظيم المعرفة'))}>
-      {KNOWLEDGE_CONCEPTS.map((c, i) => <button key={c.key} type="button" role="tab" aria-selected={active === c.key}
-        className={active === c.key ? 'on' : ''} style={{ ['--tone' as string]: c.tone }} onClick={() => setActive(c.key)} data-testid={`kn-tab-${c.key}`}>
-        <span className="num">{i + 1}</span><Icon name={c.icon} size={14}/>{say(c.name)}</button>)}
-    </div>
-
-    <div className="kn-panel" role="tabpanel" style={{ ['--tone' as string]: concept.tone }} data-testid="kn-panel">
-      <div className="kn-def">
-        <p className="kn-q"><Icon name="help" size={14}/>{say(t('It answers: ', 'يجيب عن: '))}<b>{say(concept.question)}</b></p>
-        <p>{say(concept.definition)}</p>
-      </div>
-      <View/>
-    </div>
-
+  return <div className="kn" data-testid="knowledge-overview">
     <h5 className="pc-h5">{say(t('At a glance: focus, strength and limitation', 'لمحة سريعة: التركيز ونقطة القوة والقيد'))}</h5>
     <div className="kn-table" role="table" aria-label={say(t('The four ideas compared', 'مقارنة الأفكار الأربع'))}>
       <div className="row head" role="row">
         <span role="columnheader">{say(t('Idea', 'الفكرة'))}</span><span role="columnheader">{say(t('Focus', 'التركيز'))}</span>
         <span role="columnheader">{say(t('Main strength', 'نقطة القوة'))}</span><span role="columnheader">{say(t('Main limitation', 'القيد الرئيسي'))}</span>
       </div>
-      {KNOWLEDGE_CONCEPTS.map(c => <div key={c.key} role="row" className={`row${active === c.key ? ' on' : ''}`} style={{ ['--tone' as string]: c.tone }} data-testid={`kn-row-${c.key}`}>
+      {KNOWLEDGE_CONCEPTS.map(c => <div key={c.key} role="row" className="row" style={{ ['--tone' as string]: c.tone }} data-testid={`kn-row-${c.key}`}>
         <span role="rowheader"><b>{say(c.name)}</b></span>
         <span role="cell"><small>{say(t('Focus', 'التركيز'))}</small>{say(c.focus)}</span>
         <span role="cell"><small>{say(t('Strength', 'القوة'))}</small>{say(c.strength)}</span>
