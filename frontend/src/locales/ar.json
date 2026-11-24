@@ -2184,5 +2184,6 @@
  "Semantics fixes what each term and link means, so every system reads it the same way.": "الدلالة تثبّت معنى كل مصطلح ورابط، فيقرؤه كل نظام بالطريقة نفسها.",
  "In Taxonomy, pick a heritage category and watch the RAG search narrow to the matching sources.": "في «التصنيف الهرمي» اختر فئة تراثية وراقب بحث RAG يضيق إلى المصادر المطابقة.",
  "In How an ontology looks, click each arrow, then apply the prerequisite rule with and without Maryam’s result.": "في «كيف تبدو الأنطولوجيا» انقر كل سهم، ثم طبّق قاعدة المتطلب السابق مع نتيجة مريم ومن دونها.",
- "In Knowledge graph, ask the khanjar graph a question and follow the highlighted links.": "في «الرسم البياني المعرفي» اطرح سؤالًا على رسم الخنجر وتتبّع الروابط المضيئة."
+ "In Knowledge graph, ask the khanjar graph a question and follow the highlighted links.": "في «الرسم البياني المعرفي» اطرح سؤالًا على رسم الخنجر وتتبّع الروابط المضيئة.",
+ "RDF writes each fact as a triple (subject, predicate, object), so facts connect and a reasoning engine can derive new ones.": "يكتب RDF كل حقيقة ثلاثيةً (فاعل ومسند ومفعول)، فتترابط الحقائق ويستطيع محرّك الاستدلال أن يستنتج حقائق جديدة."
 }

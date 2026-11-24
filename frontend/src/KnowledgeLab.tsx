@@ -11,19 +11,21 @@ import type { IconName } from './ui';
 import { t, useTx } from './FineTuneScenes';
 import type { Text } from './FineTuneScenes';
 import { GraphView, KnowledgeOverview, SemanticsView } from './KnowledgeStructures';
+import { RdfPart } from './KnowledgeRdf';
 import { readStored, writeStored } from './libraryStorage';
 import './knowledge.css';
 import './knowledge-lab.css';
 
 const tone = (color: string) => ({ ['--tone' as string]: color }) as CSSProperties;
 
-type PartKey = 'taxonomy' | 'ontology' | 'diagram' | 'graph' | 'semantics' | 'together';
+type PartKey = 'taxonomy' | 'ontology' | 'diagram' | 'rdf' | 'graph' | 'semantics' | 'together';
 export const KNOWLEDGE_PARTS: { key: PartKey; icon: IconName; tone: string; name: Text; question: Text }[] = [
   { key: 'taxonomy', icon: 'layers', tone: '#5ee7ff', name: t('Taxonomy', 'التصنيف الهرمي'), question: t('What belongs under what?', 'ما الذي يندرج تحت ماذا؟') },
   { key: 'ontology', icon: 'grid', tone: '#a78bfa', name: t('Ontology', 'الأنطولوجيا'), question: t('What exists, and how is it related?', 'ما الموجود، وكيف يرتبط بغيره؟') },
   { key: 'diagram', icon: 'network', tone: '#f472b6', name: t('How an ontology looks', 'كيف تبدو الأنطولوجيا'), question: t('Boxes, labelled arrows and rules', 'مربعات وأسهم مسمّاة وقواعد') },
+  { key: 'rdf', icon: 'code', tone: '#ffc46b', name: t('RDF triples', 'ثلاثيات RDF'), question: t('How are facts written for machines?', 'كيف تُكتب الحقائق للآلة؟') },
   { key: 'graph', icon: 'sparkles', tone: '#5ef2a0', name: t('Knowledge graph', 'الرسم البياني المعرفي'), question: t('How are the facts connected?', 'كيف ترتبط الحقائق؟') },
-  { key: 'semantics', icon: 'bulb', tone: '#ffc46b', name: t('Semantics', 'الدلالة'), question: t('What does it mean?', 'ماذا يعني ذلك؟') },
+  { key: 'semantics', icon: 'bulb', tone: '#fb923c', name: t('Semantics', 'الدلالة'), question: t('What does it mean?', 'ماذا يعني ذلك؟') },
   { key: 'together', icon: 'check', tone: '#93c5fd', name: t('Putting it together', 'الصورة الكاملة'), question: t('How do the four work together?', 'كيف تعمل الأربعة معًا؟') },
 ];
 
@@ -364,8 +366,8 @@ function GraphPart() {
     <h3 className="kl-h3">{say(t('What is a knowledge graph?', 'ما الرسم البياني المعرفي؟'))}</h3>
     <p className="kl-define">{say(t('A knowledge graph is a network-based representation of knowledge in which entities are connected by typed relationships. It answers: how are concepts connected in a machine-readable network?',
       'الرسم البياني المعرفي (Knowledge graph) تمثيل للمعرفة على هيئة شبكة، ترتبط فيها الكيانات بعلاقات ذات أنواع محدّدة. وهو يجيب عن السؤال: كيف ترتبط المفاهيم في شبكة يقرؤها الحاسوب؟'))}</p>
-    <p className="pc-lead">{say(t('The ontology is the plan: the types and the arrows allowed between them. The knowledge graph is the data that follows the plan: real entities such as Maryam, COMP 151 or the Omani khanjar, and one arrow for every fact. Each fact is stored as a triple: subject, relation, object.',
-      'الأنطولوجيا هي المخطط: الأنواع والأسهم المسموح بها بينها. والرسم البياني المعرفي هو البيانات التي تتبع المخطط: كيانات حقيقية مثل مريم و COMP 151 والخنجر العُماني، وسهم لكل حقيقة. وتُخزَّن كل حقيقة ثلاثيةً: فاعل، وعلاقة، ومفعول.'))}</p>
+    <p className="pc-lead">{say(t('The ontology is the plan: the types and the arrows allowed between them. The knowledge graph is the data that follows the plan: real entities such as Maryam, COMP 151 or the Omani khanjar, and one arrow for every fact. Each fact is stored as a triple: subject, relation, object, which is exactly what RDF writes down (see the RDF triples part).',
+      'الأنطولوجيا هي المخطط: الأنواع والأسهم المسموح بها بينها. والرسم البياني المعرفي هو البيانات التي تتبع المخطط: كيانات حقيقية مثل مريم و COMP 151 والخنجر العُماني، وسهم لكل حقيقة. وتُخزَّن كل حقيقة ثلاثيةً: فاعل، وعلاقة، ومفعول، وهذا بالضبط ما يكتبه RDF (انظر جزء ثلاثيات RDF).'))}</p>
     <h4 className="kl-h4">{say(t('The Dhofar University facts as triples', 'حقائق جامعة ظفار في صورة ثلاثيات'))}</h4>
     <div className="kn-triples kl-dutriples">{DHOFAR_TRIPLES.map(triple => <code key={triple} dir="ltr" data-keep>{triple}</code>)}</div>
     <h4 className="kl-h4">{say(t('A heritage knowledge graph: ask it a question', 'رسم بياني معرفي للتراث: اطرح عليه سؤالًا'))}</h4>
@@ -407,7 +409,7 @@ function TogetherPart() {
 }
 
 const PARTS: Record<PartKey, () => ReactNode> = {
-  taxonomy: () => <TaxonomyPart/>, ontology: () => <OntologyPart/>, diagram: () => <DiagramPart/>,
+  taxonomy: () => <TaxonomyPart/>, ontology: () => <OntologyPart/>, diagram: () => <DiagramPart/>, rdf: () => <RdfPart/>,
   graph: () => <GraphPart/>, semantics: () => <SemanticsPart/>, together: () => <TogetherPart/>,
 };
 const STORE = 'neuron-lab-knowledge-part';
@@ -430,8 +432,8 @@ export function KnowledgeLab() {
       <div className="ft-lab-title">
         <div className="eyebrow">{say(t('Knowledge structures', 'هياكل المعرفة'))}</div>
         <h2>{say(t('Organise what we know: taxonomy, ontology, knowledge graph and semantics', 'نظّم ما نعرفه: التصنيف الهرمي والأنطولوجيا والرسم البياني المعرفي والدلالة'))}</h2>
-        <p>{say(t('How information is classified, defined, connected and understood, by people and by AI systems. Vectors in RAG find text that sounds similar; these four structures say exactly what things are and how they relate. Six short parts, with examples from the Omani heritage archive and the Dhofar University academic guide.',
-          'كيف تُصنَّف المعلومات وتُعرَّف وتُربط وتُفهم، عند الناس وعند أنظمة الذكاء الاصطناعي. فالمتجهات في RAG تجد النصوص المتقاربة في المعنى، أما هذه الهياكل الأربعة فتنصّ بدقة على ماهية الأشياء وكيف ترتبط. ستة أجزاء قصيرة، بأمثلة من أرشيف التراث العُماني ودليل جامعة ظفار الأكاديمي.'))}</p>
+        <p>{say(t('How information is classified, defined, connected and understood, by people and by AI systems. Vectors in RAG find text that sounds similar; these four structures say exactly what things are and how they relate. Seven short parts, with examples from the Omani heritage archive and the Dhofar University academic guide.',
+          'كيف تُصنَّف المعلومات وتُعرَّف وتُربط وتُفهم، عند الناس وعند أنظمة الذكاء الاصطناعي. فالمتجهات في RAG تجد النصوص المتقاربة في المعنى، أما هذه الهياكل الأربعة فتنصّ بدقة على ماهية الأشياء وكيف ترتبط. سبعة أجزاء قصيرة، بأمثلة من أرشيف التراث العُماني ودليل جامعة ظفار الأكاديمي.'))}</p>
       </div>
     </header>
 

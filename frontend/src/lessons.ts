@@ -203,6 +203,7 @@ export const LESSONS: Lesson[] = [
     learn: [
       'A taxonomy groups information into categories and subcategories: what belongs under what.',
       'An ontology adds properties, labelled relationships and rules, so a system can explain and conclude.',
+      'RDF writes each fact as a triple (subject, predicate, object), so facts connect and a reasoning engine can derive new ones.',
       'A knowledge graph stores the actual facts as connected triples that follow the ontology.',
       'Semantics fixes what each term and link means, so every system reads it the same way.',
     ],

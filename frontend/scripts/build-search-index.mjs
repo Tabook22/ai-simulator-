@@ -45,7 +45,7 @@ const nameOf = text => text.split('\n').map(line => line.trim()).find(line => li
 /** Runs in the page: every visible heading under `rootSelector` and the text that follows it. */
 function harvest(rootSelector) {
   const HEADINGS = 'h1, h2, h3, h4, h5, h6, summary, dt';
-  const SKIP = 'header.topbar, nav, .workspace-tabs, .ft-rail, .ft-part-tabs, footer, script, style, noscript, [aria-hidden="true"], .site-search-backdrop, .quest-strip';
+  const SKIP = 'header.topbar, nav, .workspace-tabs, .ft-rail, .ft-part-tabs, .kl-rail, .kl-part-eyebrow, footer, script, style, noscript, [aria-hidden="true"], .site-search-backdrop, .quest-strip';
   const clean = text => (text ?? '').replace(/\s+/g, ' ').trim();
   const root = document.querySelector(rootSelector);
   if (!root) return [];
