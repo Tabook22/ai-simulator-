@@ -8,10 +8,10 @@ const open = async (page: Page, part: string) => {
   await expect(page.getByTestId(`kl-part-${part}`)).toHaveAttribute('aria-selected', 'true');
 };
 
-test('the knowledge structures lab has its own tab and seven parts', async ({ page }) => {
+test('the knowledge structures lab has its own tab and eight parts', async ({ page }) => {
   await open(page, 'taxonomy');
   await expect(page.getByTestId('knowledge-lab')).toBeVisible();
-  await expect(page.locator('.kl-rail [role="tab"]')).toHaveCount(7);
+  await expect(page.locator('.kl-rail [role="tab"]')).toHaveCount(8);
   await expect(page.getByTestId('kl-panel')).toContainText('What is a taxonomy?');
   await page.getByTestId('kl-next').click();
   await expect(page.getByTestId('kl-part-ontology')).toHaveAttribute('aria-selected', 'true');
@@ -84,6 +84,44 @@ test('RDF triples: a paragraph becomes seven triples, they connect, and reasonin
   await expect(page.getByTestId('kr-edge-t8')).toHaveClass(/inferred/);
   await expect(page.getByTestId('kr-focus')).toContainText('Mirbat: subject of 2');
   await expect(page.getByTestId('kr-pipeline').locator('li')).toHaveCount(6);
+});
+
+test('RDF files and Turtle: identifiers, the file, and a visualizer that draws what you type', async ({ page }) => {
+  await open(page, 'turtle');
+  await expect(page.getByTestId('kt-parts')).toContainText('The thing you’re describing');
+  await page.getByTestId('kt-hide-predicate').click();
+  await expect(page.getByTestId('kt-ambiguity')).toContainText('the link is ambiguous');
+  await page.getByTestId('kt-share').click();
+  await expect(page.getByTestId('kt-table-vs')).toContainText('we cannot tell what Mirbat is about');
+  await page.getByTestId('kt-expand').click();
+  await expect(page.getByTestId('kt-ids')).toContainText('<https://example.org/heritage/Mirbat>');
+  await page.getByTestId('kt-line-1').click();
+  await expect(page.getByTestId('kt-line-explain')).toContainText('Defines h: as a shortcut');
+  await expect(page.getByTestId('kt-illustration')).toBeVisible();
+  expect(await page.getByTestId('kt-illustration').evaluate(img => (img as HTMLImageElement).naturalWidth)).toBe(500);
+
+  // The visualizer: one Mirbat box however many times it is mentioned.
+  const editor = page.getByTestId('kt-editor');
+  await expect(page.getByTestId('kt-stats')).toHaveText('3 triples → 4 boxes, 3 arrows');
+  await expect(page.getByTestId('kt-shared')).toContainText('Mirbat (3×)');
+  await page.getByTestId('kt-preset-two-files').click();
+  await expect(page.getByTestId('kt-stats')).toHaveText('2 triples → 3 boxes, 2 arrows');
+  await page.getByTestId('kt-preset-heritage').click();
+  await editor.fill(`${await editor.inputValue()}
+h:Recording27 h:wasRecordedIn h:Mirbat .`);
+  await expect(page.getByTestId('kt-stats')).toHaveText('3 triples → 4 boxes, 3 arrows');
+  await expect(page.getByTestId('kt-graph')).toContainText('Recording 27');
+  await page.getByTestId('kt-shuffle').click();
+  await expect(page.getByTestId('kt-stats')).toHaveText('3 triples → 4 boxes, 3 arrows');
+  await editor.fill('@prefix h: <https://example.org/heritage/> .\nh:Recording15 h:wasRecordedIn x:Mirbat .\nh:Mirbat h:isLocatedIn h:Dhofar');
+  await expect(page.getByTestId('kt-errors')).toContainText('Line 2: The prefix “x:” is not defined.');
+  await expect(page.getByTestId('kt-errors')).toContainText('Line 3: Each statement must end with a period (.).');
+
+  // A question walks from fact to fact through the shared identifier.
+  await page.getByTestId('kt-ask').click();
+  await expect(page.getByTestId('kt-answer')).toContainText('Both match: Recording 15 and Recording 27');
+  await expect(page.getByTestId('kt-question').locator('.kt-edge.on')).toHaveCount(3);
+  await expect(page.getByTestId('kt-journey').locator('li')).toHaveCount(6);
 });
 
 test('knowledge graph, semantics and the overview', async ({ page }) => {
