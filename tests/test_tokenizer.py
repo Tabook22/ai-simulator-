@@ -124,3 +124,11 @@ def test_transformer_story_examples_use_real_ids():
                        ("OMAN_ANSWER", "The capital of Oman is Muscat.")]:
         literal = "[" + ", ".join(f"[{i}, {ENC.decode([i])!r}]" for i in ENC.encode(text)) + "]"
         assert f"export const {name} = {literal};" in source, name
+
+def test_self_attention_example_uses_real_ids():
+    """The self-attention panel's sentence uses real o200k_base IDs."""
+    from pathlib import Path
+    source = (Path(__file__).resolve().parents[1] / "frontend" / "src" / "SelfAttention.tsx").read_text(encoding="utf-8")
+    text = "The cat sat on the mat because it was tired."
+    literal = "[" + ", ".join(f"[{i}, {ENC.decode([i])!r}]" for i in ENC.encode(text)) + "]"
+    assert f"export const CAT_SENTENCE = {literal};" in source

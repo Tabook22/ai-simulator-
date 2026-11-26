@@ -95,7 +95,9 @@ function switchers(rootSelector) {
   return [...groups].filter(group => !group.closest(SKIP) && group.getClientRects().length).map(group => {
     const buttons = [...group.querySelectorAll(':scope > button, :scope > [role="tab"], :scope > * > button')].filter(button => clean(button.textContent));
     const name = button => (button.innerText ?? '').split('\n').map(clean).find(line => line && !/^\d+$/.test(line)) ?? clean(button.textContent);
-    return buttons.map(button => ({ label: clean(button.textContent), name: name(button), on: button.getAttribute('aria-selected') === 'true' || button.getAttribute('aria-current') === 'step' || button.classList.contains('on') || button.classList.contains('current') }));
+    // A part list or a step rail names a section; a small tab group inside a section does not.
+    const primary = group.getAttribute('aria-orientation') === 'vertical' || Boolean(group.querySelector('button[aria-current="step"]'));
+    return buttons.map(button => ({ label: clean(button.textContent), name: name(button), primary, on: button.getAttribute('aria-selected') === 'true' || button.getAttribute('aria-current') === 'step' || button.classList.contains('on') || button.classList.contains('current') }));
   }).filter(buttons => buttons.length > 1 && buttons.length <= 24);
 }
 
@@ -138,7 +140,7 @@ async function crawl(language) {
     const groups = await page.evaluate(switchers, rootSelector);
     // What shows first still needs its tab or step pressed when the student is elsewhere.
     const starts = groups.map(group => group.find(button => button.on)).filter(Boolean);
-    await record(starts.length ? { ...place, clicks: starts.map(button => button.label), crumbs: [...place.crumbs, ...starts.map(button => button.name)] } : place, rootSelector);
+    await record(starts.length ? { ...place, clicks: starts.map(button => button.label), crumbs: [...place.crumbs, ...starts.filter(button => button.primary).map(button => button.name)] } : place, rootSelector);
     for (const group of groups) {
       const start = group.find(button => button.on);
       for (const button of group) {

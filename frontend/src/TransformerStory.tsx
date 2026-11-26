@@ -3,10 +3,11 @@
  *
  *  1. Token cards: every token gets a Query, a Key and a Value from its current vector. Pick the token that
  *     is asking; its Query is compared with every Key (dot product ÷ √3, then softmax) and the Values are mixed in.
- *  2. Does position matter? The same words in a different order ask for different things.
- *  3. How a Transformer answers "What is the capital of Oman?": five steps, the answer built one token at a time.
- *  4. The weight workbook: the five kinds of learned numbers and where the model uses them.
- *  5. How layers work together: each layer has attention + feed-forward and its own weights.
+ *  2. Self-attention step by step (SelfAttention.tsx): GPT-style attention, how "it" finds "cat", and heads.
+ *  3. Does position matter? The same words in a different order ask for different things.
+ *  4. How a Transformer answers "What is the capital of Oman?": five steps, the answer built one token at a time.
+ *  5. The weight workbook: the five kinds of learned numbers and where the model uses them.
+ *  6. How layers work together: each layer has attention + feed-forward and its own weights.
  *
  * Token IDs are real o200k_base IDs (checked by tests/test_tokenizer.py). Query, Key and Value numbers are
  * small, hand-made illustrations: real models learn them and use hundreds of numbers each.
@@ -18,6 +19,7 @@ import type { IconName } from './ui';
 import { t, useTx } from './FineTuneScenes';
 import type { Text } from './FineTuneScenes';
 import { visiblePiece } from './tokenizer';
+import { SelfAttention } from './SelfAttention';
 
 type Card = { id: number; piece: string; q: number[]; k: number[]; v: number[] };
 
@@ -153,7 +155,7 @@ function TokenCards() {
 function PositionMatters() {
   const say = useTx();
   return <div className="trf-panel" data-testid="trf-position">
-    <b className="trf-panel-title"><span className="trf-n">2</span>{say(t('Does position matter? Yes', 'هل الموضع مهم؟ نعم'))}</b>
+    <b className="trf-panel-title"><span className="trf-n">3</span>{say(t('Does position matter? Yes', 'هل الموضع مهم؟ نعم'))}</b>
     <div className="trf-compare">
       <div><code data-keep dir="ltr">What is the capital of Oman?</code><span>{say(t('asks for a city', 'تسأل عن مدينة'))}</span></div>
       <div><code data-keep dir="ltr">Oman is the capital of what?</code><span>{say(t('asks for whatever Oman is the capital of', 'تسأل عمّا تكون عُمان عاصمته'))}</span></div>
@@ -184,7 +186,7 @@ function AnswerQuestion() {
     [t('Predict the next token', 'تنبّأ بالرمز التالي'), t('The output weights score every token in the vocabulary. The model picks one, adds it to the text, and repeats.', 'أوزان الإخراج تعطي درجة لكل رمز في المفردات. يختار النموذج واحدًا، ويضيفه إلى النص، ويكرّر.')],
   ];
   return <div className="trf-panel" data-testid="trf-answer">
-    <b className="trf-panel-title"><span className="trf-n">3</span>{say(t('How a Transformer answers a question', 'كيف يجيب المحوّل عن سؤال'))}</b>
+    <b className="trf-panel-title"><span className="trf-n">4</span>{say(t('How a Transformer answers a question', 'كيف يجيب المحوّل عن سؤال'))}</b>
     <p className="trf-question" dir="ltr">{question.map((item, i) => <span key={i} className={item.id === 9029 || item.id === 126197 ? 'hit' : ''}>
       <code data-keep>{show(item.piece)}</code><small>{item.id}</small></span>)}</p>
     <ol className="trf-steps">
@@ -239,7 +241,7 @@ function Workbook() {
   const say = useTx();
   const [sheet, setSheet] = useState(1);
   return <div className="trf-panel" data-testid="trf-workbook">
-    <b className="trf-panel-title"><span className="trf-n">4</span>{say(t('The Transformer’s weight workbook', 'دفتر أوزان المحوّل'))}</b>
+    <b className="trf-panel-title"><span className="trf-n">5</span>{say(t('The Transformer’s weight workbook', 'دفتر أوزان المحوّل'))}</b>
     <p className="trf-text">{say(t('The model’s weight files are like a workbook (think of a spreadsheet file) full of learned numbers, with different sheets for different jobs. Click a sheet to see where the model uses it.',
       'ملفات أوزان النموذج تشبه دفتر عمل (تخيّل ملف جدول بيانات) مليئًا بالأرقام المتعلَّمة، فيه أوراق مختلفة لمهام مختلفة. انقر ورقة لترى أين يستخدمها النموذج.'))}</p>
     <div className="trf-book">
@@ -286,7 +288,7 @@ function Layers() {
   }, [playing, layer]);
   const colours = ['teal', 'gold', 'violet'];
   return <div className="trf-panel" data-testid="trf-layers">
-    <b className="trf-panel-title"><span className="trf-n">5</span>{say(t('How Transformer layers work together', 'كيف تعمل طبقات المحوّل معًا'))}</b>
+    <b className="trf-panel-title"><span className="trf-n">6</span>{say(t('How Transformer layers work together', 'كيف تعمل طبقات المحوّل معًا'))}</b>
     <p className="trf-text">{say(t('Each layer is like a workshop station with the same two tools: attention, which lets each token pick up clues from other tokens, and a feed-forward network (MLP), which then processes each token’s vector on its own. Every station has its own learned weights and receives the vectors the station before it updated.',
       'كل طبقة تشبه محطة ورشة فيها الأداتان نفسهما: الانتباه، الذي يتيح لكل رمز التقاط دلائل من الرموز الأخرى، وشبكة التغذية الأمامية (MLP)، التي تعالج متجه كل رمز وحده بعد ذلك. لكل محطة أوزانها المتعلَّمة، وتستقبل المتجهات التي حدّثتها المحطة التي قبلها.'))}</p>
     <div className="trf-gen-head">
@@ -325,6 +327,7 @@ export function TransformerStory() {
         'كل كلمة تساعد في تشكيل معنى الجملة، والجملة تساعد في تشكيل معنى كل كلمة. في «The ship reached the port» تعطي ship كلمة port دليلًا على أنها مرفأ؛ و«the» و«reached» تبيّنان أن ship سفينة تفعل شيئًا؛ و reached تخبرنا بما حدث: وصلت السفينة إلى المرفأ. يبدأ كل رمز بمتجهه المتعلَّم، وفي كل طبقة يلتقط دلائل من الرموز الأخرى، وتعمل الطبقة التالية على المتجهات المحدَّثة.'))}</p>
     </header>
     <TokenCards/>
+    <SelfAttention/>
     <PositionMatters/>
     <AnswerQuestion/>
     <Workbook/>
